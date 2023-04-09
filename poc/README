@@ -1,1 +1,13 @@
 Before we go ahead and implement this thing, this is a quick and dirty playground to see where we are.
+
+
+Before starting - 
+- `gunzip` all json files in the `poc/` directory - `$ cd poc && gunzip *.json.gz`
+
+Responsibilities:
+- `ckan.py`
+  This file scrapes CKAN instances and stores simplified dataset records in a json file.
+  Generally, we save all intermediate files as json files currently to avoid re-scraping, incurring extra API costs and allowing simpler collaboration.
+- `embeddings.py`
+  This file takes the json files and creates embedding vectors using OpenAI API.
+  The result is saved to a json file as well.
