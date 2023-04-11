@@ -4,6 +4,7 @@ Before we go ahead and implement this thing, this is a quick and dirty playgroun
 Before starting - 
 - `gunzip datasets.json.gz`
 - `wget https://storage.googleapis.com/ckangpt.whiletrue.industries/poc/embeddings.pickle`
+- `cp .env.sample to .env` and fill in your OpenAI API key
 
 Responsibilities:
 - `ckan.py`
