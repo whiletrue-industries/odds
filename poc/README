@@ -2,7 +2,8 @@ Before we go ahead and implement this thing, this is a quick and dirty playgroun
 
 
 Before starting - 
-- `gunzip` all json files in the `poc/` directory - `$ cd poc && gunzip *.json.gz`
+- `gunzip datasets.json.gz`
+- `wget https://storage.googleapis.com/ckangpt.whiletrue.industries/poc/embeddings.pickle`
 
 Responsibilities:
 - `ckan.py`
@@ -10,4 +11,6 @@ Responsibilities:
   Generally, we save all intermediate files as json files currently to avoid re-scraping, incurring extra API costs and allowing simpler collaboration.
 - `embeddings.py`
   This file takes the json files and creates embedding vectors using OpenAI API.
-  The result is saved to a json file as well.
+  The result is saved to a pickle file.
+- `bot.py`
+  This file takes a query from the user, calculates its embedding vector and finds the closest N matches in the dataset using cosine similarity.
