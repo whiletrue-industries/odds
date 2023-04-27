@@ -17,9 +17,9 @@ class DataSetsPromptTemplate(PromptTemplate):
         dataset = json.loads(kwargs['page_content'])
         res = [l for l in [
             f"Title: {dataset['title'].strip()}",
-            f"Notes: {dataset['notes'].strip()}" if dataset.get('notes') else None,
+            f"Notes: {dataset['notes'].strip()[:200]}" if dataset.get('notes') else None,
             f"Organization: {dataset['organization']['title'].strip()}" if dataset.get('organization', {}).get('title') else None,
-            f"Organization description: {dataset['organization']['description'].strip()}" if dataset.get('organization', {}).get('description') else None,
+            # f"Organization description: {dataset['organization']['description'].strip()}" if dataset.get('organization', {}).get('description') else None,
         ] if l]
         for num, resource in dataset.get('resources', {}).items():
             if resource.get('name'):
@@ -30,7 +30,7 @@ class DataSetsPromptTemplate(PromptTemplate):
 def main(query, gpt4=False):
     if gpt4:
         print('WARNING! Using GPT-4 - this will be slow and expensive!')
-    retriever = chroma.get_langchain_datasets_db().as_retriever()
+    retriever = chroma.get_langchain_datasets_db().as_retriever(search_kwargs=dict(k=4))
     chain = RetrievalQA.from_chain_type(
         ChatOpenAI(model_name='gpt-4' if gpt4 else 'gpt-3.5-turbo', request_timeout=240),
         chain_type='stuff', chain_type_kwargs={
