@@ -16,7 +16,7 @@ pip install -e .
 
 Copy `.env.sample` to `.env` and set your OPENAI_API_KEY
 
-### Frontend usage
+### Usage
 
 Download the ChromaDB
 
@@ -28,4 +28,10 @@ Make a query to the frontend using GPT-4
 
 ```
 ckangpt frontend find-dataset --gpt4 "Can you find any research on biotoxins in mussels in the UK?"
+```
+
+Describe a dataset using GPT-4
+
+```
+ckangpt backend describe-dataset --gpt4 https://data.gov.uk/other-species-conditions-data
 ```
