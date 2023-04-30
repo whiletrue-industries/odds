@@ -18,7 +18,11 @@ def main(limit=None):
     for i, (url, embeddings) in enumerate(all_embeddings):
         if limit and i > int(limit):
             break
-        print(f'Adding {url}')
+        if url not in all_datasets:
+            print(f'No dataset for {url}')
+            continue
+        if i % 1000 == 0:
+            print(f'{i}: Adding {url}')
         dataset = all_datasets[url]
         collection.add(
             embeddings=list(embeddings),
@@ -29,5 +33,8 @@ def main(limit=None):
             },
             ids=url,
         )
-    client.persist()
+    try:
+        client.persist()
+    except NotImplementedError:
+        pass
     print('OK')

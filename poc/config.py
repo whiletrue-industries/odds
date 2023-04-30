@@ -14,5 +14,6 @@ KEEP_FIELDS = [
     'resources.name',
     'resources.format',
     'resources.notes',
+    'resources.url',
     'tags.name',
 ]
