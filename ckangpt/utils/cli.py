@@ -7,10 +7,15 @@ def utils():
 
 
 @utils.command()
-@click.option('--limit')
-def convert_poc_to_chroma_db(limit):
+@click.argument('COLLECTION_NAME')
+@click.option('--limit', help='Limit the number of datasets to convert, for testing only.', type=int)
+@click.option('--force', is_flag=True, help='Allows to overwrite the default collection. This will cause downtime for anyone currently using the app.')
+@click.option('--continue', is_flag=True, help='Continue from the last dataset.')
+@click.option('--debug', is_flag=True)
+def convert_poc_to_chroma_db(collection_name, **kwargs):
     from . import convert_poc_to_chroma_db
-    convert_poc_to_chroma_db.main(limit)
+    kwargs['continue_from_last'] = kwargs.pop('continue')
+    convert_poc_to_chroma_db.main(collection_name, **kwargs)
 
 
 @utils.command()
@@ -39,3 +44,11 @@ def list_datasets(search):
 def get_datasets(dataset_id):
     from .datasets import get_dataset
     print(get_dataset(dataset_id))
+
+
+@utils.command()
+@click.argument('COLLECTION_NAME')
+@click.option('--force', is_flag=True, help='Allows to reindex the default collection. This will cause downtime for anyone currently using the app.')
+def reindex_collection(collection_name, force):
+    from . import reindex_collection
+    reindex_collection.main(collection_name, force)

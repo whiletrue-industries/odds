@@ -6,3 +6,4 @@ chromadb==0.3.21
 langchain==0.0.148
 tiktoken==0.3.3
 dataflows==0.3.22
+tqdm==4.65.0
