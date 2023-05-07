@@ -14,10 +14,10 @@ def utils():
 @click.option('--force', is_flag=True, help='Allows to overwrite the default collection. This will cause downtime for anyone currently using the app.')
 @click.option('--continue', is_flag=True, help='Continue from the last dataset.')
 @click.option('--debug', is_flag=True)
-def convert_poc_to_chroma_db(collection_name, **kwargs):
-    from . import convert_poc_to_chroma_db
+def convert_poc_to_vector_db(collection_name, **kwargs):
+    from . import convert_poc_to_vector_db
     kwargs['continue_from_last'] = kwargs.pop('continue')
-    convert_poc_to_chroma_db.main(collection_name, **kwargs)
+    convert_poc_to_vector_db.main(collection_name, **kwargs)
 
 
 @utils.command()
@@ -58,14 +58,14 @@ def reindex_collection(collection_name, force):
 
 @utils.command()
 def list_collections():
-    from ckangpt import chroma
-    for collection in chroma.list_collections():
+    from ckangpt import vectordb
+    for collection in vectordb.get_vector_db_instance().list_collections():
         print(collection.name)
 
 
 @utils.command()
 @click.argument("NAME")
 def delete_collection(name):
-    from ckangpt import chroma
-    chroma.delete_collection(name)
+    from ckangpt import vectordb
+    vectordb.get_vector_db_instance().delete_collection(name)
     print('OK')

@@ -1,19 +1,14 @@
-from ckangpt import chroma
+from ckangpt import vectordb
+
 
 def list_datasets(*, client=None):
-    _, collection = chroma.get_or_create_datasets_collection(client=client)
-    offset = 0
-    while True:
-        results = collection.get(offset=offset, limit=1000, include=[])
-        ids = results.get('ids', [])
-        for id in ids:
-            yield id
-        offset += len(ids)
-        if len(ids) == 0:
-            break
+    vdb = vectordb.get_vector_db_instance()
+    collection = vdb.get_or_create_datasets_collection()
+    yield from collection.iterate_item_ids()
 
 
 def get_dataset(dataset_id, *, client=None):
-    _, collection = chroma.get_or_create_datasets_collection(client=client)
+    vdb = vectordb.get_vector_db_instance()
+    collection = vdb.get_or_create_datasets_collection()
     print('getting', dataset_id)
-    return collection.get([dataset_id]).get('documents', [{}])[0]
+    return collection.get_item_document(dataset_id)

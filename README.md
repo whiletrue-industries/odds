@@ -39,9 +39,9 @@ This is an advanced feature, you probably don't need to do this, unless you know
 To prevent downtime, you should use a new unique collection name to populate the database, then switch the collection name when ready.
 
 ```
-ckangpt utils convert-poc-to-chroma-db "<UNIQUE_COLLECTION_NAME>"
+ckangpt utils convert-poc-to-vector-db "<UNIQUE_COLLECTION_NAME>"
 # if there are errors, you can try to continue on the same dataset
-ckangpt utils convert-poc-to-chroma-db "<UNIQUE_COLLECTION_NAME>" --continue 
+ckangpt utils convert-poc-to-vector-db "<UNIQUE_COLLECTION_NAME>" --continue 
 ```
 
 When done, you can test the collection by setting `CHROMADB_DATASETS_COLLECTION_NAME=datasets2` in the .env

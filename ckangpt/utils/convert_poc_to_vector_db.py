@@ -7,7 +7,8 @@ from collections import defaultdict
 
 from tqdm import tqdm
 
-from ckangpt import chroma, config
+from ckangpt import config
+from ckangpt.vectordb import get_vector_db_instance
 
 
 def load_datasets():
@@ -36,26 +37,24 @@ def get_dataset_metadata(dataset):
     }
 
 
-def iterate_collection_items(limit=None):
+def iterate_collection_items(item_class, limit=None):
     all_datasets = load_datasets()
     for i, url, embeddings in iterate_embeddings(limit=limit):
         if url in all_datasets:
             dataset = all_datasets[url]
-            yield True, {
-                'embeddings': list(embeddings),
-                'document': json.dumps(dataset),
-                'metadata': get_dataset_metadata(dataset),
-                'id': url
-            }
+            yield True, item_class(
+                embeddings=list(embeddings),
+                document=json.dumps(dataset),
+                metadata=get_dataset_metadata(dataset),
+                id=url
+            )
         else:
-            yield False, {
-                'error': f'No dataset for {url}'
-            }
+            yield False, f'No dataset for {url}'
 
 
-def iterate_collection_item_batches(batch_size=1000, limit=None):
+def iterate_collection_item_batches(item_class, batch_size=1000, limit=None):
     batch = []
-    for is_valid, item in iterate_collection_items(limit=limit):
+    for is_valid, item in iterate_collection_items(item_class, limit=limit):
         if is_valid:
             batch.append(item)
         else:
@@ -67,51 +66,47 @@ def iterate_collection_item_batches(batch_size=1000, limit=None):
         yield True, batch
 
 
-def add_batch_to_collection(client, collection, batch, continue_from_last=False):
-    all_item_ids = [item['id'] for item in batch]
+def add_batch_to_collection(vdb, collection, items, continue_from_last=False):
+    all_item_ids = [item.id for item in items]
     if continue_from_last:
-        existing_item_ids = collection.get(ids=[item['id'] for item in batch], include=[])['ids']
+        existing_item_ids = collection.get_existing_item_ids(all_item_ids)
     else:
         existing_item_ids = []
     new_item_ids = [item_id for item_id in all_item_ids if item_id not in existing_item_ids]
     if len(new_item_ids) > 0:
-        collection.add(
-            ids=[item['id'] for item in batch if item['id'] in new_item_ids],
-            embeddings=[item['embeddings'] for item in batch if item['id'] in new_item_ids],
-            metadatas=[item['metadata'] for item in batch if item['id'] in new_item_ids],
-            documents=[item['document'] for item in batch if item['id'] in new_item_ids],
-        )
-        if not config.USE_CLICKHOUSE and not config.USE_CHROMA_SERVER:
-            client.persist()
+        collection.add([item for item in items if item.id in new_item_ids])
+        vdb.persist()
 
 
 def main(collection_name, limit=None, force=False, continue_from_last=False, debug=False):
-    if collection_name == config.CHROMADB_DATASETS_COLLECTION_NAME:
+    vdb = get_vector_db_instance()
+    if collection_name == vdb.get_default_collection_name():
         if force:
             print("WARNING! Recreating the default collection. This will cause downtime for anyone currently using the app.")
         else:
             raise Exception('Cannot overwrite the default collection. Please create a new collection and when done change the configured collection name.')
-    print(f'Populating collection name: `{collection_name}`...')
+    print(f'Populating collection name: `{collection_name}` using vector db provider {vdb.get_vector_db_provider_name()}...')
     print(f'Limit: {limit}')
     print(f'Force: {force}')
     print(f'Continue from last: {continue_from_last}')
     stats = defaultdict(int)
     if continue_from_last:
-        client, collection = chroma.get_datasets_collection(override_collection_name=collection_name)
+        collection = vdb.get_datasets_collection(override_collection_name=collection_name)
     elif force:
-        client, collection = chroma.get_or_create_datasets_collection(override_collection_name=collection_name)
+        collection = vdb.get_or_create_datasets_collection(override_collection_name=collection_name)
         print('Deleting existing collection...')
         collection.delete()
     else:
-        client, collection = chroma.create_datasets_collection(override_collection_name=collection_name)
+        collection = vdb.create_datasets_collection(override_collection_name=collection_name)
     print('Adding items to collection...')
-    for is_valid, batch in iterate_collection_item_batches(limit=limit):
+    for is_valid, items in iterate_collection_item_batches(vdb.Item, limit=limit):
         if is_valid:
-            stats['valid'] += len(batch)
-            add_batch_to_collection(client, collection, batch, continue_from_last=continue_from_last)
+            stats['valid'] += len(items)
+            add_batch_to_collection(vdb, collection, items, continue_from_last=continue_from_last)
         else:
+            error = items
             stats['error'] += 1
             if debug:
-                print(batch['error'])
+                print(error)
     pprint(dict(stats))
     print('OK')
