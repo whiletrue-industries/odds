@@ -1,5 +1,7 @@
 import click
 
+from ckangpt import common
+
 
 @click.group()
 def utils():
@@ -52,3 +54,18 @@ def get_datasets(dataset_id):
 def reindex_collection(collection_name, force):
     from . import reindex_collection
     reindex_collection.main(collection_name, force)
+
+
+@utils.command()
+def list_collections():
+    from ckangpt import chroma
+    for collection in chroma.list_collections():
+        print(collection.name)
+
+
+@utils.command()
+@click.argument("NAME")
+def delete_collection(name):
+    from ckangpt import chroma
+    chroma.delete_collection(name)
+    print('OK')

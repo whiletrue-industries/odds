@@ -28,6 +28,14 @@ def iterate_embeddings(limit=None):
             break
 
 
+def get_dataset_metadata(dataset):
+    # metadata should include only a limited number of fields and values because it is indexed in Chroma
+    ckan_instance = dataset.get('ckan_instance')
+    return {
+        'ckan_instance': ckan_instance if ckan_instance in ['https://data.gov.uk', 'https://data.gov.il'] else ''
+    }
+
+
 def iterate_collection_items(limit=None):
     all_datasets = load_datasets()
     for i, url, embeddings in iterate_embeddings(limit=limit):
@@ -36,10 +44,7 @@ def iterate_collection_items(limit=None):
             yield True, {
                 'embeddings': list(embeddings),
                 'document': json.dumps(dataset),
-                'metadata': {
-                    'name': dataset['name'],
-                    'ckan_instance': dataset['ckan_instance'],
-                },
+                'metadata': get_dataset_metadata(dataset),
                 'id': url
             }
         else:
@@ -91,10 +96,15 @@ def main(collection_name, limit=None, force=False, continue_from_last=False, deb
     print(f'Force: {force}')
     print(f'Continue from last: {continue_from_last}')
     stats = defaultdict(int)
-    client, collection = chroma.get_or_create_datasets_collection(override_collection_name=collection_name)
-    if not continue_from_last:
+    if continue_from_last:
+        client, collection = chroma.get_datasets_collection(override_collection_name=collection_name)
+    elif force:
+        client, collection = chroma.get_or_create_datasets_collection(override_collection_name=collection_name)
         print('Deleting existing collection...')
         collection.delete()
+    else:
+        client, collection = chroma.create_datasets_collection(override_collection_name=collection_name)
+    print('Adding items to collection...')
     for is_valid, batch in iterate_collection_item_batches(limit=limit):
         if is_valid:
             stats['valid'] += len(batch)

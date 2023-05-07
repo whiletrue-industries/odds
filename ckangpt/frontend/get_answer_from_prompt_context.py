@@ -6,6 +6,7 @@ from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, Sy
 
 from . import get_context_from_documents
 from ckangpt.common import langchain_llm_callback
+from ckangpt import config
 
 
 SYSTEM_PROMPT_TEMPLATE = SystemMessagePromptTemplate.from_template("""
@@ -58,7 +59,7 @@ def get_context(user_prompt, db_query, document_ids, gpt4, num_results, max_toke
     return context
 
 
-def main(user_prompt, db_query=None, document_ids=None, gpt4=False, num_results=20):
+def main(user_prompt, db_query=None, document_ids=None, gpt4=False, num_results=config.DEFAULT_NUM_RESULTS):
     max_tokens = 8192 if gpt4 else 4096
     response_tokens = 2048 if gpt4 else 1024
     encoding = tiktoken.encoding_for_model('gpt-4' if gpt4 else 'gpt-3.5-turbo')

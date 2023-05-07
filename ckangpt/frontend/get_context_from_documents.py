@@ -3,7 +3,7 @@ import json
 import tiktoken
 
 from . import get_documents_from_vector_db
-from ckangpt import chroma
+from ckangpt import chroma, config
 
 
 def get_context_str(documents, max_resources=None, with_organization=True, truncate_len=200):
@@ -37,7 +37,7 @@ def get_context_str(documents, max_resources=None, with_organization=True, trunc
     return '\n---\n'.join(context_strs)
 
 
-def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, gpt4=False, num_results=20, max_tokens=None):
+def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, gpt4=False, num_results=config.DEFAULT_NUM_RESULTS, max_tokens=None):
     if not max_tokens:
         max_tokens = 6000 if gpt4 else 2500
     if from_db_query or from_user_prompt:
@@ -49,7 +49,7 @@ def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, gpt4
             gpt4=gpt4, num_results=num_results
         )
         from_document_ids = [d['id'] for d in documents]
-    collection = chroma.get_datasets_collection()
+    _, collection = chroma.get_datasets_collection()
     results = collection.get(ids=from_document_ids)
     documents = {
         id: json.loads(document)

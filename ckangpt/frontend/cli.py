@@ -3,6 +3,7 @@ import json
 import click
 
 from ckangpt.common import print_separator
+from ckangpt.config import DEFAULT_NUM_RESULTS
 
 
 @click.group()
@@ -22,7 +23,7 @@ def get_vector_db_query(user_prompt, gpt4):
 @click.argument("QUERY")
 @click.option('--from-user-prompt', is_flag=True)
 @click.option('--gpt4', is_flag=True)
-@click.option('--num-results', type=int, default=20)
+@click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def get_documents_from_vector_db(query, **kwargs):
     from . import get_documents_from_vector_db
     query = '{"words":["garbage","disposal","collection","times","Rehovot","Israel","waste","trash","pickup","schedule"],"country":"IL"}'
@@ -37,7 +38,7 @@ def get_documents_from_vector_db(query, **kwargs):
 @click.option('--from-document-ids', type=str)
 @click.option('--from-user-prompt', type=str)
 @click.option('--gpt4', is_flag=True)
-@click.option('--num-results', type=int, default=20)
+@click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 @click.option('--max-tokens', type=int)
 def get_context_from_documents(**kwargs):
     from . import get_context_from_documents
@@ -52,7 +53,7 @@ def get_context_from_documents(**kwargs):
 @click.option('--db-query', type=str)
 @click.option('--document-ids', type=str)
 @click.option('--gpt4', is_flag=True)
-@click.option('--num-results', type=int, default=20)
+@click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def get_answer_from_prompt_context(**kwargs):
     from . import get_answer_from_prompt_context
     kwargs['document_ids'] = kwargs['document_ids'].split(',') if kwargs['document_ids'] else None
@@ -63,7 +64,7 @@ def get_answer_from_prompt_context(**kwargs):
 @click.argument("USER_PROMPT")
 @click.option('--document-ids', type=str)
 @click.option('--gpt4', is_flag=True)
-@click.option('--num-results', type=int, default=20)
+@click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def find_datasets(**kwargs):
     from . import find_datasets
     docs = find_datasets.main(**kwargs)
