@@ -1,17 +1,15 @@
-class BaseItem:
-
-    def __init__(self, id, embeddings=None, metadata=None, document=None):
-        self.id = id
-        self.embeddings = embeddings
-        self.metadata = metadata
-        self.document = document
+from .base import BaseItem, BaseCollection, BaseVectorDB
 
 
-class BaseCollection:
+class PineconeItem(BaseItem):
+    pass
+
+
+class PineconeCollection(BaseCollection):
 
     def __init__(self, *args, **kwargs):
         # Initialize the collection based on vector db specific args / kwargs
-        pass
+        super().__init__(*args, **kwargs)
 
     @property
     def name(self):
@@ -52,12 +50,12 @@ class BaseCollection:
         raise NotImplementedError
 
 
-class BaseVectorDB:
-    Item = BaseItem
+class PineconeVectorDB(BaseVectorDB):
+    Item = PineconeItem
 
     def __init__(self):
         # vector db specific initialization, should not accept any arguments, all configuration should be done via config
-        pass
+        super().__init__()
 
     @staticmethod
     def get_default_collection_name():
@@ -67,7 +65,7 @@ class BaseVectorDB:
     @staticmethod
     def get_vector_db_provider_name():
         # return the vector db provider name
-        raise NotImplementedError
+        return "pinecone"
 
     def persist(self):
         # persist the vector db, implement only if applicable
