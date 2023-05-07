@@ -20,9 +20,11 @@ Your response is a list of datasets relevant to the user query, one dataset per 
 3. "thoughts": optional thoughts about the dataset and why it might be relevant to the user query
 
 Do not include the user prompt in the response. Do not write any explanations in the response. Do not add any datasets which are not in the context.
+If you did not find any relevant datasets, write the following line: "No relevant datasets found".
 
-Following is an example of context, user query and expected response.
+Following are some examples of context, user query and expected response.
 
+-- Example 1 --
 Context:
 
 ID: https://data.gov.uk/waste-and-recycling-customer-satisfaction-cbc
@@ -37,6 +39,15 @@ Title: Budget for 2018/19
 Query: Please find details about garbage disposal in the UK
 {{"id": "https://data.gov.uk/waste-collection-contract-cbc", "relevancy": 8, "thoughts": "your thoughts about the dataset relevancy to the query"}}
 {{"id": "https://data.gov.uk/waste-and-recycling-customer-satisfaction-cbc", "relevancy": 3, "thoughts": "..."}}
+
+-- Example 2 --
+Context:
+
+ID: https://data.gov.uk/foo-bar-baz
+Title: Foo Bar Baz
+
+Query: Where to find synagogues in London?
+No relevant datasets found
 """)
 HUMAN_PROMPT_TEMPLATE = HumanMessagePromptTemplate.from_template("""
 Context:
@@ -72,13 +83,16 @@ def main(user_prompt, db_query=None, document_ids=None, gpt4=False, num_results=
             verbose=True
         )
         res = chain.run(context=context, user_prompt=user_prompt)
-        docs = []
-        for line in res.split('{'):
-            if line.strip():
-                line = '{' + line.strip()
-                try:
-                    doc = json.loads(line)
-                except json.decoder.JSONDecodeError:
-                    doc = {"error": "JSONDecodeError", "line": line}
-                docs.append(doc)
-        return docs
+        if "No relevant datasets" in res:
+            return []
+        else:
+            docs = []
+            for line in res.split('{'):
+                if line.strip():
+                    line = '{' + line.strip()
+                    try:
+                        doc = json.loads(line)
+                    except json.decoder.JSONDecodeError:
+                        doc = {"error": "JSONDecodeError", "line": line}
+                    docs.append(doc)
+            return docs

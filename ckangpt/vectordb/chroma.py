@@ -83,9 +83,6 @@ class ChromaCollection(BaseCollection):
             documents=[item.document for item in items],
         )
 
-    def delete(self):
-        self._collection.delete()
-
     def reindex(self):
         self._collection.create_index()
 
@@ -187,9 +184,6 @@ class ChromaVectorDB(BaseVectorDB):
 
     def get_datasets_collection(self, override_collection_name=None):
         return ChromaCollection(self._client.get_collection(**self._get_collection_kwargs(override_collection_name, with_metadata=False)))
-
-    def get_or_create_datasets_collection(self, override_collection_name=None):
-        return ChromaCollection(self._client.get_or_create_collection(**self._get_collection_kwargs(override_collection_name)))
 
     def create_datasets_collection(self, override_collection_name=None):
         return ChromaCollection(self._client.create_collection(**self._get_collection_kwargs(override_collection_name)))

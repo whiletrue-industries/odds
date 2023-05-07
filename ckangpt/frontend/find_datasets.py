@@ -12,6 +12,9 @@ def main(user_prompt, document_ids=None, gpt4=False, num_results=config.DEFAULT_
             raise Exception(f'Invalid doc: {doc}')
         docs[doc['id']] = doc
     collection = vdb.get_datasets_collection()
-    for id, document in collection.iterate_item_documents(item_ids=list(docs.keys())):
-        docs[id]['document'] = json.loads(document)
-    return list(sorted(docs.values(), key=lambda d: d['relevancy']))
+    if len(docs) == 0:
+        return []
+    else:
+        for id, document in collection.iterate_item_documents(item_ids=list(docs.keys())):
+            docs[id]['document'] = json.loads(document)
+        return list(sorted(docs.values(), key=lambda d: d['relevancy']))

@@ -92,10 +92,6 @@ def main(collection_name, limit=None, force=False, continue_from_last=False, deb
     stats = defaultdict(int)
     if continue_from_last:
         collection = vdb.get_datasets_collection(override_collection_name=collection_name)
-    elif force:
-        collection = vdb.get_or_create_datasets_collection(override_collection_name=collection_name)
-        print('Deleting existing collection...')
-        collection.delete()
     else:
         collection = vdb.create_datasets_collection(override_collection_name=collection_name)
     print('Adding items to collection...')

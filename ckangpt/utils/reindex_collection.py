@@ -9,6 +9,6 @@ def main(collection_name, force):
         else:
             raise Exception('Cannot reindex the default collection. Please reindex a new collection and when done change the configured collection name.')
     print(f'Reindexing collection name: `{collection_name}`...')
-    collection = vdb.get_or_create_datasets_collection(override_collection_name=collection_name)
+    collection = vdb.get_datasets_collection(override_collection_name=collection_name)
     collection.reindex()
     print('OK')

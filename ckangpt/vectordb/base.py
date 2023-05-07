@@ -22,10 +22,6 @@ class BaseCollection:
         # add items to the collection
         raise NotImplementedError
 
-    def delete(self):
-        # delete the collection
-        raise NotImplementedError
-
     def reindex(self):
         # reindex the collection
         raise NotImplementedError
@@ -75,10 +71,6 @@ class BaseVectorDB:
 
     def get_datasets_collection(self, override_collection_name=None):
         # return the datasets collection, optionally with an override collection name, otherwise use default
-        raise NotImplementedError
-
-    def get_or_create_datasets_collection(self, override_collection_name=None):
-        # return the datasets collection, create if not exists, optionally with an override collection name, otherwise use default
         raise NotImplementedError
 
     def create_datasets_collection(self, override_collection_name=None):
