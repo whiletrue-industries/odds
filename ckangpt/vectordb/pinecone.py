@@ -63,7 +63,7 @@ class PineconeVectorDB(BaseVectorDB):
 
     def __init__(self):
         # vector db specific initialization, should not accept any arguments, all configuration should be done via config
-        pinecone.init()
+        pinecone.init(api_key=config.PINECONE_API_KEY, environment=config.PINECONE_ENVIRONMENT)
 
     @staticmethod
     def get_default_collection_name():
