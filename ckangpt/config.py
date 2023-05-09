@@ -18,3 +18,5 @@ DEFAULT_NUM_RESULTS = int(os.environ.get('DEFAULT_NUM_RESULTS') or '5')
 
 USE_PINECONE = get_bool_env('USE_PINECONE', False)
 PINECONE_DATASETS_COLLECTION_NAME = os.environ.get('PINECONE_DATASETS_COLLECTION_NAME') or "ckangpt"
+PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
+PINECONE_ENVIRONMENT = os.environ.get('PINECONE_ENVIRONMENT') or "us-west1-gcp"
