@@ -26,7 +26,6 @@ def get_vector_db_query(user_prompt, gpt4):
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def get_documents_from_vector_db(query, **kwargs):
     from . import get_documents_from_vector_db
-    query = '{"words":["garbage","disposal","collection","times","Rehovot","Israel","waste","trash","pickup","schedule"],"country":"IL"}'
     documents = get_documents_from_vector_db.main(json.loads(query), **kwargs)
     for document in documents:
         print_separator(json.loads(document['document']), pprint=True)
