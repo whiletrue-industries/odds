@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse
+spec:
+  selector:
+    matchLabels:
+      app: clickhouse
+  replicas: 1
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: clickhouse
+        image: {{ .Values.clickhouse.image | quote }}
+        resources: {{ toYaml .Values.clickhouse.resources | nindent 10 }}
+        env:
+        - name: ALLOW_EMPTY_PASSWORD
+          value: "yes"
+        - name: CLICKHOUSE_TCP_PORT
+          value: "9000"
+        - name: CLICKHOUSE_HTTP_PORT
+          value: "8123"
+        volumeMounts:
+        - name: clickhouse-data
+          mountPath: /bitnami/clickhouse
+        - name: clickhouse-chroma-users
+          mountPath: /etc/clickhouse-server/users.d/chroma.xml
+          subPath: chroma.xml
+      volumes:
+      - name: clickhouse-data
+        hostPath:
+          path: /var/ckangpt/clickhouse_data
+      - name: clickhouse-chroma-users
+        configMap:
+          name: clickhouse-chroma-users

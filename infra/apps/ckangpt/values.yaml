@@ -1,0 +1,15 @@
+clickhouse:
+  # Pulled May 5, 2023
+  image: clickhouse/clickhouse-server:22.9-alpine@sha256:ba8fbf895e7444b5428e60d975d628ac11cb9bea1962713001d1b9185ea68183
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 4000Mi
+
+chroma:
+  # Pulled May 5, 2023
+  image: ghcr.io/chroma-core/chroma:0.3.22.dev56@sha256:c691d8388e5a535c8309a517c3ecbc9b345b7c0f7934fe2528458947f0d2e7a2
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 4000Mi

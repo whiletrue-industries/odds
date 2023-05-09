@@ -3,9 +3,12 @@ import dotenv
 import importlib
 
 
+dotenv.load_dotenv()
+
+
 @click.group()
 def main():
-    dotenv.load_dotenv()
+    pass
 
 
 for submodule in [

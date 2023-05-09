@@ -1,0 +1,17 @@
+ingress-nginx:
+  controller:
+    hostPort:
+      enabled: true
+    ingressClassResource:
+      default: true
+    kind: DaemonSet
+    service:
+      enabled: false
+
+cert-manager:
+  installCRDs: true
+  prometheus:
+    enabled: false
+
+issuer:
+  enabled: true
