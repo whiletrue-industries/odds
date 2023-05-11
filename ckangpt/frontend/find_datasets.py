@@ -11,9 +11,13 @@ def main(user_prompt, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS)
     for doc in answer['relevant_datasets']:
         docs[doc['id']] = doc
     collection = vdb.get_datasets_collection()
-    for id, document in collection.iterate_item_documents(item_ids=list(docs.keys())):
-        docs[id]['document'] = json.loads(document)
-    return {
-        **answer,
-        'relevant_datasets': list(sorted(docs.values(), key=lambda d: d['relevancy'])),
-    }
+    item_ids = list(docs.keys())
+    if len(item_ids) > 0:
+        for id, document in collection.iterate_item_documents(item_ids=list(docs.keys())):
+            docs[id]['document'] = json.loads(document)
+        return {
+            **answer,
+            'relevant_datasets': list(sorted(docs.values(), key=lambda d: d['relevancy'])),
+        }
+    else:
+        return answer
