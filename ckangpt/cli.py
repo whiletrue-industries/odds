@@ -11,8 +11,12 @@ dotenv.load_dotenv()
 @click.group()
 @click.option('--gpt4', is_flag=True)
 @click.option('--no-cache', is_flag=True)
+@click.option('--clear-cache', is_flag=True)
 @click.option('--debug', is_flag=True)
-def main(gpt4, no_cache, debug):
+def main(gpt4, no_cache, clear_cache, debug):
+    if clear_cache:
+        import shutil, platformdirs
+        shutil.rmtree(platformdirs.user_cache_dir("guidance"))
     if gpt4:
         config.USE_GPT4 = True
     if no_cache:

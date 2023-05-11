@@ -4,8 +4,6 @@ from contextlib import contextmanager
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks import get_openai_callback
 
-from ckangpt import config
-
 
 @contextmanager
 def langchain_llm_callback(gpt4, verbose=True):

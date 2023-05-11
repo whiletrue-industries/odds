@@ -3,6 +3,7 @@ import json
 import guidance
 
 from ckangpt import common, config
+from ckangpt.guidance_openai_variable_max_tokens import GuidanceOpenAIVariableMaxTokens
 
 
 EXAMPLES = [
@@ -10,39 +11,36 @@ EXAMPLES = [
         'query': 'Can you find any research on biotoxins in mussels in the United Kingdom?',
         'response': {
             'words': [
-                'research', 'biotoxins', 'mussels', 'UK', 'studies', 'articles', 'journals', 'marine', 'monitoring', 'Britain', 'United Kingdom', 'shellfish', 'bivalves', 'mollusks', 'seafood', 'aquaculture', 'farming'
+                'research', 'biotoxins', 'mussels', 'UK', 'studies', 'articles', 'journals', 'marine', 'monitoring', 'Britain', 'United Kingdom', 'shellfish', 'bivalves',
             ],
             'country': 'UK'
         },
         'critic_response': {
-            'thoughts': 'The response is good, but it is missing some words',
             'country': 'UK',
-            'additional_words': ['ocean', 'sea', 'aquatic', 'toxins', 'toxic', 'poison', 'contamination', 'pollution', 'pollutants', 'chemicals', 'chemical', 'heavy metals', 'heavy metal', 'mercury', 'lead', 'arsenic', 'cadmium', 'copper', 'zinc', 'nickel', 'chromium', 'manganese', 'iron', 'aluminum', 'tin', 'silver', 'gold', 'platinum', 'palladium', 'rhodium', 'iridium', 'ruthenium', 'osmium', 'seawater']
+            'additional_words': ['mollusks', 'seafood', 'aquaculture', 'farming']
         }
     },
     {
         'query': 'how clean is the tap water in Tel Aviv',
         'response': {
             "words": [
-                "tap", "water", "quality", "Israel", "safety", "standards", "purification"
+                "tap", "water", "quality", "Israel",
             ]
         },
         'critic_response': {
-            'thoughts': 'Some additional words were missing and the country was not specified',
             'country': 'IL',
-            'additional_words': ['drinking', 'potable', 'chlorine', 'fluoride', 'bacteria', 'viruses', 'parasites', 'contaminants', 'contamination', 'pollution', 'treatment', 'filtration', 'purification', 'desalination', 'reverse osmosis', 'water softening', 'water hardness', 'water softener']
+            'additional_words': ["safety", "standards", "purification"]
         }
     },
     {
         'query': 'Where can I find timetable of trains in Moscow?',
         'response': {
             "words": [
-                "Moscow", "train", "timetable", "schedule", "Russia"
+                "Moscow", "train", "timetable",
             ]
         },
         'critic_response': {
-            'thoughts': '<YOUR THOUGHTS HERE>',
-            'additional_words': ['railway', 'rail', 'station', 'stations', 'railroad', 'railroads', 'railways', 'railway station', 'railway stations', 'railroad station', 'railroad stations', 'railway timetable', 'railway schedule', 'railroad timetable', 'railroad schedule', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes', 'railway map', 'railroad map', 'railway route', 'railroad route', 'railway routes', 'railroad routes']
+            'additional_words': ["schedule", "Russia"]
         }
     }
 ]
@@ -103,9 +101,9 @@ write but which might also be relevant.
 
 Your response must be a json object with the following fields:
 
-* "thoughts": your thoughts about the previous response
 * "country": the 2 letter country code of the country which you think is relevant to the user prompt
-* "additional_words": an array of additional words which might also be relevant to the user prompt
+* "additional_words": an array of additional words which might also be relevant to the user prompt, 
+only include words which are not already in the "words" field of the previous response. Don't include lexical variants of words already in the "words" field.
 
 Do not write any explanations in the response. Only respond with the json object.
 {{/user}}
@@ -154,16 +152,20 @@ def get_critic_user_query(user_prompt, vector_db_query_json_uncriticized):
 
 def main(user_prompt):
     model_name, cache, debug = config.common()
-    guidance.llm = guidance.llms.OpenAI(model_name, chat_mode=True, caching=cache)
+    llm = GuidanceOpenAIVariableMaxTokens(model_name, chat_mode=True, caching=cache)
     res = guidance.Program(
-        GET_VECTOR_DB_QUERY,
+        llm=llm,
+        text=GET_VECTOR_DB_QUERY,
         examples=EXAMPLES,
         json_dumps=json.dumps,
         get_critic_example_json=get_critic_example_json,
         get_critic_user_query=get_critic_user_query,
     )(user_prompt=user_prompt)
-    vector_db_query_json_uncriticized = json.loads(res['vector_db_query_json_uncriticized'])
-    vector_db_query_json_criticized = json.loads(res['vector_db_query_json_criticized'])
+    try:
+        vector_db_query_json_uncriticized = json.loads(res['vector_db_query_json_uncriticized'])
+        vector_db_query_json_criticized = json.loads(res['vector_db_query_json_criticized'])
+    except json.decoder.JSONDecodeError:
+        raise Exception(f'Failed to parse json responses: {res}')
     if debug:
         common.print_separator(vector_db_query_json_uncriticized, pprint=True)
         common.print_separator(vector_db_query_json_criticized, pprint=True)
