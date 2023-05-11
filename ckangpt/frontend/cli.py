@@ -13,10 +13,9 @@ def frontend():
 
 @frontend.command()
 @click.argument("USER_PROMPT")
-@click.option('--gpt4', is_flag=True)
-def get_vector_db_query(user_prompt, gpt4):
+def get_vector_db_query(**kwargs):
     from . import get_vector_db_query
-    print_separator(json.dumps(get_vector_db_query.main(user_prompt, gpt4)))
+    print_separator(json.dumps(get_vector_db_query.main(**kwargs)))
 
 
 @frontend.command()

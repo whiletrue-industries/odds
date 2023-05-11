@@ -86,7 +86,10 @@ class PineconeVectorDB(BaseVectorDB):
         index_name = override_collection_name or self.get_default_collection_name()
         print(f"Creating Pinecone index {index_name}, this may take a few minutes...")
         # 1536 is the embeddings length returned by OpenAI's embedding API
-        pinecone.create_index(index_name, 1536)
+        from ..vectordb import get_indexed_metadata_fields
+        pinecone.create_index(index_name, 1536, metadata_config={
+            "indexed": get_indexed_metadata_fields()
+        })
         return PineconeCollection(index_name)
 
     def list_collections(self):

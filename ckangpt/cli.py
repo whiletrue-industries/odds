@@ -2,13 +2,23 @@ import click
 import dotenv
 import importlib
 
+from . import config
+
 
 dotenv.load_dotenv()
 
 
 @click.group()
-def main():
-    pass
+@click.option('--gpt4', is_flag=True)
+@click.option('--no-cache', is_flag=True)
+@click.option('--debug', is_flag=True)
+def main(gpt4, no_cache, debug):
+    if gpt4:
+        config.USE_GPT4 = True
+    if no_cache:
+        config.ENABLE_CACHE = False
+    if debug:
+        config.ENABLE_DEBUG = True
 
 
 for submodule in [

@@ -12,3 +12,7 @@ def get_vector_db_class():
 
 def get_vector_db_instance():
     return get_vector_db_class()()
+
+
+def get_indexed_metadata_fields():
+    return ['ckan_instance']
