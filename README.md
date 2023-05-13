@@ -18,10 +18,16 @@ Copy `.env.sample` to `.env` and set your OPENAI_API_KEY
 
 ### Frontend Usage
 
-Make a query to the frontend using GPT-4
+Make a query to the frontend using GPT-4, with debug and clearing the GPT cache before running
 
 ```
-ckangpt frontend find-datasets --gpt4 "Can you find any research on biotoxins in mussels in the UK?"
+ckangpt --gpt4 --debug --clear-cache frontend find-datasets "Can you find any research on biotoxins in mussels in the UK?"
+```
+
+See help messages for more options
+
+```
+ckangpt --help
 ```
 
 ### Backend Usage

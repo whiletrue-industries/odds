@@ -37,17 +37,17 @@ def get_context_str(documents, max_resources=None, with_organization=True, trunc
     return '\n---\n'.join(context_strs)
 
 
-def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, gpt4=False, num_results=config.DEFAULT_NUM_RESULTS, max_tokens=None):
+def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, num_results=config.DEFAULT_NUM_RESULTS, max_tokens=None):
     vdb = vectordb.get_vector_db_instance()
     if not max_tokens:
-        max_tokens = 6000 if gpt4 else 2500
+        max_tokens = 6000 if config.USE_GPT4 else 2500
     if from_db_query or from_user_prompt:
         assert not from_document_ids
         assert not (from_db_query and from_user_prompt)
         documents = get_documents_from_vector_db.main(
             from_user_prompt if from_user_prompt else from_db_query,
             from_user_prompt=True if from_user_prompt else False,
-            gpt4=gpt4, num_results=num_results
+            num_results=num_results
         )
         from_document_ids = [d.id for d in documents]
     collection = vdb.get_datasets_collection()
@@ -56,7 +56,7 @@ def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, gpt4
         for id, document
         in collection.iterate_item_documents(item_ids=from_document_ids)
     }
-    encoding = tiktoken.encoding_for_model('gpt-4' if gpt4 else 'gpt-3.5-turbo')
+    encoding = tiktoken.encoding_for_model(config.model_name())
     context = get_context_str(documents)
     if len(encoding.encode(context)) > max_tokens:
         context = get_context_str(documents, max_resources=3, with_organization=False)

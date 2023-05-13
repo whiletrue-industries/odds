@@ -4,17 +4,20 @@ from . import get_answer_from_prompt_context
 from ckangpt import config, vectordb
 
 
-def main(user_prompt, document_ids=None, gpt4=False, num_results=config.DEFAULT_NUM_RESULTS):
+def main(user_prompt, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS):
     vdb = vectordb.get_vector_db_instance()
+    answer = get_answer_from_prompt_context.main(user_prompt, document_ids=document_ids, num_results=num_results)
     docs = {}
-    for doc in get_answer_from_prompt_context.main(user_prompt, document_ids=document_ids, gpt4=gpt4, num_results=num_results):
-        if doc.get('error'):
-            raise Exception(f'Invalid doc: {doc}')
+    for doc in answer['relevant_datasets']:
         docs[doc['id']] = doc
     collection = vdb.get_datasets_collection()
-    if len(docs) == 0:
-        return []
-    else:
+    item_ids = list(docs.keys())
+    if len(item_ids) > 0:
         for id, document in collection.iterate_item_documents(item_ids=list(docs.keys())):
             docs[id]['document'] = json.loads(document)
-        return list(sorted(docs.values(), key=lambda d: d['relevancy']))
+        return {
+            **answer,
+            'relevant_datasets': list(sorted(docs.values(), key=lambda d: d['relevancy'])),
+        }
+    else:
+        return answer

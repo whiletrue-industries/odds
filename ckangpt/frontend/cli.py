@@ -13,16 +13,14 @@ def frontend():
 
 @frontend.command()
 @click.argument("USER_PROMPT")
-@click.option('--gpt4', is_flag=True)
-def get_vector_db_query(user_prompt, gpt4):
+def get_vector_db_query(**kwargs):
     from . import get_vector_db_query
-    print_separator(json.dumps(get_vector_db_query.main(user_prompt, gpt4)))
+    print_separator(json.dumps(get_vector_db_query.main(**kwargs)))
 
 
 @frontend.command()
 @click.argument("QUERY")
 @click.option('--from-user-prompt', is_flag=True)
-@click.option('--gpt4', is_flag=True)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def get_documents_from_vector_db(query, **kwargs):
     from . import get_documents_from_vector_db
@@ -36,7 +34,6 @@ def get_documents_from_vector_db(query, **kwargs):
 @click.option('--from-db-query', type=str)
 @click.option('--from-document-ids', type=str)
 @click.option('--from-user-prompt', type=str)
-@click.option('--gpt4', is_flag=True)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 @click.option('--max-tokens', type=int)
 def get_context_from_documents(**kwargs):
@@ -51,7 +48,6 @@ def get_context_from_documents(**kwargs):
 @click.argument("USER_PROMPT")
 @click.option('--db-query', type=str)
 @click.option('--document-ids', type=str)
-@click.option('--gpt4', is_flag=True)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def get_answer_from_prompt_context(**kwargs):
     from . import get_answer_from_prompt_context
@@ -62,11 +58,12 @@ def get_answer_from_prompt_context(**kwargs):
 @frontend.command()
 @click.argument("USER_PROMPT")
 @click.option('--document-ids', type=str)
-@click.option('--gpt4', is_flag=True)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 def find_datasets(**kwargs):
     from . import find_datasets
-    docs = find_datasets.main(**kwargs)
+    answer = find_datasets.main(**kwargs)
+    docs = answer.pop('relevant_datasets')
     for doc in docs:
         print_separator(doc, pprint=True)
     print_separator(f'Found {len(docs)} documents, listed above from least to most relevant.')
+    print_separator(answer, pprint=True)

@@ -1,5 +1,4 @@
 from pprint import pformat
-
 from contextlib import contextmanager
 
 from langchain.chat_models import ChatOpenAI

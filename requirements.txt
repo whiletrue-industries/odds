@@ -8,3 +8,5 @@ tiktoken==0.3.3
 dataflows==0.3.22
 tqdm==4.65.0
 pinecone-client[grpc]==2.2.1
+nest-asyncio==1.5.6
+guidance==0.0.38

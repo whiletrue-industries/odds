@@ -4,10 +4,10 @@ from . import get_vector_db_query
 from ckangpt import vectordb, config
 
 
-def main(query, from_user_prompt=False, gpt4=False, num_results=config.DEFAULT_NUM_RESULTS):
+def main(query, from_user_prompt=False, num_results=config.DEFAULT_NUM_RESULTS):
     vdb = vectordb.get_vector_db_instance()
     if from_user_prompt:
-        query = get_vector_db_query.main(query, gpt4)
+        query = get_vector_db_query.main(query)
     collection = vdb.get_datasets_collection()
     words = [w.strip() for w in query['words']]
     ckan_instance = {
