@@ -170,7 +170,7 @@ def main(user_prompt):
         common.print_separator(vector_db_query_json_uncriticized, pprint=True)
         common.print_separator(vector_db_query_json_criticized, pprint=True)
     country = vector_db_query_json_criticized.get('country') or vector_db_query_json_uncriticized.get('country')
-    return {
+    return llm.get_openai_usage(), {
         'words': list(set(vector_db_query_json_uncriticized['words'])),
         **({'additional_words': list(set(vector_db_query_json_criticized['additional_words']))} if vector_db_query_json_criticized.get('additional_words') else {}),
         **({'country': country} if country else {}),

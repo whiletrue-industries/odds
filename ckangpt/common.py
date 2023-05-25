@@ -23,3 +23,19 @@ def print_separator(msg=None, pprint=False):
         txt += '\n'
         txt += pformat(msg, width=200) if pprint else msg
     print(txt)
+
+
+def print_usage(usage):
+    usage['num_cached_calls'] = usage.get('num_calls', 0) - usage.get('num_library_calls', 0)
+    print_separator({
+        {
+            'cost_usd': 'Cost (USD) if all calls were non-cached',
+            'num_library_calls': 'Number of non-cached calls',
+            'num_cached_calls': 'Number of cached calls',
+            'model_name': 'Model name',
+            'total_tokens': 'Total tokens',
+        }.get(k, k): round(v, 5) if k == 'cost_usd' else v
+        for k, v
+        in {'num_library_calls': 0, **usage}.items()
+        if k in ['cost_usd', 'num_library_calls', 'model_name', 'total_tokens', 'num_cached_calls']
+    }, pprint=True)
