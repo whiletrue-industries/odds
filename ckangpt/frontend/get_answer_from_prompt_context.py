@@ -4,7 +4,6 @@ import guidance
 
 from . import get_context_from_documents
 from ckangpt import config
-from ckangpt.guidance_openai_variable_max_tokens import GuidanceOpenAIVariableMaxTokens
 
 
 EXAMPLES = [
@@ -76,45 +75,46 @@ Query: {{this.query}}
 
 {{#user}}
 Context:
-__GET_CONTEXT__
+__CONTEXT__
 
 Query: {{user_prompt}}
 {{/user}}
 
 {{#assistant~}}
-{{gen 'response'}}
+{{gen 'response' max_tokens_callback='context'}}
 {{~/assistant}}
 '''
 
 
 def main(user_prompt, db_query=None, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS):
-    llm = GuidanceOpenAIVariableMaxTokens(config.model_name(), chat_mode=True, caching=config.ENABLE_CACHE)
+    llm = guidance.llms.OpenAI(config.model_name(), chat_mode=True, caching=config.ENABLE_CACHE)
     context_usage = {}
 
-    def get_context(user_prompt, db_query, document_ids, num_results):
+    def get_context(model_max_tokens, num_prompt_tokens, prompt):
+        gen_max_tokens = 500
+        get_context_kwargs = {
+            'num_results': num_results,
+            'max_tokens': model_max_tokens - num_prompt_tokens - gen_max_tokens,
+        }
+        if db_query:
+            assert not document_ids
+            usage, context, *_ = get_context_from_documents.main(from_db_query=db_query, **get_context_kwargs)
+        elif document_ids:
+            usage, context, *_ = get_context_from_documents.main(from_document_ids=document_ids, **get_context_kwargs)
+        else:
+            usage, context, *_ = get_context_from_documents.main(from_user_prompt=user_prompt, **get_context_kwargs)
+        assert len(context_usage) == 0
+        context_usage.update(usage)
+        return gen_max_tokens, prompt.replace('__CONTEXT__', context)
 
-        def _get_context(max_tokens):
-            if db_query:
-                assert not document_ids
-                usage, context, *_ = get_context_from_documents.main(from_db_query=db_query, num_results=num_results,
-                                                                     max_tokens=max_tokens)
-            elif document_ids:
-                usage, context, *_ = get_context_from_documents.main(from_document_ids=document_ids, num_results=num_results,
-                                                                     max_tokens=max_tokens)
-            else:
-                usage, context, *_ = get_context_from_documents.main(from_user_prompt=user_prompt, num_results=num_results,
-                                                                     max_tokens=max_tokens)
-            assert len(context_usage) == 0
-            context_usage.update(usage)
-            return context
-
-        return _get_context
-
-    llm.variable_max_tokens_context['GET_CONTEXT'] = get_context(user_prompt, db_query, document_ids, num_results)
+    llm.register_max_tokens_callback('context', get_context)
     res = guidance.Program(
         llm=llm,
         text=LOCATE_DATASETS,
         examples=EXAMPLES,
         json_dumps=json.dumps,
     )(user_prompt=user_prompt)
-    return llm.get_openai_usage(context_usage), json.loads(res['response'])
+    return {
+        k: llm.usage.get(k, 0) + llm.usage_cached.get(k, 0) + context_usage.get(k, 0)
+        for k in {*llm.usage.keys(), *llm.usage_cached.keys(), *context_usage.keys()}
+    }, json.loads(res['response'])

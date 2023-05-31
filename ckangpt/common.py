@@ -1,6 +1,7 @@
 from pprint import pformat
 from contextlib import contextmanager
 
+import guidance.llms
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks import get_openai_callback
 
@@ -26,16 +27,9 @@ def print_separator(msg=None, pprint=False):
 
 
 def print_usage(usage):
-    usage['num_cached_calls'] = usage.get('num_calls', 0) - usage.get('num_library_calls', 0)
+    from .config import model_name
     print_separator({
-        {
-            'cost_usd': 'Cost (USD) if all calls were non-cached',
-            'num_library_calls': 'Number of non-cached calls',
-            'num_cached_calls': 'Number of cached calls',
-            'model_name': 'Model name',
-            'total_tokens': 'Total tokens',
-        }.get(k, k): round(v, 5) if k == 'cost_usd' else v
-        for k, v
-        in {'num_library_calls': 0, **usage}.items()
-        if k in ['cost_usd', 'num_library_calls', 'model_name', 'total_tokens', 'num_cached_calls']
+        'model_name': model_name(),
+        'total_tokens': usage.get('total_tokens', 0),
+        'cost_usd': guidance.llms.OpenAI(model_name(), chat_mode=True).get_usage_cost_usd(usage),
     }, pprint=True)

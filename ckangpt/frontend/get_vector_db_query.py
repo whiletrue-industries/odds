@@ -3,7 +3,6 @@ import json
 import guidance
 
 from ckangpt import common, config
-from ckangpt.guidance_openai_variable_max_tokens import GuidanceOpenAIVariableMaxTokens
 
 
 EXAMPLES = [
@@ -152,7 +151,7 @@ def get_critic_user_query(user_prompt, vector_db_query_json_uncriticized):
 
 def main(user_prompt):
     model_name, cache, debug = config.common()
-    llm = GuidanceOpenAIVariableMaxTokens(model_name, chat_mode=True, caching=cache)
+    llm = guidance.llms.OpenAI(model_name, chat_mode=True, caching=cache)
     res = guidance.Program(
         llm=llm,
         text=GET_VECTOR_DB_QUERY,
@@ -170,8 +169,11 @@ def main(user_prompt):
         common.print_separator(vector_db_query_json_uncriticized, pprint=True)
         common.print_separator(vector_db_query_json_criticized, pprint=True)
     country = vector_db_query_json_criticized.get('country') or vector_db_query_json_uncriticized.get('country')
-    return llm.get_openai_usage(), {
-        'words': list(set(vector_db_query_json_uncriticized['words'])),
-        **({'additional_words': list(set(vector_db_query_json_criticized['additional_words']))} if vector_db_query_json_criticized.get('additional_words') else {}),
-        **({'country': country} if country else {}),
-    }
+    return (
+        {k: llm.usage.get(k, 0) + llm.usage.get(k, 0) for k in {*llm.usage.keys(), *llm.usage_cached.keys()}},
+        {
+            'words': list(set(vector_db_query_json_uncriticized['words'])),
+            **({'additional_words': list(set(vector_db_query_json_criticized['additional_words']))} if vector_db_query_json_criticized.get('additional_words') else {}),
+            **({'country': country} if country else {}),
+        }
+    )

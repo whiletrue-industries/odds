@@ -2,10 +2,13 @@ import click
 import dotenv
 import importlib
 
-from . import config
+import guidance.llms
 
 
 dotenv.load_dotenv()
+
+
+from . import config
 
 
 @click.group()
@@ -15,8 +18,7 @@ dotenv.load_dotenv()
 @click.option('--debug', is_flag=True)
 def main(gpt4, no_cache, clear_cache, debug):
     if clear_cache:
-        import shutil, platformdirs
-        shutil.rmtree(platformdirs.user_cache_dir("guidance"))
+        guidance.llms.OpenAI.cache.clear()
     if gpt4:
         config.USE_GPT4 = True
     if no_cache:
