@@ -124,21 +124,26 @@ def fetch_dataset_data(dataset):
     dataset['resources'] = resources
 
 
-def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False):
+def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False, limit=None):
     print(f'Describing datasets matching glob pattern {dataset_domain}/{dataset_name}')
     matching_domains = set()
     for item in storage.list_(prefix='datasets/'):
         domain = item.split('/')[1]
         if fnmatch.fnmatchcase(domain.lower(), dataset_domain.lower()):
             matching_domains.add(domain)
+    i = 0
     for domain in matching_domains:
         for item in storage.list_(prefix=f'datasets/{domain}/'):
             name = item.split('/')[2]
             if fnmatch.fnmatchcase(name.lower(), dataset_name.lower()):
                 yield main(domain, name, load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force_update=force_update)
+                i += 1
+                if limit and i >= limit:
+                    return
 
 
-def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False):
+def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False, limit=None):
+    assert not limit
     itempathparts = 'dataset_descriptions', dataset_domain, dataset_name
     if save_to_storage and not force_update:
         old_dataset_description, metadata = storage.load(*itempathparts, with_metadata=True)

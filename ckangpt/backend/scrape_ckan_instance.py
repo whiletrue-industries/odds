@@ -32,9 +32,9 @@ def get_instance_datasets(domain, limit=None):
         for row in rows:
             yield row
             num_rows += 1
-            if limit is not None and num_rows >= limit:
+            if limit and num_rows >= limit:
                 break
-        if len(rows) < 1000 or (limit is not None and num_rows >= limit):
+        if len(rows) < 1000 or (limit and num_rows >= limit):
             break
         page += 1
 

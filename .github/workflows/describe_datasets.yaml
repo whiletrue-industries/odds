@@ -10,12 +10,17 @@ on:
         description: 'Glob pattern to match dataset names to describe'
         required: true
         default: '*'
+      limit:
+        description: 'Limit the number of datasets to describe'
+        required: true
+        default: "0"
   push:
     branches:
       - add-storage
 env:
   DATASET_DOMAIN_GLOB: ${{ inputs.dataset_domain_glob || 'data.gov.uk' }}
   DATASET_NAME_GLOB: ${{ inputs.dataset_name_glob || '*dan-minchin-uk-records-of-ficopomatus-enigmaticus*' }}
+  LIMIT: ${{ inputs.limit || '5' }}
 jobs:
   build:
     runs-on: ubuntu-22.04

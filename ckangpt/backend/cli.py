@@ -14,6 +14,7 @@ def backend():
 @click.option('--save-to-disk', is_flag=True)
 @click.option('--save-to-storage', is_flag=True)
 @click.option('--glob', is_flag=True, help="DATASET_ arguments will be treated as globs to match over all domains/datasets in storage")
+@click.option('--limit', type=int)
 def describe_dataset(glob=False, **kwargs):
     from . import describe_dataset
     if glob:
