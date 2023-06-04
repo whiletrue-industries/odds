@@ -18,7 +18,6 @@ env:
   DATASET_NAME_GLOB: ${{ inputs.dataset_name_glob || '*dan-minchin-uk-records-of-ficopomatus-enigmaticus*' }}
 jobs:
   build:
-    environment: ori_hoch_openai
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
