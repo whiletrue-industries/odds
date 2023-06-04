@@ -1,9 +1,7 @@
 import click
-import dotenv
 import importlib
 
 
-dotenv.load_dotenv()
 
 
 from . import config
