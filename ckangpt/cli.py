@@ -2,8 +2,6 @@ import click
 import dotenv
 import importlib
 
-import guidance.llms
-
 
 dotenv.load_dotenv()
 
@@ -18,6 +16,7 @@ from . import config
 @click.option('--debug', is_flag=True)
 def main(gpt4, no_cache, clear_cache, debug):
     if clear_cache:
+        import guidance.llms
         guidance.llms.OpenAI.cache.clear()
     if gpt4:
         config.USE_GPT4 = True

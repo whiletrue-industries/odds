@@ -1,7 +1,6 @@
 import pandas as pd
 import json
-import csv
-from io import StringIO
+import fnmatch
 
 from typing import Any, Dict
 
@@ -12,11 +11,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.callbacks import get_openai_callback
 
-from ckangpt.utils.datasets import get_dataset
-
-import dataflows as DF
-
-import pandas
+from ckangpt import config, storage
 
 
 class DatasetPrompt(PromptTemplate):
@@ -61,7 +56,7 @@ class DatasetPrompt(PromptTemplate):
 
 def fetch_dataset_data(dataset):
     resources = []
-    for resource in dataset.get('resources').values():
+    for resource in dataset.get('resources', []):
         if 'format' not in resource:
             continue
         if resource['format'].lower() in ['csv', 'xls', 'xlsx']:
@@ -129,14 +124,40 @@ def fetch_dataset_data(dataset):
     dataset['resources'] = resources
 
 
-def main(dataset_id, gpt4=False):
-    if gpt4:
+def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False, limit=None):
+    print(f'Describing datasets matching glob pattern {dataset_domain}/{dataset_name}')
+    matching_domains = set()
+    for item in storage.list_(prefix='datasets/'):
+        domain = item.split('/')[1]
+        if fnmatch.fnmatchcase(domain.lower(), dataset_domain.lower()):
+            matching_domains.add(domain)
+    i = 0
+    for domain in matching_domains:
+        for item in storage.list_(prefix=f'datasets/{domain}/'):
+            name = item.split('/')[2]
+            if fnmatch.fnmatchcase(name.lower(), dataset_name.lower()):
+                yield main(domain, name, load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force_update=force_update)
+                i += 1
+                if limit and i >= limit:
+                    return
+
+
+def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False, limit=None):
+    assert not limit
+    itempathparts = 'dataset_descriptions', dataset_domain, dataset_name
+    if save_to_storage and not force_update:
+        old_dataset_description, metadata = storage.load(*itempathparts, with_metadata=True)
+        print(old_dataset_description, metadata)
+        if old_dataset_description and not storage.is_updated_item_meteadata(metadata):
+            if config.ENABLE_DEBUG:
+                print("dataset description already exists in storage and does not require update, skipping")
+            return old_dataset_description
+    if config.USE_GPT4:
         print('WARNING! Using GPT-4 - this will be slow and expensive!')
-    dataset = json.loads(get_dataset(dataset_id))
+    dataset = storage.load('datasets', dataset_domain, dataset_name, load_from_disk=load_from_disk)
     fetch_dataset_data(dataset)
     chain = LLMChain(
-        llm=ChatOpenAI(
-            model_name='gpt-4' if gpt4 else 'gpt-3.5-turbo', request_timeout=240),
+        llm=ChatOpenAI(model_name=config.model_name(), request_timeout=240),
         prompt=DatasetPrompt(input_variables=['text'], template_format='jinja2', template=dedent("""
             Act as an experienced researcher. Following are details on a dataset containing public data. Provide a summary of this dataset in JSON format, including a title, description, and keywords. The JSON should look like this:
             {
@@ -147,12 +168,21 @@ def main(dataset_id, gpt4=False):
                 "data fields": "<a list with statistics of each field or variable in the data set: type of variable, the range of data points values, the distribution of data points, a ratio of missing values.>"
                 "example questions": "<a list of different example research questions this data set can answer>"
             }
+            Return only the json object, without any additional explanation or context.
             ----------------
             {{text}}
         """), dataset=dataset),
         verbose=True
     )
     with get_openai_callback() as cb:
-        res = chain.run(dataset_id)
+        res = chain.run(f'{dataset_domain}/{dataset_name}')
         print(cb)
-    return (res)
+    try:
+        item = json.loads(res)
+    except Exception as e:
+        raise Exception(f'Failed to parse response json: \n{res}') from e
+    if save_to_disk:
+        storage.save_to_disk(item, *itempathparts)
+    if save_to_storage:
+        storage.save(item, *itempathparts)
+    return item

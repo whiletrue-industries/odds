@@ -6,6 +6,18 @@ Following are the full deployment steps, depending on what you want to do you ca
 
 ### Update the infrastructure
 
+Set secret env vars:
+
+```
+TF_VAR_contabo_oauth2_client_id=
+TF_VAR_contabo_oauth2_client_secret=
+TF_VAR_contabo_oauth2_user=
+TF_VAR_contabo_oauth2_pass=
+TF_VAR_server_password= 
+```
+
+Apply:
+
 ```
 terraform -chdir=infra/environments/uumpa init
 terraform -chdir=infra/environments/uumpa apply
