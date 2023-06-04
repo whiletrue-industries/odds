@@ -14,8 +14,8 @@ on:
     branches:
       - add-storage
 env:
-  CKAN_INSTANCE_GLOB: ${{ inputs.ckan_instance_glob or 'data.gov.uk' }}
-  LIMIT: ${{ inputs.limit or '100' }}
+  CKAN_INSTANCE_GLOB: ${{ inputs.ckan_instance_glob || 'data.gov.uk' }}
+  LIMIT: ${{ inputs.limit || '100' }}
 jobs:
   build:
     runs-on: ubuntu-22.04

@@ -14,8 +14,8 @@ on:
     branches:
       - add-storage
 env:
-  DATASET_DOMAIN_GLOB: ${{ inputs.dataset_domain_glob or 'data.gov.uk' }}
-  DATASET_NAME_GLOB: ${{ inputs.dataset_name_glob or '*dan-minchin-uk-records-of-ficopomatus-enigmaticus*' }}
+  DATASET_DOMAIN_GLOB: ${{ inputs.dataset_domain_glob || 'data.gov.uk' }}
+  DATASET_NAME_GLOB: ${{ inputs.dataset_name_glob || '*dan-minchin-uk-records-of-ficopomatus-enigmaticus*' }}
 jobs:
   build:
     environment: ori_hoch_openai
