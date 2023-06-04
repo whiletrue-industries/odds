@@ -24,7 +24,8 @@ def get_instance_datasets(domain, limit=None):
             print(f"Getting page {page} of datasets from {domain}")
         r = requests.get(
             f"https://{domain}/api/3/action/package_search", params={"rows": 1000, "start": (page - 1) * 1000},
-            **get_ckan_instance_requests_kwargs(domain)
+            **get_ckan_instance_requests_kwargs(domain),
+            timeout=240
         )
         assert r.status_code == 200, f"Error getting page {page} of datasets from {domain}: {r.status_code}"
         rows = r.json()['result']['results']

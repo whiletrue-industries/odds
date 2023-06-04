@@ -25,4 +25,4 @@ jobs:
         pip install --upgrade pip &&\
         pip install -r requirements.txt &&\
         pip install -e .
-    - run: ckangpt backend scrape-ckan-instance --save-to-storage --glob --limit $LIMIT "${CKAN_INSTANCE_GLOB}"
+    - run: ckangpt --debug backend scrape-ckan-instance --save-to-storage --glob --limit $LIMIT "${CKAN_INSTANCE_GLOB}"

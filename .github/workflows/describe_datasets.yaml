@@ -27,4 +27,4 @@ jobs:
         pip install -e .
     - env:
         OPENAI_API_KEY: ${{ secrets.ORI_HOCH_OPENAI_API_KEY }}
-      run: ckangpt backend scrape-ckan-instance --save-to-storage --glob "${CKAN_INSTANCE_GLOB}"
+      run: ckangpt --debug backend describe-dataset --save-to-storage --glob "${DATASET_DOMAIN_GLOB}" "${DATASET_NAME_GLOB}"

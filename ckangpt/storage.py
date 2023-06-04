@@ -29,8 +29,17 @@ def get_ckangpt_metadata():
         'p': platform.platform(),
         'n': platform.node(),
         'v': platform.python_version(),
-        'g': f'{git_commit} {git_status}'
+        'g': f'{git_commit} {git_status}',
+        **({'ci': True} if config.CI else {})
     }
+
+
+def is_updated_item_meteadata(old_metadata):
+    new_metadata = get_ckangpt_metadata()
+    for k, v in old_metadata.items():
+        if k not in ['dt', 'p', 'n', 'v'] and new_metadata[k] != v:
+            return True
+    return False
 
 
 def get_item_for_save(item):
@@ -89,7 +98,10 @@ def load(*itempathparts, load_from_disk=False, with_metadata=False):
             return get_item_from_load(json.load(f), with_metadata=with_metadata)
     else:
         s3 = get_boto_s3_client()
-        response = s3.get_object(Bucket=config.STORAGE_WASABI_BUCKET, Key='/'.join(itempathparts))
+        try:
+            response = s3.get_object(Bucket=config.STORAGE_WASABI_BUCKET, Key='/'.join(itempathparts))
+        except s3.exceptions.NoSuchKey:
+            return (None, None) if with_metadata else None
         return get_item_from_load(json.loads(response['Body'].read().decode('utf-8')), with_metadata=with_metadata)
 
 

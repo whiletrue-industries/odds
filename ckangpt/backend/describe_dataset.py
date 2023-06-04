@@ -124,7 +124,7 @@ def fetch_dataset_data(dataset):
     dataset['resources'] = resources
 
 
-def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False):
+def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False):
     print(f'Describing datasets matching glob pattern {dataset_domain}/{dataset_name}')
     matching_domains = set()
     for item in storage.list_(prefix='datasets/'):
@@ -135,10 +135,18 @@ def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=F
         for item in storage.list_(prefix=f'datasets/{domain}/'):
             name = item.split('/')[2]
             if fnmatch.fnmatchcase(name.lower(), dataset_name.lower()):
-                yield main(domain, name, load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage)
+                yield main(domain, name, load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force_update=force_update)
 
 
-def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False):
+def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False):
+    itempathparts = 'dataset_descriptions', dataset_domain, dataset_name
+    if save_to_storage and not force_update:
+        old_dataset_description, metadata = storage.load(*itempathparts, with_metadata=True)
+        print(old_dataset_description, metadata)
+        if old_dataset_description and not storage.is_updated_item_meteadata(metadata):
+            if config.ENABLE_DEBUG:
+                print("dataset description already exists in storage and does not require update, skipping")
+            return old_dataset_description
     if config.USE_GPT4:
         print('WARNING! Using GPT-4 - this will be slow and expensive!')
     dataset = storage.load('datasets', dataset_domain, dataset_name, load_from_disk=load_from_disk)
@@ -168,7 +176,6 @@ def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False,
         item = json.loads(res)
     except Exception as e:
         raise Exception(f'Failed to parse response json: \n{res}') from e
-    itempathparts = 'dataset_descriptions', dataset_domain, dataset_name
     if save_to_disk:
         storage.save_to_disk(item, *itempathparts)
     if save_to_storage:
