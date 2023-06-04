@@ -1,9 +1,21 @@
-name: Scrape CKAN Instsances and save to storage
+name: Scrape CKAN Instsances and save to remote storage
 on:
   workflow_dispatch:
+    inputs:
+      ckan_instance_glob:
+        description: 'Glob pattern to match CKAN instances to scrape'
+        required: true
+        default: '*'
+      limit:
+        description: 'Limit the number of datasets to scrape'
+        required: true
+        default: "0"
   push:
     branches:
       - add-storage
+env:
+  CKAN_INSTANCE_GLOB: ${{ inputs.ckan_instance_glob or 'data.gov.uk' }}
+  LIMIT: ${{ inputs.limit or '100' }}
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -12,5 +24,5 @@ jobs:
     - run: |
         pip install --upgrade pip &&\
         pip install -r requirements.txt &&\
-        pip install -e . &&\
-        ckangpt backend scrape-ckan-instance '*' --save-to-storage --glob
+        pip install -e .
+    - run: ckangpt backend scrape-ckan-instance --save-to-storage --glob --limit $LIMIT "${CKAN_INSTANCE_GLOB}"
