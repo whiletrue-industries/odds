@@ -1,0 +1,16 @@
+name: Scrape CKAN Instsances and save to storage
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - add-storage
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - run: |
+        pip install --upgrade pip &&\
+        pip install -r requirements.txt &&\
+        pip install -e . &&\
+        ckangpt backend scrape-ckan-instance '*' --save-to-storage --glob

@@ -26,6 +26,18 @@ PINECONE_DATASETS_COLLECTION_NAME = os.environ.get('PINECONE_DATASETS_COLLECTION
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
 PINECONE_ENVIRONMENT = os.environ.get('PINECONE_ENVIRONMENT') or "us-west1-gcp"
 
+CI = os.environ.get('CI') == 'true'
+STORAGE_DIR = os.environ.get("STORAGE_DIR") or os.path.join(DATA_DIR, "storage")
+STORAGE_WASABI_BUCKET = os.environ.get('STORAGE_S3_BUCKET') or "ckangpt"
+STORAGE_WASABI_ACCESS_KEY = os.environ.get('STORAGE_WASABI_ACCESS_KEY') or 'QWWBR9L8IWN62PJIKHOW'
+STORAGE_WASABI_SECRET_KEY = os.environ.get('STORAGE_WASABI_SECRET_KEY') or 'GWXMI8SiCbNzhUIItBPqe86002pKBOPRud0zQelG'
+STORAGE_WASABI_ENDPOINT = os.environ.get('STORAGE_WASABI_ENDPOINT') or 'https://s3.eu-west-2.wasabisys.com'
+
+CKAN_INSTANCE_DOMAINS = [
+    'data.gov.uk',
+    'data.gov.il'
+]
+
 
 def model_name():
     if USE_GPT4:

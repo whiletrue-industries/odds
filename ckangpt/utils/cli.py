@@ -1,6 +1,8 @@
+import json
+
 import click
 
-from ckangpt import common
+from ckangpt import storage
 
 
 @click.group()
@@ -69,3 +71,11 @@ def delete_collection(name):
     from ckangpt import vectordb
     vectordb.get_vector_db_instance().delete_collection(name)
     print('OK')
+
+
+@utils.command()
+@click.option('--prefix')
+@click.option('--recursive', is_flag=True)
+def storage_list(**kwargs):
+    for item in storage.list_(**kwargs):
+        print(f'- {item}')
