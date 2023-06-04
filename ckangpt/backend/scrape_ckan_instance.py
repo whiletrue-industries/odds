@@ -5,13 +5,27 @@ import requests
 from ckangpt import storage, config
 
 
+def get_ckan_instance_requests_kwargs(domain):
+    if domain.lower() == 'data.gov.il':
+        return {
+            'headers': {
+                'User-Agent': 'datagov-external-client'
+            }
+        }
+    else:
+        return {}
+
+
 def get_instance_datasets(domain, limit=None):
     page = 1
     num_rows = 0
     while True:
         if config.ENABLE_DEBUG:
             print(f"Getting page {page} of datasets from {domain}")
-        r = requests.get(f"https://{domain}/api/3/action/package_search", params={"rows": 1000, "start": (page - 1) * 1000})
+        r = requests.get(
+            f"https://{domain}/api/3/action/package_search", params={"rows": 1000, "start": (page - 1) * 1000},
+            **get_ckan_instance_requests_kwargs(domain)
+        )
         assert r.status_code == 200, f"Error getting page {page} of datasets from {domain}: {r.status_code}"
         rows = r.json()['result']['results']
         for row in rows:
