@@ -10,9 +10,9 @@ on:
         description: 'Limit the number of datasets to scrape'
         required: true
         default: "0"
-  push:
-    branches:
-      - add-storage
+#  push:
+#    branches:
+#      - add-storage
 env:
   CKAN_INSTANCE_GLOB: ${{ inputs.ckan_instance_glob || 'data.gov.uk' }}
   LIMIT: ${{ inputs.limit || '100' }}
