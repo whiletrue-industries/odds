@@ -143,10 +143,15 @@ def get_critic_example_json(example):
 
 
 def get_critic_user_query(user_prompt, vector_db_query_json_uncriticized):
-    return json.dumps({
-        'query': user_prompt,
-        **json.loads(vector_db_query_json_uncriticized),
-    })
+    try:
+        return json.dumps({
+            'query': user_prompt,
+            **json.loads(vector_db_query_json_uncriticized),
+        })
+    except json.decoder.JSONDecodeError:
+        return json.dumps({
+            'query': user_prompt,
+        })
 
 
 def main(user_prompt):

@@ -37,6 +37,7 @@ def get_documents_from_vector_db(query, **kwargs):
 @click.option('--from-db-query', type=str)
 @click.option('--from-document-ids', type=str)
 @click.option('--from-user-prompt', type=str)
+@click.option('--load-from-disk', is_flag=True)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
 @click.option('--max-tokens', type=int)
 def get_context_from_documents(**kwargs):
@@ -53,6 +54,7 @@ def get_context_from_documents(**kwargs):
 @click.option('--db-query', type=str)
 @click.option('--document-ids', type=str)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
+@click.option('--load-from-disk', is_flag=True)
 def get_answer_from_prompt_context(**kwargs):
     from . import get_answer_from_prompt_context
     kwargs['document_ids'] = kwargs['document_ids'].split(',') if kwargs['document_ids'] else None
@@ -65,6 +67,7 @@ def get_answer_from_prompt_context(**kwargs):
 @click.argument("USER_PROMPT")
 @click.option('--document-ids', type=str)
 @click.option('--num-results', type=int, default=DEFAULT_NUM_RESULTS)
+@click.option('--load-from-disk', is_flag=True)
 def find_datasets(**kwargs):
     from . import find_datasets
     usage, answer = find_datasets.main(**kwargs)

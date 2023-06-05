@@ -3,41 +3,24 @@ import json
 import tiktoken
 
 from . import get_documents_from_vector_db
-from ckangpt import vectordb, config
+from ckangpt import vectordb, config, storage
 
 
-def get_context_str(documents, max_resources=None, with_organization=True, truncate_len=200):
+def get_context_str(documents):
     context = {}
     for id, document in documents.items():
-        doc_context = {
-            'Title': document.get('title'),
-            'Notes': document.get('notes'),
-        }
-        if with_organization:
-            doc_context.update({
-                'Organization Title': document.get('organization', {}).get('title'),
-                'Organization Description': document.get('organization', {}).get('description'),
-            })
-        if max_resources != 0:
-            for i, resource in enumerate(document.get('resources', {}).values()):
-                doc_context[f'Resource {i+1} URL'] = resource.get('url')
-                doc_context[f'Resource {i+1} Name'] = resource.get('name')
-                if max_resources and i+1 >= max_resources:
-                    break
-        doc_context_strs = []
-        for title, value in doc_context.items():
-            if value and value.strip():
-                value = value.strip().replace('\n', ' ').replace('\r', ' ').replace('<p>', '').replace('</p>', '')[:truncate_len]
-                doc_context_strs.append(f'{title}: {value}')
-        if len(doc_context_strs):
-            context[id] = '\n'.join(doc_context_strs)
+        doc_context_strs = [
+            f'Summary: {document["summary"]}',
+            f'Description: {document["description"]}',
+        ]
+        context[id] = '\n'.join(doc_context_strs)
     context_strs = []
     for id, doc_context in context.items():
         context_strs.append(f'ID: {id}\n{doc_context}')
     return '\n---\n'.join(context_strs)
 
 
-def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, num_results=config.DEFAULT_NUM_RESULTS, max_tokens=None):
+def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, num_results=config.DEFAULT_NUM_RESULTS, max_tokens=None, load_from_disk=False):
     vdb = vectordb.get_vector_db_instance()
     if not max_tokens:
         max_tokens = 6000 if config.USE_GPT4 else 2500
@@ -53,16 +36,12 @@ def main(from_db_query=None, from_document_ids=None, from_user_prompt=None, num_
         from_document_ids = [d.id for d in documents]
     collection = vdb.get_datasets_collection()
     documents = {
-        id: json.loads(document)
+        id: storage.load(*document, load_from_disk=load_from_disk, with_metadata=False)
         for id, document
         in collection.iterate_item_documents(item_ids=from_document_ids)
     }
     encoding = tiktoken.encoding_for_model(config.model_name())
     context = get_context_str(documents)
     if len(encoding.encode(context)) > max_tokens:
-        context = get_context_str(documents, max_resources=3, with_organization=False)
-        if len(encoding.encode(context)) > max_tokens:
-            context = get_context_str(documents, max_resources=1, with_organization=False, truncate_len=100)
-            if len(encoding.encode(context)) > max_tokens:
-                context = encoding.decode(encoding.encode(context)[:max_tokens])
+        context = encoding.decode(encoding.encode(context)[:max_tokens])
     return usage, context, len(encoding.encode(context))
