@@ -86,7 +86,7 @@ Query: {{user_prompt}}
 '''
 
 
-def main(user_prompt, db_query=None, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS):
+def main(user_prompt, db_query=None, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS, load_from_disk=False):
     llm = guidance.llms.OpenAI(config.model_name(), chat_mode=True, caching=config.ENABLE_CACHE)
     context_usage = {}
 
@@ -95,6 +95,7 @@ def main(user_prompt, db_query=None, document_ids=None, num_results=config.DEFAU
         get_context_kwargs = {
             'num_results': num_results,
             'max_tokens': model_max_tokens - num_prompt_tokens - gen_max_tokens,
+            'load_from_disk': load_from_disk,
         }
         if db_query:
             assert not document_ids
