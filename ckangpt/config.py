@@ -32,7 +32,7 @@ CHROMA_SERVER_URL = os.environ.get('CHROMA_SERVER_URL') or "https://ckangpt:pvzm
 
 USE_PINECONE = get_bool_env('USE_PINECONE', False)
 PINECONE_DATASETS_COLLECTION_NAME = os.environ.get('PINECONE_DATASETS_COLLECTION_NAME') or "ckangpt"
-PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
+PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY') or "1a26625d-b388-4ebd-9fdc-0283ba594f96"
 PINECONE_ENVIRONMENT = os.environ.get('PINECONE_ENVIRONMENT') or "us-west1-gcp"
 
 STORAGE_DIR = os.environ.get("STORAGE_DIR") or os.path.join(DATA_DIR, "storage")
