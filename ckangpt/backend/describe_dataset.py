@@ -1,57 +1,71 @@
-import pandas as pd
 import json
+import yaml
 import fnmatch
 
 from typing import Any, Dict
 
 from textwrap import dedent
 
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain.callbacks import get_openai_callback
+import guidance
 
 from ckangpt import config, storage
 
+import pandas as pd
+import numpy as np
 
-class DatasetPrompt(PromptTemplate):
 
-    dataset: Dict[str, Any]
-    """The dataset to describe"""
+DESCRIBE_DATASET = '''{{#system~}}
+You are an experienced data analyst.
+{{~/system}}
 
-    def format(self, **kwargs):
-        dataset = self.dataset
-        resources = [
-            {
-                'name': resource.get('name', '').strip(),
-                'sample': resource['sample'],
-                'fields': [
-                    {
-                        'name': field['name'],
-                        'details': field['field details'],
-                        'missing_values_ratio': field['missing_values_ratio']
-                    }
-                    for field in resource['fields']
-                ]
-            }
-            for resource in dataset.get('resources', [])
-        ]
+{{#user~}}
 
-        res = filter(None, [
-            f"Title: {dataset['title'].strip()}",
-            f"Notes: {dataset['notes'].strip()[:200]}" if dataset.get(
-                'notes') else None,
-            f"Organization: {dataset['organization']['title'].strip()}" if dataset.get(
-                'organization', {}).get('title') else None,
-            f"Organization description: {dataset['organization']['description'].strip()}" if dataset.get(
-                'organization', {}).get('description') else None,
-            f"Dataset files and sample data in CSV format with field details, missing values ratio, and distribution:\n" +
-            '\n\n'.join(f'{i+1}) {resource}' for i,
-                        resource in enumerate(resources)) if resources else None,
-        ])
+Following are details on a dataset containing public data. Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
+The JSON should look like this:
+{
+    "summary": "<What does this dataset contain? A single term, concise and descriptive, using simple terms and avoiding jargon, answering this question.>",
+    "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
+}
+Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
+Return only the json object, without any additional explanation or context.
+--------------
+{{#each sections}}
+{{this[0]}}{{this[1]}}
+{{/each}}
+{{~/user}}
+{{#assistant~}}
+{{gen 'response' temperature=0}}
+{{~/assistant}}
+'''
 
-        kwargs['text'] = '\n'.join(res)
-        return super().format(**kwargs)
+def dataset_params(dataset):
+    dataset_resources = [
+        {
+            'name': resource.get('name', '').strip(),
+            'fields': dict(
+                (field['name'], field['field details']) for field in resource['fields']
+                if 'field details' in field
+            )
+        }
+        for resource in dataset.get('resources', [])
+    ]
+    dataset_resources = yaml.dump(dataset_resources, indent=4, sort_keys=False, Dumper=yaml.SafeDumper)
+
+    title = dataset['title'].strip()
+    notes = dataset['notes'].strip()[:200].replace('\n', '') if dataset.get('notes') else None
+    if notes == title:
+        notes = None
+    org = dataset['organization']['title'].strip() if dataset.get('organization', {}).get('title') else None
+    org_description = dataset['organization']['description'].strip()[:200].replace('\n', '') if dataset.get('organization', {}).get('description') else None
+    ret = [
+        ('Title: ', title),
+        ('Notes: ', notes),
+        ('Publisher: ', org),
+        ('Publisher Description: ', org_description),
+        ('Dataset files with field details:\n', dataset_resources),
+    ]
+    ret = list(filter(lambda x: x[1], ret))
+    return ret
 
 
 def fetch_dataset_data(dataset):
@@ -72,8 +86,7 @@ def fetch_dataset_data(dataset):
                 # Convert data types of object columns to improve data descriptions
                 for col in df.select_dtypes(include=['object']):
                     try:
-                        df[col] = pd.to_datetime(
-                            df[col], errors='ignore')
+                        df[col] = pd.to_datetime(df[col], errors='ignore', format='auto')
                     except ValueError:
                         df[col] = pd.to_numeric(df[col], errors='ignore')
 
@@ -85,9 +98,10 @@ def fetch_dataset_data(dataset):
                     if col_type in ['float64', 'int64']:
                         min_value = df[col_name].min()
                         max_value = df[col_name].max()
-                        mean_value = round(df[col_name].mean(), 3)
-                        median_value = round(df[col_name].median(), 3)
-                        field['field details'] = f"Range: {min_value} to {max_value}, Mean: {mean_value}, Median: {median_value}"
+                        if not np.isnan(min_value):
+                            mean_value = round(df[col_name].mean(), 3)
+                            median_value = round(df[col_name].median(), 3)
+                            field['field details'] = f"Range: {min_value} to {max_value}, Mean: {mean_value}, Median: {median_value}"
 
                     elif col_type == 'datetime64[ns]':
                         min_date = df[col_name].min()
@@ -98,9 +112,8 @@ def fetch_dataset_data(dataset):
                             '%Y-%m') if not pd.isnull(max_date) else 'N/A'
                         field['field details'] = f"Date range: {min_date_str} to {max_date_str}"
                     else:
-                        top_values = list(df[col_name].value_counts().nlargest(
-                            10).to_dict().keys())
-                        field['field details'] = f"Top values: {top_values}"
+                        top_values = ', '.join([str(x).strip() for x in df[col_name].value_counts()[:3].index])
+                        field['field details'] = f"e.g. {top_values}"
 
                     # Add missing_values ratio
                     missing_values_count = df[col_name].isna().sum()
@@ -156,29 +169,16 @@ def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False,
         print('WARNING! Using GPT-4 - this will be slow and expensive!')
     dataset = storage.load('datasets', dataset_domain, dataset_name, load_from_disk=load_from_disk)
     fetch_dataset_data(dataset)
-    chain = LLMChain(
-        llm=ChatOpenAI(model_name=config.model_name(), request_timeout=240),
-        prompt=DatasetPrompt(input_variables=['text'], template_format='jinja2', template=dedent("""
-            Act as an experienced researcher. Following are details on a dataset containing public data. Provide a summary of this dataset in JSON format, including a title, description, and keywords. The JSON should look like this:
-            {
-                "purpose": "<What is the purpose of this dataset? A single sentence, concise and descriptive, using simple terms and avoiding jargon.>",
-                "description": "<A good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>",
-                "keywords": "<a semicolon-separated list of keywords that describe this dataset.>",
-                "data general": "<What sort of data might we find in this dataset?>",
-                "data fields": "<a list with statistics of each field or variable in the data set: type of variable, the range of data points values, the distribution of data points, a ratio of missing values.>"
-                "example questions": "<a list of different example research questions this data set can answer>"
-            }
-            Return only the json object, without any additional explanation or context.
-            ----------------
-            {{text}}
-        """), dataset=dataset),
-        verbose=True
-    )
-    with get_openai_callback() as cb:
-        res = chain.run(f'{dataset_domain}/{dataset_name}')
-        print(cb)
+
+    llm = guidance.llms.OpenAI(config.model_name(), chat_mode=True, caching=config.ENABLE_CACHE)
+    res = guidance.Program(
+        llm=llm,
+        text=DESCRIBE_DATASET,
+        silent=True
+    )(sections=dataset_params(dataset))
+
     try:
-        item = json.loads(res)
+        item = json.loads(res['response'])
     except Exception as e:
         raise Exception(f'Failed to parse response json: \n{res}') from e
     if save_to_disk:
