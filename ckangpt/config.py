@@ -27,13 +27,18 @@ ENABLE_DEBUG = get_bool_env('ENABLE_DEBUG', False)
 DEFAULT_NUM_RESULTS = int(os.environ.get('DEFAULT_NUM_RESULTS') or '5')
 
 USE_CLICKHOUSE = get_bool_env('USE_CLICKHOUSE', False)
-USE_CHROMA_SERVER = get_bool_env('USE_CHROMA_SERVER', True)
-CHROMA_SERVER_URL = os.environ.get('CHROMA_SERVER_URL') or "https://ckangpt:pvzm1Z2pbQHQVDSz8C@ckangpt-chroma.uumpa.xyz/api/v1"
+USE_CHROMA_SERVER = get_bool_env('USE_CHROMA_SERVER', False)
+CHROMA_SERVER_URL = os.environ.get('CHROMA_SERVER_URL')
 
-USE_PINECONE = get_bool_env('USE_PINECONE', False)
+USE_PINECONE = get_bool_env('USE_PINECONE', True)
+# in pinecone terminology this is called an index name, pinecone collection is something else
+# you need to create the index as named here ('ckangpt') in pinecone first with the following properties:
+# - dimensions: 1536
+# - metric: cosine
+# - pod type: starter
 PINECONE_DATASETS_COLLECTION_NAME = os.environ.get('PINECONE_DATASETS_COLLECTION_NAME') or "ckangpt"
 PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY') or "1a26625d-b388-4ebd-9fdc-0283ba594f96"
-PINECONE_ENVIRONMENT = os.environ.get('PINECONE_ENVIRONMENT') or "us-west1-gcp"
+PINECONE_ENVIRONMENT = os.environ.get('PINECONE_ENVIRONMENT') or "asia-southeast1-gcp-free"
 
 STORAGE_DIR = os.environ.get("STORAGE_DIR") or os.path.join(DATA_DIR, "storage")
 STORAGE_WASABI_BUCKET = os.environ.get('STORAGE_S3_BUCKET') or "ckangpt"
