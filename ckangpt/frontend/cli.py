@@ -77,3 +77,19 @@ def find_datasets(**kwargs):
     print_separator(f'Found {len(docs)} documents, listed above from least to most relevant.')
     print_separator(answer, pprint=True)
     print_usage(usage)
+
+
+@frontend.command()
+@click.argument("DATASET_DOMAIN")
+@click.argument("DATASET_ID")
+@click.option('--target-path')
+@click.option('--print-dataset', is_flag=True)
+def get_dataset_dbs(print_dataset=False, **kwargs):
+    from . import get_dataset_dbs
+    dataset = get_dataset_dbs.main(**kwargs)
+    if print_dataset:
+        print_separator(dataset, pprint=True)
+    for i, resource in enumerate(dataset.get('resources', [])):
+        if resource.get('__db_metadata'):
+            print_separator(f'Resource {i}: {resource["name"]}')
+            print_separator(resource['__db_metadata'], pprint=True)

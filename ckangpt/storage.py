@@ -11,7 +11,7 @@ from . import config
 
 def validate_itempathparts(itempathparts):
     for part in itempathparts:
-        assert '/' not in part and '\\' not in part, f"item path parts cannot contain directory separators"
+        assert '/' not in part and '\\' not in part, f"item path parts cannot contain directory separators ({part} / {itempathparts})"
 
 
 def get_ckangpt_metadata():
@@ -71,10 +71,18 @@ def get_boto_s3_client():
 
 def save(item, *itempathparts):
     if config.ENABLE_DEBUG:
-        print(f'Saving item to S3: {itempathparts}')
+        print(f'Saving item to Wasabi: {itempathparts}')
     validate_itempathparts(itempathparts)
     s3 = get_boto_s3_client()
     s3.put_object(Bucket=config.STORAGE_WASABI_BUCKET, Key='/'.join(itempathparts), Body=json.dumps(get_item_for_save(item), indent=2, ensure_ascii=False))
+
+
+def save_file(file_path, *itempathparts):
+    if config.ENABLE_DEBUG:
+        print(f'Saving file to Wasabi: {itempathparts}')
+    validate_itempathparts(itempathparts)
+    s3 = get_boto_s3_client()
+    s3.upload_file(file_path, config.STORAGE_WASABI_BUCKET, '/'.join(itempathparts))
 
 
 def get_item_from_load(item, with_metadata=False):
@@ -103,6 +111,15 @@ def load(*itempathparts, load_from_disk=False, with_metadata=False):
         except s3.exceptions.NoSuchKey:
             return (None, None) if with_metadata else None
         return get_item_from_load(json.loads(response['Body'].read().decode('utf-8')), with_metadata=with_metadata)
+
+
+def load_file(file_path, *itempathparts):
+    if config.ENABLE_DEBUG:
+        print(f'Loading file from Wasabi: {itempathparts}')
+    validate_itempathparts(itempathparts)
+    s3 = get_boto_s3_client()
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    s3.download_file(config.STORAGE_WASABI_BUCKET, '/'.join(itempathparts), file_path)
 
 
 def list_(prefix='', recursive=False):
