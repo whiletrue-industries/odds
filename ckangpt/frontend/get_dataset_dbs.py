@@ -12,12 +12,6 @@ from ckangpt import storage, config
 
 
 TABULAR_RESOURCE_FORMATS = ['csv']
-URL_PATH_ESCAPE_MAP = {
-    '://': '/upecss/',
-    '?': '/upeq/',
-    '&': '/upea/',
-    '=': '/upee/',
-}
 
 
 def process(db_file_path, url, **load_kwargs):
