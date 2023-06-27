@@ -41,10 +41,14 @@ PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY') or "1a26625d-b388-4ebd-9fd
 PINECONE_ENVIRONMENT = os.environ.get('PINECONE_ENVIRONMENT') or "asia-southeast1-gcp-free"
 
 STORAGE_DIR = os.environ.get("STORAGE_DIR") or os.path.join(DATA_DIR, "storage")
-STORAGE_WASABI_BUCKET = os.environ.get('STORAGE_S3_BUCKET') or "ckangpt"
-STORAGE_WASABI_ACCESS_KEY = os.environ.get('STORAGE_WASABI_ACCESS_KEY') or 'QWWBR9L8IWN62PJIKHOW'
-STORAGE_WASABI_SECRET_KEY = os.environ.get('STORAGE_WASABI_SECRET_KEY') or 'GWXMI8SiCbNzhUIItBPqe86002pKBOPRud0zQelG'
-STORAGE_WASABI_ENDPOINT = os.environ.get('STORAGE_WASABI_ENDPOINT') or 'https://s3.eu-west-2.wasabisys.com'
+STORAGE_PROVIDER = 'azure'  # 'wasabi'
+STORAGE_WASABI_BUCKET = os.environ.get('STORAGE_S3_BUCKET')  # or "ckangpt"
+STORAGE_WASABI_ACCESS_KEY = os.environ.get('STORAGE_WASABI_ACCESS_KEY')  # or 'QWWBR9L8IWN62PJIKHOW'
+STORAGE_WASABI_SECRET_KEY = os.environ.get('STORAGE_WASABI_SECRET_KEY')  # or 'GWXMI8SiCbNzhUIItBPqe86002pKBOPRud0zQelG'
+STORAGE_WASABI_ENDPOINT = os.environ.get('STORAGE_WASABI_ENDPOINT')  # or 'https://s3.eu-west-2.wasabisys.com'
+STORAGE_AZURE_CONTAINER = os.environ.get('STORAGE_AZURE_CONTAINER') or 'ckangpt'
+STORAGE_AZURE_BLOB_URL = os.environ.get('STORAGE_AZURE_BLOB_URL') or 'https://ckangpt.blob.core.windows.net'
+STORAGE_AZURE_CONNECTION_STRING = os.environ.get('STORAGE_AZURE_CONNECTION_STRING') or 'DefaultEndpointsProtocol=https;AccountName=ckangpt;AccountKey=QgxBjRtojtdeq0CafSa+PoOSXeQJNX9yU8kayLGdyjfQI/jNjWeyooqQxGdRHi1ufmF2CVMHErl6+AStDRBk7Q==;EndpointSuffix=core.windows.net'
 
 CKAN_INSTANCE_DOMAINS = [
     'data.gov.uk',

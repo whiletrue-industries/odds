@@ -156,6 +156,7 @@ def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=F
 
 
 def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False, limit=None):
+    print(f'Describing dataset {dataset_domain}/{dataset_name}')
     assert not limit
     itempathparts = 'dataset_descriptions', dataset_domain, dataset_name
     if save_to_storage and not force_update:

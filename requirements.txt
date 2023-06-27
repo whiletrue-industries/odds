@@ -17,3 +17,5 @@ urllib3<2
 # guidance with improvements to support usage tracking and dynamic max tokens from https://github.com/OriHoch/guidance/tree/0.0.57-openai-usage-cost-dynamic-max-tokens
 -e git+https://github.com/OriHoch/guidance@0.0.57-openai-usage-cost-dynamic-max-tokens#egg=guidance
 boto3==1.26.127
+azure-storage-blob==12.16.0
+azure-identity==1.13.0
