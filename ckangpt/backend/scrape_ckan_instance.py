@@ -39,16 +39,16 @@ def get_instance_datasets(domain, limit=None):
         page += 1
 
 
-def main_glob(domains_glob, limit=None, save_to_disk=False, save_to_storage=False):
+def main_glob(domains_glob, limit=None, save_to_disk=False, save_to_storage=False, force=False):
     print(f'Scraping datasets from domains matching {domains_glob}')
     for domain in config.CKAN_INSTANCE_DOMAINS:
         if fnmatch.fnmatchcase(domain.lower(), domains_glob.lower()):
-            main(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage)
+            main(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force=force)
 
 
 def main(domain, limit=None, save_to_disk=False, save_to_storage=False, glob=False, force=False):
     if glob:
-        return main_glob(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage)
+        return main_glob(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force=force)
     else:
         print(f"Scraping {limit or 'all'} datasets from {domain}")
         if save_to_disk:
