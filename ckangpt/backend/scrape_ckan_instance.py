@@ -39,18 +39,20 @@ def get_instance_datasets(domain, limit=None):
         page += 1
 
 
-def main_glob(domains_glob, limit=None, save_to_disk=False, save_to_storage=False, force=False):
+def main_glob(domains_glob, limit=None, save_to_disk=False, save_to_storage=False, force=False, dataset_glob=None):
     print(f'Scraping datasets from domains matching {domains_glob}')
     for domain in config.CKAN_INSTANCE_DOMAINS:
         if fnmatch.fnmatchcase(domain.lower(), domains_glob.lower()):
-            main(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force=force)
+            main(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force=force, dataset_glob=dataset_glob)
 
 
-def main(domain, limit=None, save_to_disk=False, save_to_storage=False, glob=False, force=False):
+def main(domain, limit=None, save_to_disk=False, save_to_storage=False, glob=False, force=False, dataset_glob=None):
     if glob:
-        return main_glob(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force=force)
+        return main_glob(domain, limit=limit, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force=force, dataset_glob=dataset_glob)
     else:
         print(f"Scraping {limit or 'all'} datasets from {domain}")
+        if dataset_glob:
+            print(f"Filtering datasets by {dataset_glob}")
         if save_to_disk:
             print("Saving to local disk")
         if save_to_storage:
@@ -59,6 +61,9 @@ def main(domain, limit=None, save_to_disk=False, save_to_storage=False, glob=Fal
         assert save_to_disk or save_to_storage, "Must set either --save-to-disk to save to local disk for local developement or --save-to-storage to save to remote storage"
         i = 0
         for dataset in get_instance_datasets(domain, limit=limit):
+            if dataset_glob and not fnmatch.fnmatchcase(dataset['name'], dataset_glob):
+                continue
+            print(f'Scraping dataset {dataset["name"]} from {domain}')
             storage_item_path_parts = 'datasets', domain, dataset['name']
             if save_to_disk:
                 storage.save_to_disk(dataset, *storage_item_path_parts)

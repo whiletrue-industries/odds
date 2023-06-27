@@ -50,6 +50,7 @@ def index_dataset(glob=False, **kwargs):
 @click.option('--save-to-storage', is_flag=True)
 @click.option('--glob', is_flag=True, help="DOMAIN argument will be treated as a glob to match over all known domains")
 @click.option('--force', is_flag=True, help="To ensure consistent data in storage, save to storage will only work from CI, pass --force to run it anyway")
+@click.option('--dataset-glob', help="Filter datasets by glob")
 def scrape_ckan_instance(**kwargs):
     from . import scrape_ckan_instance
     scrape_ckan_instance.main(**kwargs)
