@@ -169,7 +169,7 @@ def main(user_prompt):
         vector_db_query_json_uncriticized = json.loads(res['vector_db_query_json_uncriticized'])
         vector_db_query_json_criticized = json.loads(res['vector_db_query_json_criticized'])
     except json.decoder.JSONDecodeError:
-        raise Exception(f'Failed to parse json responses: {res}')
+        raise Exception(f'Failed to parse json responses:\n{res.get("vector_db_query_json_uncriticized")}\n{res.get("vector_db_query_json_criticized")}')
     if debug:
         common.print_separator(vector_db_query_json_uncriticized, pprint=True)
         common.print_separator(vector_db_query_json_criticized, pprint=True)

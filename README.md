@@ -16,7 +16,7 @@ pip install -e .
 
 Copy `.env.sample` to `.env` and set your OPENAI_API_KEY
 
-### CLI Usage
+### Usage
 
 ```
 ckangpt --help
