@@ -9,7 +9,7 @@ from . import config
 
 def validate_itempathparts(itempathparts):
     for part in itempathparts:
-        assert '/' not in part and '\\' not in part, f"item path parts cannot contain directory separators"
+        assert '/' not in part and '\\' not in part, f"item path parts cannot contain directory separators ({part} / {itempathparts})"
 
 
 def get_ckangpt_metadata():
