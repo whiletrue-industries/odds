@@ -12,6 +12,22 @@ def frontend():
 
 
 @frontend.command()
+@click.option('--port', default=8000, help='Port to bind to.')
+@click.option('--host', default='0.0.0.0', help='Host to bind to.')
+@click.option('--debug', is_flag=True)
+def start_dev_server(port, host, debug):
+    import uvicorn
+    uvicorn.run(
+        "ckangpt.frontend.api.main:app",
+        host=host,
+        port=port,
+        log_level="info" if not debug else "debug",
+        reload=True,
+        loop='asyncio',
+    )
+
+
+@frontend.command()
 @click.argument("USER_PROMPT")
 def get_vector_db_query(**kwargs):
     from . import get_vector_db_query
