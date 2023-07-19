@@ -11,4 +11,4 @@ RUN pip install -e .
 ARG VERSION=local-docker
 RUN echo "VERSION = '${VERSION}'" > ckangpt/version.py
 ENV PYTHONUNBUFFERED=1
-ENTRYPOINT ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-c", "gunicorn_conf.py", "ckangpt.frontend.api.main:app"]
+ENTRYPOINT ["gunicorn", "-k", "ckangpt.custom_uvicorn_worker.CustomUvicornWorker", "-c", "gunicorn_conf.py", "ckangpt.frontend.api.main:app"]
