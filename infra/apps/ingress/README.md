@@ -9,9 +9,12 @@ export KUBECONFIG=/etc/ckangpt/.kubeconfig
 kubectl get nodes
 ```
 
+On first deployment, set in values.yaml issuer.enabled = false, then once it's deployed, set it to true
+
 Deploy
 
 ```
+helm dependency update infra/apps/ingress
 helm upgrade --install ingress infra/apps/ingress --namespace ingress --create-namespace
 ```
 

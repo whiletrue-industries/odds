@@ -3,3 +3,11 @@ ingress-nginx:
     service:
       annotations:
         service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
+
+cert-manager:
+  installCRDs: true
+  prometheus:
+    enabled: false
+
+issuer:
+  enabled: true
