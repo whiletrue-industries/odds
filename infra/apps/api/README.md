@@ -12,7 +12,7 @@ kubectl get nodes
 Deploy
 
 ```
-helm upgrade --install api infra/apps/api --namespace api --create-namespace
+helm upgrade --install api infra/apps/api --namespace api --create-namespace --values infra/apps/api/values.auto-updated.yaml
 ```
 
 Create secrets

@@ -1,3 +1,3 @@
 api:
-  image: ghcr.io/whiletrue-industries/ckangpt/ckangpt-api:863261fe4f8f08911ef99e2f419353d5e1b0d2c6
+  image: ghcr.io/whiletrue-industries/ckangpt/ckangpt-api:latest
   resources: {}
