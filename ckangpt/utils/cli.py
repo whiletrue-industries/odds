@@ -35,12 +35,14 @@ def download_chroma_db():
 
 
 @utils.command()
-@click.argument('search', required=False, default=None)
-def list_datasets(search):
+@click.argument("DATASET_DOMAIN")
+@click.argument("DATASET_NAME")
+@click.option('--load-from-disk', is_flag=True)
+@click.option('--limit', type=int)
+def list_datasets(**kwargs):
     from .datasets import list_datasets
-    for id in list_datasets():
-        if search is None or search in id:
-            print(id)
+    for domain, name, item in list_datasets(**kwargs):
+        print(f"{domain}/{name}: {item['summary']} - \n\t\t{item['description'][:80]}...")
 
 
 @utils.command()

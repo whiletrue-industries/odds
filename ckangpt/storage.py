@@ -35,7 +35,7 @@ def get_ckangpt_metadata():
 def is_updated_item_meteadata(old_metadata):
     new_metadata = get_ckangpt_metadata()
     for k, v in old_metadata.items():
-        if k not in ['dt', 'p', 'n', 'v'] and new_metadata[k] != v:
+        if k not in ['dt', 'p', 'n', 'v', 'g'] and new_metadata[k] != v:
             return True
     return False
 
