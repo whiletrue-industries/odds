@@ -52,7 +52,8 @@ STORAGE_AZURE_CONNECTION_STRING = os.environ.get('STORAGE_AZURE_CONNECTION_STRIN
 
 CKAN_INSTANCE_DOMAINS = [
     'data.gov.uk',
-    'data.gov.il'
+    'data.gov.il',
+    'data.ontario.ca'
 ]
 
 

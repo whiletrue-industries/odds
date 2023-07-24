@@ -1,11 +1,9 @@
 import json
 import yaml
 import fnmatch
+import time
 
-from typing import Any, Dict
-
-from textwrap import dedent
-
+import dataflows as DF
 import guidance
 
 from ckangpt import config, storage
@@ -23,7 +21,7 @@ You are an experienced data analyst.
 Following are details on a dataset containing public data. Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
 The JSON should look like this:
 {
-    "summary": "<What does this dataset contain? A single term, concise and descriptive, using simple terms and avoiding jargon, answering this question.>",
+    "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. For example: 'information about ...', 'data of ...' etc.>",
     "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
 }
 Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
@@ -39,18 +37,6 @@ Return only the json object, without any additional explanation or context.
 '''
 
 def dataset_params(dataset):
-    dataset_resources = [
-        {
-            'name': resource.get('name', '').strip(),
-            'fields': dict(
-                (field['name'], field['field details']) for field in resource['fields']
-                if 'field details' in field
-            )
-        }
-        for resource in dataset.get('resources', [])
-    ]
-    dataset_resources = yaml.dump(dataset_resources, indent=4, sort_keys=False, Dumper=yaml.SafeDumper)
-
     title = dataset['title'].strip()
     notes = dataset['notes'].strip()[:200].replace('\n', '') if dataset.get('notes') else None
     if notes == title:
@@ -62,8 +48,27 @@ def dataset_params(dataset):
         ('Notes: ', notes),
         ('Publisher: ', org),
         ('Publisher Description: ', org_description),
-        ('Dataset files with field details:\n', dataset_resources),
     ]
+    used_tokens = sum(len(x[0]) + len(x[1]) + 1 for x in ret if x[1])
+    dataset_resources = [
+        {
+            'name': resource.get('name', '').strip(),
+            'fields': dict(
+                (field['name'], field['field details']) for field in resource['fields']
+                if 'field details' in field
+            )
+        }
+        for resource in dataset.get('resources', [])
+    ]
+    fits = False
+    while not fits:
+        dataset_resources_yaml = yaml.dump(dataset_resources, indent=4, sort_keys=False, Dumper=yaml.SafeDumper)
+        fits = len(dataset_resources_yaml) + used_tokens < 3500
+        if not fits:
+            dataset_resources = dataset_resources[:-1]
+    ret.append(
+        ('Dataset files with field details:\n', dataset_resources_yaml),
+    )
     ret = list(filter(lambda x: x[1], ret))
     return ret
 
@@ -79,7 +84,7 @@ def fetch_dataset_data(dataset):
             url = resource['url']
             try:
                 print('Loading', url)
-                df = pd.read_csv(url)
+                df = pd.DataFrame(DF.Flow(DF.load(url, http_timeout=30)).results()[0][0])
                 resource['fields'] = [
                     {'name': col, 'type': str(df[col].dtype)} for col in df.columns]
 
@@ -144,28 +149,45 @@ def main_glob(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=F
         domain = item.split('/')[1]
         if fnmatch.fnmatchcase(domain.lower(), dataset_domain.lower()):
             matching_domains.add(domain)
-    i = 0
+    described = 0
     for domain in matching_domains:
-        for item in storage.list_(prefix=f'datasets/{domain}/'):
+        existing = set(storage.list_(prefix=f'dataset_descriptions/{domain}/'))
+        print(f'Found {len(existing)} existing descriptions for {domain}')
+        for idx, item in enumerate(storage.list_(prefix=f'datasets/{domain}/')):
             name = item.split('/')[2]
             if fnmatch.fnmatchcase(name.lower(), dataset_name.lower()):
-                yield main(domain, name, load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force_update=force_update)
-                i += 1
-                if limit and i >= limit:
-                    return
+                ret = None
+                if f'dataset_descriptions/{domain}/{name}' not in existing or force_update:
+                    for retry in range(3):
+                        try:
+                            ret = main(domain, name, load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage, force_update=force_update)
+                            break
+                        except Exception as e:
+                            print(f'Failed to describe {domain}/{name}: {e}, waiting 1 minute and retrying {retry + 1}/3')
+                            time.sleep(60)
+
+                if ret:
+                    described += 1
+                    if limit and described >= limit:
+                        return
+                    yield ret
+            if idx % 100 == 99:
+                print(f'Described {described} datasets so far (out of {idx + 1} datasets considered so far)') 
 
 
 def main(dataset_domain, dataset_name, load_from_disk=False, save_to_disk=False, save_to_storage=False, force_update=False, limit=None):
-    print(f'Describing dataset {dataset_domain}/{dataset_name}')
     assert not limit
     itempathparts = 'dataset_descriptions', dataset_domain, dataset_name
     if save_to_storage and not force_update:
         old_dataset_description, metadata = storage.load(*itempathparts, with_metadata=True)
-        print(old_dataset_description, metadata)
+        # print(old_dataset_description, metadata)
         if old_dataset_description and not storage.is_updated_item_meteadata(metadata):
             if config.ENABLE_DEBUG:
                 print("dataset description already exists in storage and does not require update, skipping")
-            return old_dataset_description
+            return None
+    if dataset_name == 'age-friendly-community-planning-grant-program-approved-projects':
+        print(old_dataset_description, metadata, storage.is_updated_item_meteadata(metadata))
+    print(f'Describing dataset {dataset_domain}/{dataset_name}')
     if config.USE_GPT4:
         print('WARNING! Using GPT-4 - this will be slow and expensive!')
     dataset = storage.load('datasets', dataset_domain, dataset_name, load_from_disk=load_from_disk)
