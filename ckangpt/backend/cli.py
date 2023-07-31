@@ -33,6 +33,21 @@ def describe_dataset(glob=False, **kwargs):
 @click.option('--glob', is_flag=True, help="DATASET_ arguments will be treated as globs to match over all domains/datasets in storage")
 @click.option('--limit', type=int)
 @click.option('--force-update', is_flag=True)
+def embed_dataset(glob=False, **kwargs):
+    from . import embed_dataset
+    if glob:
+        for desc in embed_dataset.main_glob(**kwargs):
+            common.print_separator(desc, pprint=True)
+    else:
+        common.print_separator(embed_dataset.main(**kwargs), pprint=True)
+
+
+@backend.command()
+@click.argument("DATASET_DOMAIN")
+@click.argument("DATASET_NAME")
+@click.option('--load-from-disk', is_flag=True)
+@click.option('--glob', is_flag=True, help="DATASET_ arguments will be treated as globs to match over all domains/datasets in storage")
+@click.option('--limit', type=int)
 @click.option('--collection-name', type=str)
 def index_dataset(glob=False, **kwargs):
     from . import index_dataset

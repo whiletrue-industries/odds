@@ -55,10 +55,11 @@ You write a query to the database which will return relevant items based on the 
 The response is a json object with the following fields:
 * "words": an array of words which will retrieve relevant data from the database. Extrapolate to include words which the user did not
 write but which you think will also be relevant.
-* "country": optional 2 letter country code, must be included if the user prompt specified a country.
-    Available country codes:
+* "geo": optional 2 letter geo code, must be included if the user prompt specified a geographic region.
+    Available codes:
       - UK: United Kingdom
       - IL: Israel
+      - ON: Ontario, Canada
 
 Do not include the user prompt in the response. Do not write any explanations in the response. Only respond with the json object.
 {{/user}}
@@ -93,14 +94,15 @@ The user prompt is a json object with the following fields:
 * "query": a sentence describing the user's intent which was used to get the response you are now criticizing.
 * "words": an array of words which will retrieve relevant data from the database, extrapolated to include words which the user did not
 write but which might also be relevant.
-* "country": optional 2 letter country code, must be included if the user prompt specified a country.
-    Available country codes:
+* "geo": optional 2 letter geo code, must be included if the user prompt specified a geographic region.
+    Available codes:
       - UK: United Kingdom
       - IL: Israel
+      - ON: Ontario, Canada
 
 Your response must be a json object with the following fields:
 
-* "country": the 2 letter country code of the country which you think is relevant to the user prompt
+* "geo": the 2 letter code of the geographic region which you think is relevant to the user prompt
 * "additional_words": an array of additional words which might also be relevant to the user prompt, 
 only include words which are not already in the "words" field of the previous response. Don't include lexical variants of words already in the "words" field.
 

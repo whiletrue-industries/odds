@@ -16,6 +16,7 @@ def main(query, from_user_prompt=False, num_results=config.DEFAULT_NUM_RESULTS):
         ckan_instance = {
             'UK': 'https://data.gov.uk',
             'IL': 'https://data.gov.il',
+            'ON': 'https://data.ontario.ca',
         }.get(query['country']) if query.get('country') else None
         where = {}
         if ckan_instance:
