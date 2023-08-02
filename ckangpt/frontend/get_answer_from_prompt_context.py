@@ -21,8 +21,8 @@ Title: Budget for 2018/19
 ''',
         'response': {
             'relevant_datasets': [
-                {"id": "https://data.gov.uk/waste-collection-contract-cbc", "relevancy": 8},
-                {"id": "https://data.gov.uk/waste-and-recycling-customer-satisfaction-cbc", "relevancy": 3}
+                {"id": "https://data.gov.uk/waste-collection-contract-cbc", "relevance": 8},
+                {"id": "https://data.gov.uk/waste-and-recycling-customer-satisfaction-cbc", "relevance": 3}
             ],
             'need_more_context': False
         }
@@ -30,8 +30,8 @@ Title: Budget for 2018/19
     {
         'query': 'Where to find synagogues in London?',
         'context': '''
-ID: https://data.gov.uk/foo-bar-baz
-Title: Foo Bar Baz
+ID: https://data.gov.uk/water-fountains
+Title: Water Fountains in London
 ''',
         'response': {
             'relevant_datasets': [],
@@ -54,7 +54,7 @@ to identify relevant datasets. The query is a sentence describing the user's int
 Your response is a json object with the following fields:
 * "relevant_datasets": a list of datasets relevant to the user query. Each dataset is a json object with the following fields:
   - "id": the dataset ID
-  - "relevancy": a number from 1 to 10 indicating how relevant the dataset is to the user query
+  - "relevance": a number from 1 to 10 indicating how relevant the dataset is to the user query
 * "need_more_context": boolean indicating whether you need more context to find relevant datasets
 
 Do not include the user query in the response. Do not write any explanations in the response. Do not add any datasets which are not in the context.
@@ -86,7 +86,7 @@ Query: {{user_prompt}}
 '''
 
 
-def main(user_prompt, db_query=None, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS, load_from_disk=False):
+def main(user_prompt, db_queries, document_ids=None, num_results=config.DEFAULT_NUM_RESULTS, load_from_disk=False):
     llm = guidance.llms.OpenAI(config.model_name(), chat_mode=True, caching=config.ENABLE_CACHE)
     context_usage = {}
 
@@ -97,15 +97,12 @@ def main(user_prompt, db_query=None, document_ids=None, num_results=config.DEFAU
             'max_tokens': model_max_tokens - num_prompt_tokens - gen_max_tokens,
             'load_from_disk': load_from_disk,
         }
-        if db_query:
+        if db_queries:
             assert not document_ids
-            usage, context, *_ = get_context_from_documents.main(from_db_query=db_query, **get_context_kwargs)
+            context, *_ = get_context_from_documents.main(db_queries=db_queries, **get_context_kwargs)
         elif document_ids:
-            usage, context, *_ = get_context_from_documents.main(from_document_ids=document_ids, **get_context_kwargs)
-        else:
-            usage, context, *_ = get_context_from_documents.main(from_user_prompt=user_prompt, **get_context_kwargs)
+            context, *_ = get_context_from_documents.main(from_document_ids=document_ids, **get_context_kwargs)
         assert len(context_usage) == 0
-        context_usage.update(usage)
         return gen_max_tokens, prompt.replace('__CONTEXT__', context)
 
     llm.register_max_tokens_callback('context', get_context)
