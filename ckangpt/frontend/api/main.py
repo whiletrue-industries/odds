@@ -28,7 +28,7 @@ for router_name in ROUTER_NAMES:
         prefix='/{}'.format(router_name)
     )
 
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'], allow_credentials=False)
 
 
 @app.get("/", include_in_schema=False)
