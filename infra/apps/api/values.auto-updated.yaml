@@ -1,2 +1,2 @@
 api:
-  image: ghcr.io/whiletrue-industries/ckangpt/ckangpt-api:28b4ef3182d9380d3fabc8f48c86c1efd901e681
+  image: ghcr.io/whiletrue-industries/ckangpt/ckangpt-api:6f38f6484b4e87fabb1c894fb9b0a5102dd030d6
