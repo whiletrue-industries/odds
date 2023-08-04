@@ -8,7 +8,7 @@ from ckangpt.frontend import break_claim_to_subclaims
 router = fastapi.APIRouter()
 
 
-@router.get('')
+@router.post('')
 async def break_claim_to_subclaims_(
         claim: str,
 ):

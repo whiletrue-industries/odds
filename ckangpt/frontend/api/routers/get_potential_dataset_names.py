@@ -8,9 +8,9 @@ from ckangpt.frontend import get_potential_dataset_names
 router = fastapi.APIRouter()
 
 
-@router.get('')
+@router.post('')
 async def get_potential_dataset_names_(
-    claims: typing.List[str],
+    claims: str,
 ):
     return get_potential_dataset_names.main(
         claims

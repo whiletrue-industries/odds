@@ -8,7 +8,7 @@ from ckangpt.frontend import find_datasets
 router = fastapi.APIRouter()
 
 
-@router.get('')
+@router.post('')
 async def find_datasets_(
         user_prompt: str,
         db_queries: typing.List[str],
