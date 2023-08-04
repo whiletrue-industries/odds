@@ -8,8 +8,7 @@ from ckangpt.vectordb.base import BaseItem
 
 
 def main_glob(dataset_domain, dataset_name,
-              load_from_disk=False, save_to_disk=False, save_to_storage=False,
-              force_update=False, limit=None, collection_name=None):
+              load_from_disk=False, limit=None, collection_name=None):
     print(f'Indexing datasets matching glob pattern {dataset_domain}/{dataset_name}')
 
     vdb = vectordb.get_vector_db_instance()
@@ -23,22 +22,18 @@ def main_glob(dataset_domain, dataset_name,
             matching_domains.add(domain)
     indexed = 0
     for domain in matching_domains:
-        existing = set(storage.list_(prefix=f'dataset_embeddings/{domain}/'))
-        print(f'Found {len(existing)} existing embeddings for {domain}')
-        for idx, item in enumerate(storage.list_(prefix=f'dataset_descriptions/{domain}/')):
+        for idx, item in enumerate(storage.list_(prefix=f'dataset_embeddings/{domain}/')):
             name = item.split('/')[2]
             if fnmatch.fnmatchcase(name.lower(), dataset_name.lower()):
                 ret = None
-                if f'dataset_embeddings/{domain}/{name}' not in existing or force_update:
-                    for retry in range(3):
-                        try:
-                            ret = main(domain, name, 
-                                       load_from_disk=load_from_disk, save_to_disk=save_to_disk, save_to_storage=save_to_storage,
-                                       force_update=force_update, collection=collection)
-                            break
-                        except Exception as e:
-                            print(f'Failed to index {domain}/{name}: {e}, waiting 1 minute and retrying {retry + 1}/3')
-                            time.sleep(60)
+                for retry in range(3):
+                    try:
+                        ret = main(domain, name, 
+                                    load_from_disk=load_from_disk, collection=collection)
+                        break
+                    except Exception as e:
+                        print(f'Failed to index {domain}/{name}: {e}, waiting 1 minute and retrying {retry + 1}/3')
+                        time.sleep(60)
 
                 if ret:
                     indexed += 1
@@ -50,35 +45,14 @@ def main_glob(dataset_domain, dataset_name,
 
 
 def main(dataset_domain, dataset_name,
-         load_from_disk=False, save_to_disk=False, save_to_storage=False,
-         force_update=False, limit=None, collection_name=None, collection=None):
+         load_from_disk=False, limit=None, collection_name=None, collection=None):
     assert not limit
     itempathparts = 'dataset_embeddings', dataset_domain, dataset_name
-    item = None
-    if not force_update:
-        item, metadata = storage.load(*itempathparts, with_metadata=True, load_from_disk=load_from_disk)
-        if item and not storage.is_updated_item_meteadata(metadata):
-            if config.ENABLE_DEBUG:
-                print("dataset embedding already exists in storage and does not require update")
-            return None
+    item = storage.load(*itempathparts, load_from_disk=load_from_disk)
     if not item:
-        dataset_description = storage.load('dataset_descriptions', dataset_domain, dataset_name, load_from_disk=load_from_disk)
-        if not dataset_description:
-            if config.ENABLE_DEBUG:
-                print("dataset description not found in storage, skipping")
-                return
-        summary = dataset_description.get('summary')
-        if not summary:
-            if config.ENABLE_DEBUG:
-                print("dataset summary not found in description, skipping")
-                return
-        embedding = openai.Embedding.create(input=summary, model='text-embedding-ada-002')
-        if not embedding and config.ENABLE_DEBUG:
-            print("failed to generate embedding, skipping")
-            return
-        embedding = embedding['data'][0]['embedding']
-    else:
-        embedding = item['embedding']
+        print(f"dataset embedding for {itempathparts} doesn't exists in storage!")
+        return None
+    embedding = item['embedding']
 
     if not collection:
         vdb = vectordb.get_vector_db_instance()
@@ -93,11 +67,4 @@ def main(dataset_domain, dataset_name,
     )
     collection.add([indexed_item])
 
-    item = dict(
-        embedding=embedding
-    )
-    if save_to_disk:
-        storage.save_to_disk(item, *itempathparts)
-    if save_to_storage:
-        storage.save(item, *itempathparts)
     return '/'.join(itempathparts)

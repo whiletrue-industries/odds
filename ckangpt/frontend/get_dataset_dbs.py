@@ -11,7 +11,7 @@ import sqlite3
 from ckangpt import storage, config
 
 
-TABULAR_RESOURCE_FORMATS = ['csv']
+TABULAR_RESOURCE_FORMATS = ['csv', 'xlsx']
 
 
 def process(db_file_path, url, **load_kwargs):
