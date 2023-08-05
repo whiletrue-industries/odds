@@ -13,5 +13,5 @@ async def get_potential_dataset_names_(
     claims: str,
 ):
     return get_potential_dataset_names.main(
-        claims
+        claims.split('\n')
     )
