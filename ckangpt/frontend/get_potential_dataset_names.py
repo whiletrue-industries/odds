@@ -10,12 +10,14 @@ PROMPT = '''
 You are an experienced data analyst.
 {{/system}}
 {{#user}}
-Generate a list of likely relevant official dataset titles which would contain data that could be used to verify the following claims:
+Generate a list of likely relevant official dataset titles which would contain data that could be used to verify the following claims.
+Return the list as an array of strings, in a validated json format.
+
+Claims:
 {{#each claims}}
 - {{this}}
 {{/each}}
 
-Return the list as an array of strings, in a validated json format.
 
 {{/user}}
 {{#assistant~}}
@@ -31,7 +33,7 @@ def main(claims):
         text=PROMPT,
     )(claims=claims)
     try:
-        dataset_titles = json.loads(res['dataset_titles'])['dataset_titles']
+        dataset_titles = json.loads(res['dataset_titles'])
     except json.decoder.JSONDecodeError:
         raise Exception(f'Failed to parse json responses:\n{res.get("dataset_titles")}')
     if debug:
