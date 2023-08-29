@@ -1,0 +1,23 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: argocd-server-https
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt"
+spec:
+  rules:
+  - host: ckangpt-argocd.uumpa.xyz
+    http:
+      paths:
+      - backend:
+          service:
+            name: argocd-server
+            port:
+              name: http
+        pathType: Prefix
+        path: /
+  tls:
+  - hosts:
+    - ckangpt-argocd.uumpa.xyz
+    secretName: argocd-server-https
