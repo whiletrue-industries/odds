@@ -2,20 +2,9 @@
 
 ## Deploy
 
-Make sure you are connected to the relevant cluster
+Deployment is handled via ArgoCD
 
-```
-export KUBECONFIG=/etc/ckangpt/.kubeconfig
-kubectl get nodes
-```
-
-Deploy
-
-```
-helm upgrade --install api infra/apps/api --namespace api --create-namespace --values infra/apps/api/values.auto-updated.yaml
-```
-
-Create secrets
+## Secrets
 
 ```
 kubectl create secret generic --namespace api openai-api-key \
