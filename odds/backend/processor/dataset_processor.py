@@ -24,43 +24,43 @@ class DatasetProcessor:
     def set_concurrency(self, limit: int):
         self.resource_processor.set_concurrency_limit(limit)
 
-    def queue(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter):
-        print('QUEUE DATASET', catalog.id, dataset.id, dataset.title)
-        self.tasks.append(asyncio.create_task(self.process(dataset, catalog, datasetFilter)))
+    def queue(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str):
+        print(f'{ctx}:QUEUE DATASET', dataset.title)
+        self.tasks.append(asyncio.create_task(self.process(dataset, catalog, datasetFilter, ctx)))
 
     async def wait(self):
         await asyncio.gather(*self.tasks)
 
-    async def process(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter):
+    async def process(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str):
         if config.debug:
-            print('PROCESS DATASET', dataset.versions.get('resource_analyzer'), catalog.id, dataset.id, dataset.title)
-        resources = self.prune_resources(dataset)
+            print(f'{ctx}:PROCESS DATASET', dataset.versions.get('resource_analyzer'), dataset.title)
+        resources = self.prune_resources(dataset, ctx)
         if await datasetFilter.analyze():
             if len(resources) > 0:
                 await asyncio.gather(
                     *[
-                        self.resource_processor.process(resource, dataset, catalog)
-                        for resource in resources
+                        self.resource_processor.process(resource, dataset, catalog, ctx + f'/RES.{resource.file_format}[{i}]')
+                        for i, resource in enumerate(resources)
                     ]
                 )
         else:
             if config.debug:
-                print('SKIP ANALYZE', dataset.id)
+                print(f'{ctx}:SKIP ANALYZE')
         resources = [resource for resource in resources if resource.status_loaded]
         if len(resources) > 0:
             if await datasetFilter.describe():
-                await self.meta_describer.describe(dataset)
+                await self.meta_describer.describe(dataset, ctx)
             else:
                 if config.debug:
-                    print('SKIP DESCRIBE', dataset.id)
+                    print(f'{ctx}:SKIP DESCRIBE')
             if await datasetFilter.embed():
-                await self.embedder.embed(dataset)
+                await self.embedder.embed(dataset, ctx)
             if await datasetFilter.index():
-                await self.indexer.index(dataset)
+                await self.indexer.index(dataset, ctx)
         await store.storeDataset(dataset)
-        await db.storeDataset(dataset)
+        await db.storeDataset(dataset, ctx)
 
-    def prune_resources(self, dataset: Dataset):
+    def prune_resources(self, dataset: Dataset, ctx: str):
         resources = dataset.resources
         resources = [resource for resource in resources if ResourceProcessor.check_format(resource)]
         resource_names = {}
@@ -70,6 +70,6 @@ class DatasetProcessor:
             if resource_names[resource.title] > format_idx:
                 resource_names[resource.title] = format_idx
         if config.debug:
-            print('RESOURCE NAMES', dataset.title, resource_names)
+            print(f'{ctx}:RESOURCE NAMES', dataset.title, resource_names)
         resources = [resource for resource in resources if ResourceProcessor.format_idx(resource) == resource_names[resource.title]]
         return resources

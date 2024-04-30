@@ -10,9 +10,9 @@ class LLMCache():
         self.cache = None
         self.logfile = None
         if config.debug:
-            self.logfile = open(f'{name}_llm_runner.log', 'w')
+            self.logfile = open(f'.caches/{name}_llm_runner.log', 'w')
             self.log = {}
-            self.cache = KVFile(location=f'{name}_llm_runner.cache')
+            self.cache = KVFile(location=f'.caches/{name}_llm_runner.cache')
 
     def store_log(self, conversation, prompts):
         if self.log is not None:

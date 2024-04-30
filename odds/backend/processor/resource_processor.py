@@ -38,7 +38,7 @@ class ResourceProcessor:
                     yield row
         return func
 
-    async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog):
+    async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str):
         if not ResourceProcessor.check_format(resource):
             return None
         if not resource.url:
@@ -50,7 +50,7 @@ class ResourceProcessor:
             with tempfile.TemporaryDirectory() as tmpdir:
                 with open(tmpdir + '/stream.ndjson', 'w') as stream:
                     try:
-                        print('LOADING FROM URL', catalog.id, dataset.id, resource.url, resource.file_format)
+                        print(f'{ctx}:LOADING FROM URL', resource.url)
                         suffix = resource.url.split('?')[0].split('.')[-1]
                         filename = tmpdir + '/data.' + suffix
 
@@ -66,7 +66,7 @@ class ResourceProcessor:
                                         f.write(chunk)
                                         total_size += len(chunk)
                             
-                        print('DOWNLOADED for ', dataset.id, total_size, 'BYTES from ', resource.url, 'to', filename)
+                        print(f'{ctx}:DOWNLOADED for ', total_size, 'BYTES from ', resource.url, 'to', filename)
                         dp, _ = DF.Flow(
                             DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}),
                             DF.update_resource(-1, name='data'),
@@ -74,7 +74,7 @@ class ResourceProcessor:
                             DF.stream(stream)
                         ).process()
                         if total_size > self.BIG_FILE_SIZE:
-                            print('STREAMED BIG FILE', dataset.id, resource.url, 'TO', stream.name)
+                            print(f'{ctx}:STREAMED BIG FILE', resource.url, 'TO', stream.name)
                         resource.fields = [
                             Field(name=field['name'], data_type=field['type'])
                             for field in 
@@ -86,7 +86,7 @@ class ResourceProcessor:
                             self.limiter(),
                         ).results(on_error=None)[0][0]
                         if total_size > self.BIG_FILE_SIZE:
-                            print('READ BIG FILE DATA', dataset.id, resource.url, 'TO', len(data), 'ROWS')
+                            print(f'{ctx}:READ BIG FILE DATA', resource.url, 'TO', len(data), 'ROWS')
 
                         for field in resource.fields:
                             col_name = field.name
@@ -111,7 +111,7 @@ class ResourceProcessor:
                             DF.dump_to_sql({'data': {'resource-name': 'data'}}, engine=engine),
                         ).process()
                         if total_size > self.BIG_FILE_SIZE:
-                            print('DUMPED BIG FILE DATA', dataset.id, resource.url, 'TO', sqlite_filename)
+                            print(f'{ctx}:DUMPED BIG FILE DATA', resource.url, 'TO', sqlite_filename)
                         with engine.connect() as conn:
                             # row count:
                             resource.row_count = conn.execute(text('SELECT COUNT(*) FROM data')).fetchone()[0]
@@ -119,11 +119,11 @@ class ResourceProcessor:
                             resource.db_schema = conn.execute(text('SELECT sql FROM sqlite_master WHERE type="table" AND name="data"')).fetchone()[0]
                             resource.status_loaded = True
                         if total_size > self.BIG_FILE_SIZE:
-                            print('SQLITE BIG FILE DATA', dataset.id, resource.url, 'HAS', resource.row_count, 'ROWS')
+                            print(f'{ctx}:SQLITE BIG FILE DATA', resource.url, 'HAS', resource.row_count, 'ROWS')
                         await store.storeDB(resource, dataset, sqlite_filename)
 
                     except Exception as e:
-                        print('Failed to load', resource.url, e)
+                        print(f'{ctx}:FAILED TO LOAD', resource.url, e)
                         resource.loading_error = str(e)
                         return
         dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer

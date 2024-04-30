@@ -6,3 +6,5 @@ __pycache__/
 .terraform
 log.txt
 venv/
+odds.config.yaml
+.caches/

@@ -12,23 +12,23 @@ DIR = Path(__file__).parent.parent.parent.parent / '.fsstore'
 
 class FSStore(Store):
 
-    async def storeDataset(self, dataset: Dataset) -> None:
+    async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
         id = dataset.storeId()
         filename = self.get_filename('dataset', id, 'json')
-        print(f'STORING DATASET {dataset.catalogId} {dataset.id} {dataset.title} -> {filename}')
+        print(f'{ctx}:STORING DATASET {dataset.title} -> {filename}')
         with open(filename, 'w') as file:
             json.dump(dataclasses.asdict(dataset), file, indent=2, ensure_ascii=False)
 
-    async def storeDB(self, resource: Resource, dataset: Dataset, dbFile) -> None:
+    async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> None:
         id = '{}/{}'.format(dataset.storeId(), resource.url)
         filename = self.get_filename('db', id, 'sqlite')
-        print(f'STORING DB {dataset.catalogId} {dataset.id} {resource.title} -> {filename}')
+        print(f'{ctx}:STORING RES-DB {resource.title} -> {filename}')
         os.rename(dbFile, filename)
 
-    async def storeEmbedding(self, dataset: Dataset, embedding: Embedding) -> None:
+    async def storeEmbedding(self, dataset: Dataset, embedding: Embedding, ctx: str) -> None:
         id = dataset.storeId()
         filename = self.get_filename('embedding', id, 'npy')
-        print(f'STORING EMBEDDING {dataset.catalogId} {dataset.id} -> {filename}')
+        print(f'{ctx}:STORING EMBEDDING -> {filename}')
         np.save(filename, embedding)
         
     async def getDataset(self, datasetId: str) -> Dataset:

@@ -22,6 +22,9 @@ class LLMQuery():
 
     def expects_json(self) -> bool:
         return True
+    
+    def max_tokens(self) -> int:
+        return 2048
 
 
 class CustomLLMQuery(LLMQuery):

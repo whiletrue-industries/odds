@@ -2,10 +2,10 @@ CONFIG = {
     'Config': 'YAMLConfig',
     'CatalogRepo': 'ConfigCatalogRepo',
     'Store': 'FSStore',
-    'LLMRunner': 'OpenAILLMRunner',
+    'LLMRunner': 'MistralLLMRunner',
     'Embedder': 'OpenAIEmbedder',
     'Indexer': 'ChromaDBIndexer',
-    'DBStorage': 'PeeweeDBStorage'
+    'DBStorage': 'PeeweeDBStorage',
 }
 
 def select(kind, context):

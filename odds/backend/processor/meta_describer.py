@@ -23,9 +23,10 @@ Return only the json object, without any additional formatting, explanation or c
 
 class MetaDescriberQuery(LLMQuery):
 
-    def __init__(self, dataset: Dataset):
+    def __init__(self, dataset: Dataset, ctx: str):
         super().__init__(dataset, None)
-        self.upgraded = False
+        self.upgraded = True
+        self.ctx = ctx
 
     def model(self) -> str:
         return 'cheap' if not self.upgraded else 'expensive'
@@ -57,11 +58,14 @@ class MetaDescriberQuery(LLMQuery):
             self.dataset.better_title = result['summary']
             self.dataset.better_description = result['description']
         except Exception as e:
-            print('ERROR', e)
-            print('RESULT', result)
+            print(f'{self.ctx}:ERROR', e)
+            print(f'{self.ctx}:RESULT', result)
 
     def upgrade(self):
         self.upgraded = True
+
+    def max_tokens(self) -> int:
+        return 512
             
 
 
@@ -70,17 +74,17 @@ class MetaDescriber:
     sem: asyncio.Semaphore = None
     concurrency_limit: int = 3
 
-    async def describe(self, dataset: Dataset) -> None:
-        # print('DESCRIBING', dataset.id, dataset.title, dataset.catalogId)
+    async def describe(self, dataset: Dataset, ctx: str) -> None:
+        # print(f'{ctx}:DESCRIBING', dataset.title, dataset.catalogId)
         if not self.sem:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
 
         async with self.sem:
-            query = MetaDescriberQuery(dataset)
+            query = MetaDescriberQuery(dataset, ctx)
             await llm_runner.run(query)
             if dataset.better_title is None:
                 query.upgrade()
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer
             if config.debug:
-                print('DESCRIBED', dataset.id, dataset.title, '->', dataset.better_title)
+                print(f'{ctx}:DESCRIBED', dataset.title, '->', dataset.better_title)
