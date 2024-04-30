@@ -1,7 +1,7 @@
 on:
   push:
-    branches:
-      - main
+    branches: []
+#       - main
     # ignore changes to infra/apps/api/values.auto-updated.yaml (this file is updated by the CI workflow itself)
     paths-ignore:
       - infra/apps/api/values.auto-updated.yaml
