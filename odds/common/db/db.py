@@ -1,12 +1,13 @@
 from ..datatypes import Dataset, DataCatalog
+from ...common.realtime_status import realtime_status as rts
 
 class DBStorage:
 
     async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
-        print(f'{ctx}:SAVING DATASET', dataset.title)
+        rts.set(ctx, f'SAVING DATASET {dataset.title}')
 
     async def storeDataCatalog(self, catalog: DataCatalog, ctx: str) -> None:
-        print(f'{ctx}:SAVING DATA CATALOG', catalog.id)
+        rts.set(ctx, f'SAVING DATA CATALOG {catalog.id}')
 
     async def getDataset(self, datasetId: str) -> Dataset:
         return None

@@ -5,6 +5,7 @@ import math
 from ...datatypes import Embedding
 
 from ..embedder import Embedder
+from ...llm.cost_collector import CostCollector
 from ...config import config
 from ...retry import Retry
 
@@ -17,8 +18,7 @@ class OpenAIEmbedder(Embedder):
 
     def __init__(self):
         super().__init__()
-        self.total_usage = 0
-        self.cost = 0
+        self.cost = CostCollector('openai', {'embed': {'tokens': self.COST}})
 
     async def embed(self, text: str) -> None:
         headers = {
@@ -40,23 +40,17 @@ class OpenAIEmbedder(Embedder):
             response.raise_for_status()
             result = response.json()
             if result['usage']:
-                self.total_usage += result['usage']['total_tokens']
-                cost = self.COST * result['usage']['total_tokens']
-                if math.ceil(self.cost) != math.ceil(self.cost + cost):
-                    self.print_total_usage()
-                self.cost += cost
+                self.cost.start_transaction()
+                self.cost.update_cost('embed', 'tokens', result['usage']['total_tokens'])
+                self.cost.end_transaction()
             if result.get('data') and result['data'][0].get('object') == 'embedding' and result['data'][0]['embedding']:
                 vector: list[float] = result['data'][0]['embedding']
                 embedding: Embedding = np.array(vector, dtype=np.float32)
                 return embedding
             return None
     
-    def print_usage(self, total_tokens, cost):
-        print('OpenAI Embedding usage:', total_tokens)
-        print('OpenAI Embedding cost:', f'$ {cost:.2f}')
-
     def print_total_usage(self):
-        self.print_usage(self.total_usage, self.cost)
+        self.cost.print_total_usage()
 
     def vector_size(self) -> int:
         return self.VECTOR_SIZE

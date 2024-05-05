@@ -6,6 +6,7 @@ CONFIG = {
     'Embedder': 'OpenAIEmbedder',
     'Indexer': 'ChromaDBIndexer',
     'DBStorage': 'PeeweeDBStorage',
+    'RealtimeStatus': 'PeeweeRealtimeStatus',
 }
 
 def select(kind, context):

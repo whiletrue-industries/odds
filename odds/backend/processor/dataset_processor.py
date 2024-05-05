@@ -9,6 +9,7 @@ from ...common.store import store
 from ...common.db import db
 from ...common.config import config
 from ...common.filters import DatasetFilter
+from ...common.realtime_status import realtime_status as rts
 
 
 class DatasetProcessor:
@@ -25,7 +26,7 @@ class DatasetProcessor:
         self.resource_processor.set_concurrency_limit(limit)
 
     def queue(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str):
-        print(f'{ctx}:QUEUE DATASET', dataset.title)
+        rts.set(ctx, f'QUEUE DATASET {dataset.title}')
         self.tasks.append(asyncio.create_task(self.process(dataset, catalog, datasetFilter, ctx)))
 
     async def wait(self):
@@ -33,7 +34,7 @@ class DatasetProcessor:
 
     async def process(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str):
         if config.debug:
-            print(f'{ctx}:PROCESS DATASET', dataset.versions.get('resource_analyzer'), dataset.title)
+            rts.set(ctx, f'PROCESS DATASET {dataset.versions.get('resource_analyzer')} {dataset.title}')
         resources = self.prune_resources(dataset, ctx)
         if await datasetFilter.analyze():
             if len(resources) > 0:
@@ -45,20 +46,21 @@ class DatasetProcessor:
                 )
         else:
             if config.debug:
-                print(f'{ctx}:SKIP ANALYZE')
+                rts.set(ctx, f'SKIP ANALYZE')
         resources = [resource for resource in resources if resource.status_loaded]
         if len(resources) > 0:
             if await datasetFilter.describe():
                 await self.meta_describer.describe(dataset, ctx)
             else:
                 if config.debug:
-                    print(f'{ctx}:SKIP DESCRIBE')
+                    rts.set(ctx, f'SKIP DESCRIBE')
             if await datasetFilter.embed():
                 await self.embedder.embed(dataset, ctx)
             if await datasetFilter.index():
                 await self.indexer.index(dataset, ctx)
-        await store.storeDataset(dataset)
+        await store.storeDataset(dataset, ctx)
         await db.storeDataset(dataset, ctx)
+        rts.clear(ctx)
 
     def prune_resources(self, dataset: Dataset, ctx: str):
         resources = dataset.resources
@@ -70,6 +72,6 @@ class DatasetProcessor:
             if resource_names[resource.title] > format_idx:
                 resource_names[resource.title] = format_idx
         if config.debug:
-            print(f'{ctx}:RESOURCE NAMES', dataset.title, resource_names)
+            rts.set(ctx, f'RESOURCE NAMES {dataset.title} {resource_names}')
         resources = [resource for resource in resources if ResourceProcessor.format_idx(resource) == resource_names[resource.title]]
         return resources

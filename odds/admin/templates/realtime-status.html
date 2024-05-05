@@ -1,0 +1,56 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Realtime Status</h1>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>Context</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in statuses %}
+                        <tr>
+                            <td>{{ status.kind }}</td>
+                            <td>{{ status.created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ status.ctx.replace('/', '\n') }}</td>
+                            <td>{{ status.msg }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Collected Errors</h1>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Context</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in errors %}
+                        <tr>
+                            <td>{{ status.created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            <td>{{ status.ctx.replace('/', '\n') }}</td>
+                            <td>{{ status.msg }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

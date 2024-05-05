@@ -1,8 +1,9 @@
 from flask import Flask
-from flask_admin import Admin
+from flask_admin import Admin, BaseView, expose
 from flask_admin.model.form import InlineFormAdmin
 from flask_admin.contrib.peewee import ModelView
 from ..common.db.peewee.models import Dataset, Catalog, Resource
+from ..common.realtime_status import realtime_status as rts
 from wtforms.validators import DataRequired
 from flask_admin.contrib.peewee.filters import BasePeeweeFilter
 from flask import url_for
@@ -70,6 +71,16 @@ class ResourceView(ModelView):
     ]
     column_exclude_list = ['url', 'db_schema']
     # column_searchable_list = ['dataset.id']
+
+
+class RealtimeStatusView(BaseView):
+    @expose('/')
+    def index(self):
+        statuses = rts.get()
+        errors = rts.errors()
+        return self.render('realtime-status.html', statuses=statuses, errors=errors)
+
+admin.add_view(RealtimeStatusView(name='Realtime Status', endpoint='realtime-status'))
 
 admin.add_view(CatalogView(Catalog))
 admin.add_view(DatasetView(Dataset))

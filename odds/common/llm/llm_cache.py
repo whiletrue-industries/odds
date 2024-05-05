@@ -36,6 +36,7 @@ class LLMCache():
                     self.aux_log_writer(v, f'{breadcrumbs}.{k}')
 
     def dump_log(self):
+        print('DUMPING LOG', self.logfile, len(self.log))
         if self.logfile:
             for k in self.log.keys():
                 self.aux_log_writer(self.log[k])

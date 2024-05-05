@@ -11,6 +11,7 @@ from sqlalchemy.sql import text
 from ...common.datatypes import Dataset, Resource, Field, DataCatalog
 from ...common.store import store
 from ...common.config import config
+from ...common.realtime_status import realtime_status as rts
 
 
 class ResourceProcessor:
@@ -50,7 +51,7 @@ class ResourceProcessor:
             with tempfile.TemporaryDirectory() as tmpdir:
                 with open(tmpdir + '/stream.ndjson', 'w') as stream:
                     try:
-                        print(f'{ctx}:LOADING FROM URL', resource.url)
+                        rts.set(ctx, f'LOADING FROM URL {resource.url}')
                         suffix = resource.url.split('?')[0].split('.')[-1]
                         filename = tmpdir + '/data.' + suffix
 
@@ -66,15 +67,15 @@ class ResourceProcessor:
                                         f.write(chunk)
                                         total_size += len(chunk)
                             
-                        print(f'{ctx}:DOWNLOADED for ', total_size, 'BYTES from ', resource.url, 'to', filename)
+                        rts.set(ctx, f'DOWNLOADED for {total_size} BYTES from {resource.url} to {filename}')
                         dp, _ = DF.Flow(
-                            DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}),
+                            DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}, deduplicate_headers=True),
                             DF.update_resource(-1, name='data'),
                             DF.validate(on_error=DF.schema_validator.clear),
                             DF.stream(stream)
                         ).process()
                         if total_size > self.BIG_FILE_SIZE:
-                            print(f'{ctx}:STREAMED BIG FILE', resource.url, 'TO', stream.name)
+                            rts.set(ctx, f'STREAMED BIG FILE {resource.url} TO {stream.name}')
                         resource.fields = [
                             Field(name=field['name'], data_type=field['type'])
                             for field in 
@@ -86,7 +87,7 @@ class ResourceProcessor:
                             self.limiter(),
                         ).results(on_error=None)[0][0]
                         if total_size > self.BIG_FILE_SIZE:
-                            print(f'{ctx}:READ BIG FILE DATA', resource.url, 'TO', len(data), 'ROWS')
+                            rts.set(ctx, f'READ BIG FILE DATA {resource.url} TO {len(data)} ROWS')
 
                         for field in resource.fields:
                             col_name = field.name
@@ -111,7 +112,7 @@ class ResourceProcessor:
                             DF.dump_to_sql({'data': {'resource-name': 'data'}}, engine=engine),
                         ).process()
                         if total_size > self.BIG_FILE_SIZE:
-                            print(f'{ctx}:DUMPED BIG FILE DATA', resource.url, 'TO', sqlite_filename)
+                            rts.set(ctx, f'DUMPED BIG FILE DATA {resource.url} TO {sqlite_filename}')
                         with engine.connect() as conn:
                             # row count:
                             resource.row_count = conn.execute(text('SELECT COUNT(*) FROM data')).fetchone()[0]
@@ -119,11 +120,12 @@ class ResourceProcessor:
                             resource.db_schema = conn.execute(text('SELECT sql FROM sqlite_master WHERE type="table" AND name="data"')).fetchone()[0]
                             resource.status_loaded = True
                         if total_size > self.BIG_FILE_SIZE:
-                            print(f'{ctx}:SQLITE BIG FILE DATA', resource.url, 'HAS', resource.row_count, 'ROWS')
-                        await store.storeDB(resource, dataset, sqlite_filename)
+                            rts.set(ctx, f'SQLITE BIG FILE DATA {resource.url} HAS {resource.row_count} ROWS')
+                        await store.storeDB(resource, dataset, sqlite_filename, ctx)
+                        rts.clear(ctx)
 
                     except Exception as e:
-                        print(f'{ctx}:FAILED TO LOAD', resource.url, e)
+                        rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
                         resource.loading_error = str(e)
                         return
         dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer

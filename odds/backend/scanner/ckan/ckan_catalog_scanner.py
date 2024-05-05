@@ -5,14 +5,16 @@ from ....common.config import config
 from ....common.datatypes import Dataset, Resource, DataCatalog
 from ....common.filters import DatasetFilter
 from ....common.retry import Retry
+from ....common.realtime_status import realtime_status as rts
 from ...processor.resource_processor import ResourceProcessor
 from ..catalog_scanner import CatalogScanner
 
 
 class CKANCatalogScanner(CatalogScanner):
 
-    def __init__(self, catalog: DataCatalog):
+    def __init__(self, catalog: DataCatalog, ctx: str):
         self.catalog = catalog
+        self.ctx = ctx
 
     def done(self, num_rows):
         if config.limit_catalog_datasets and num_rows >= config.limit_catalog_datasets:
@@ -29,7 +31,7 @@ class CKANCatalogScanner(CatalogScanner):
             headers.update(self.catalog.http_headers)
             while True:
                 if config.debug:
-                    print(f"Getting page {page} of datasets from {self.catalog.url}")
+                    rts.set(self.ctx, f"Getting page {page} of datasets from {self.catalog.url}")
                 try:
                     r = await Retry()(client, 'get',
                         f"{self.catalog.url}/api/3/action/package_search", params={"rows": 100, "start": (page - 1) * 100},
@@ -39,7 +41,7 @@ class CKANCatalogScanner(CatalogScanner):
                     r.raise_for_status()
                     r = r.json()
                 except Exception as e:
-                    print(f"Error getting page {page} of datasets from {self.catalog.url}: {e!r}")
+                    rts.set(self.ctx, f"Error getting page {page} of datasets from {self.catalog.url}: {e!r}", 'error')
                     raise
                 rows = r['result']['results']
                 if len(rows) == 0:

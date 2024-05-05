@@ -9,6 +9,7 @@ from ..common.store import store
 from ..common.filters import CatalogFilter, CatalogFilterById, \
     DatasetFilter, DatasetFilterById, DatasetFilterNew, DatasetFilterForce, DatasetFilterIncomplete
 from ..common.db import db
+from ..common.realtime_status import realtime_status as rts
 
 
 class ODDSBackend:
@@ -21,14 +22,18 @@ class ODDSBackend:
 
     async def scan(self, catalogFilter: CatalogFilter, datasetFilterCls, *datasetFilterArgs) -> None:
         dataset_processor.set_concurrency(config.dataset_processor_concurrency_limit or 3)
+        rts.clearAll()
+        scanner_ctx = ''
         for catalog_idx, catalog in enumerate(self.catalogs):
+            cat_ctx = f'{catalog.id}[{catalog_idx}]'
             if await catalogFilter.include(catalog):
-                await db.storeDataCatalog(catalog)
-                scanner = self.scanner_factory.create_scanner(catalog)
+                await db.storeDataCatalog(catalog, cat_ctx)
+                scanner = self.scanner_factory.create_scanner(catalog, cat_ctx)
                 if scanner:
                     dataset_idx = 0
                     async for dataset in scanner.scan():
-                        ctx = f'{catalog.id}[{catalog_idx}]/{dataset.id}[{dataset_idx}]'
+                        rts.set(cat_ctx, f'GOT DATASET {dataset.id}')
+                        ctx = f'{cat_ctx}/{dataset.id}[{dataset_idx}]'
                         existing = await store.getDataset(dataset.storeId())
                         if existing:
                             existing.merge(dataset)
@@ -36,14 +41,16 @@ class ODDSBackend:
                         await db.storeDataset(dataset, ctx)
                         datasetFilter = datasetFilterCls(catalog, dataset, *datasetFilterArgs)
                         if await datasetFilter.consider():
+                            rts.set(cat_ctx, f'CONSIDER DATASET {dataset.id}')
                             dataset_processor.queue(dataset, catalog, datasetFilter, ctx)
                         else:
-                            if config.debug:
-                                print(f'{ctx}:SKIP DATASET')
+                            rts.set(cat_ctx, f'SKIP DATASET {dataset.id}')
                         dataset_idx += 1
             else:
                 if config.debug:
-                    print(f'{catalog.id}[{i}]:SKIP CATALOG')
+                    rts.set(scanner_ctx, f'SKIP CATALOG {catalog.id}')
+            rts.clear(cat_ctx)            
+        rts.clear(scanner_ctx)
         await dataset_processor.wait()
 
     def scan_required(self) -> None:

@@ -7,12 +7,13 @@ from ...common.llm import llm_runner
 from ...common.llm.llm_query import LLMQuery
 from ...common.store import store
 from ...common.config import config
+from ...common.realtime_status import realtime_status as rts
 
 
 INSTRUCTIONS = '''Following are details on a dataset containing public data. Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
 The JSON should look like this:
 {
-    "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of'.>",
+    "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
     "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
 }
 Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
@@ -75,16 +76,15 @@ class MetaDescriber:
     concurrency_limit: int = 3
 
     async def describe(self, dataset: Dataset, ctx: str) -> None:
-        # print(f'{ctx}:DESCRIBING', dataset.title, dataset.catalogId)
+        # rts.set(ctx, f'DESCRIBING {dataset.title} {dataset.catalogId}')
         if not self.sem:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
 
         async with self.sem:
             query = MetaDescriberQuery(dataset, ctx)
-            await llm_runner.run(query)
+            await llm_runner.run(query, [dataset.id])
             if dataset.better_title is None:
                 query.upgrade()
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer
-            if config.debug:
-                print(f'{ctx}:DESCRIBED', dataset.title, '->', dataset.better_title)
+            rts.set(ctx, f'DESCRIBED {dataset.title} -> {dataset.better_title}')

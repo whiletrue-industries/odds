@@ -7,6 +7,7 @@ import dataclasses
 
 from ..store import Store
 from ...datatypes import Dataset, Embedding, Resource, Field
+from ....common.realtime_status import realtime_status as rts
 
 DIR = Path(__file__).parent.parent.parent.parent / '.fsstore'
 
@@ -15,20 +16,20 @@ class FSStore(Store):
     async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
         id = dataset.storeId()
         filename = self.get_filename('dataset', id, 'json')
-        print(f'{ctx}:STORING DATASET {dataset.title} -> {filename}')
+        rts.set(ctx, f'STORING DATASET {dataset.title} -> {filename}')
         with open(filename, 'w') as file:
             json.dump(dataclasses.asdict(dataset), file, indent=2, ensure_ascii=False)
 
     async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> None:
         id = '{}/{}'.format(dataset.storeId(), resource.url)
         filename = self.get_filename('db', id, 'sqlite')
-        print(f'{ctx}:STORING RES-DB {resource.title} -> {filename}')
+        rts.set(ctx, f'STORING RES-DB {resource.title} -> {filename}')
         os.rename(dbFile, filename)
 
     async def storeEmbedding(self, dataset: Dataset, embedding: Embedding, ctx: str) -> None:
         id = dataset.storeId()
         filename = self.get_filename('embedding', id, 'npy')
-        print(f'{ctx}:STORING EMBEDDING -> {filename}')
+        rts.set(ctx, f'STORING EMBEDDING -> {filename}')
         np.save(filename, embedding)
         
     async def getDataset(self, datasetId: str) -> Dataset:
