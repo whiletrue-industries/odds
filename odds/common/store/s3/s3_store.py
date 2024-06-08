@@ -100,7 +100,7 @@ class S3Store(Store):
                 # download the file into a temporary file:
                 outfile = self.cachedir / f'{id}.sqlite'
                 if not outfile.exists():
-                    await bucket.download_file(key, str(outfile))
+                    await obj.download_file(str(outfile))
                 return str(outfile)
             except Exception as e:
                 print('DB NOT FOUND', key, repr(e))
