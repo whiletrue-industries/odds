@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-import tempfile
 import hashlib
 import json
 import numpy as np
@@ -8,7 +7,7 @@ from io import BytesIO
 
 import aioboto3
 
-from ...config import config
+from ...config import config, CACHE_DIR
 from ..store import Store
 from ...datatypes import Dataset, Embedding, Resource, Field
 from ...realtime_status import realtime_status as rts
@@ -18,6 +17,8 @@ class S3Store(Store):
 
     def __init__(self) -> None:
         self.session = aioboto3.Session()
+        self.cachedir = CACHE_DIR / 's3-temp'
+        self.cachedir.mkdir(exist_ok=True, parents=True)
 
     @asynccontextmanager
     async def bucket(self):
@@ -97,11 +98,12 @@ class S3Store(Store):
                 obj = await bucket.Object(key)
                 await obj.load()
                 # download the file into a temporary file:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{id}.sqlite') as temp:
-                    await bucket.download_file(key, temp.name)
-                    return temp.name
-            except:
-                print('DB NOT FOUND', key)
+                outfile = self.cachedir / f'{id}.sqlite'
+                if not outfile.exists():
+                    await bucket.download_file(key, str(outfile))
+                return str(outfile)
+            except Exception, e:
+                print('DB NOT FOUND', key, repr(e))
                 pass
         return None
     
