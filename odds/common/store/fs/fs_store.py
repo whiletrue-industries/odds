@@ -6,10 +6,11 @@ import numpy as np
 import dataclasses
 
 from ..store import Store
+from ...config import CACHE_DIR
 from ...datatypes import Dataset, Embedding, Resource, Field
 from ....common.realtime_status import realtime_status as rts
 
-DIR = Path(__file__).parent.parent.parent.parent / '.fsstore'
+DIR = CACHE_DIR / '.fsstore'
 
 class FSStore(Store):
 
