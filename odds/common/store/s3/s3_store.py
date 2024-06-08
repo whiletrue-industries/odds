@@ -102,7 +102,7 @@ class S3Store(Store):
                 if not outfile.exists():
                     await bucket.download_file(key, str(outfile))
                 return str(outfile)
-            except Exception, e:
+            except Exception as e:
                 print('DB NOT FOUND', key, repr(e))
                 pass
         return None
