@@ -1,7 +1,7 @@
 import json
 import hashlib
 from kvfile.kvfile_leveldb import KVFileLevelDB as KVFile
-from ..config import config
+from ..config import config, CACHE_DIR
 
 class LLMCache():
 
@@ -10,9 +10,9 @@ class LLMCache():
         self.cache = None
         self.logfile = None
         if config.debug:
-            self.logfile = open(f'.caches/{name}_llm_runner.log', 'w')
+            self.logfile = (CACHE_DIR / f'{name}_llm_runner.log').open('w')
             self.log = {}
-            self.cache = KVFile(location=f'.caches/{name}_llm_runner.cache')
+            self.cache = KVFile(location=str(CACHE_DIR / f'{name}_llm_runner.cache'))
 
     def store_log(self, conversation, prompts):
         if self.log is not None:

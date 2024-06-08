@@ -6,3 +6,8 @@ numpy
 dataflows
 kvfile
 awesome-slugify
+aioboto3
+peewee
+wtf-peewee
+psycopg2-binary
+plyvel

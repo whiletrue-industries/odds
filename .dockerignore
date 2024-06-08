@@ -1,3 +1,15 @@
 .data
 .ch
 .data-bak
+__pycache__/
+.idea
+.data
+.env
+*.egg-info
+.terraform
+log.txt
+.venv/
+odds.config.yaml
+.caches/
+odds/.chromadb/
+odds/.fsstore/

@@ -3,10 +3,10 @@ import httpx
 from pathlib import Path
 import os
 
-from ...config import config
+from ...config import config, CACHE_DIR
 from ...datatypes import Embedding, Dataset
 
-DIRNAME = Path(__file__).parent.parent.parent.parent / '.chromadb'
+DIRNAME = CACHE_DIR / '.chromadb'
 os.makedirs(DIRNAME, exist_ok=True)
 
 class ChromaDBIndexer:

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-cm
-data:
-  url: "https://ckangpt-argocd.uumpa.xyz"
-  exec.enabled: "true"

@@ -11,7 +11,7 @@ class OpenAILLMRunner(LLMRunner):
 
     MODELS = dict(
         cheap='gpt-3.5-turbo-0125',
-        expensive='gpt-4-1106-preview',
+        expensive='gpt-4o',
     )
     COSTS = dict(
         cheap=dict(
@@ -19,8 +19,8 @@ class OpenAILLMRunner(LLMRunner):
             completion=1.5/1000000
         ),
         expensive=dict(
-            prompt=10/1000000,
-            completion=30/1000000
+            prompt=5/1000000,
+            completion=15/1000000
         ),
     )
 
