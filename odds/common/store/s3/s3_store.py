@@ -98,6 +98,7 @@ class S3Store(Store):
                 obj = await bucket.Object(key)
                 await obj.load()
                 # download the file into a temporary file:
+                id = id.replace('/', '__')
                 outfile = self.cachedir / f'{id}.sqlite'
                 if not outfile.exists():
                     await obj.download_file(str(outfile))
