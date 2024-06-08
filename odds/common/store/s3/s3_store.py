@@ -28,19 +28,18 @@ class S3Store(Store):
             region_name=config.credentials.s3_store.region,
             endpoint_url=config.credentials.s3_store.endpoint_url,
         ) as s3:
-            yield s3, await s3.Bucket(config.credentials.s3_store.bucket)
+            yield await s3.Bucket(config.credentials.s3_store.bucket)
 
     async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             id = dataset.storeId()
             key = self.get_key('dataset', id, 'json')
             rts.set(ctx, f'STORING DATASET {dataset.title} -> {key}')
             obj = await bucket.Object(key)
             await obj.put(Body=json.dumps(dataclasses.asdict(dataset), indent=2, ensure_ascii=False).encode('utf-8'))
-            # await s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(dataclasses.asdict(dataset), indent=2, ensure_ascii=False))
 
     async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> None:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             id = '{}/{}'.format(dataset.storeId(), resource.url)
             key = self.get_key('db', id, 'sqlite')
             rts.set(ctx, f'STORING RES-DB {resource.title} -> {key}')
@@ -48,7 +47,7 @@ class S3Store(Store):
             await obj.upload_file(dbFile)
 
     async def storeEmbedding(self, dataset: Dataset, embedding: Embedding, ctx: str) -> None:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             id = dataset.storeId()
             key = self.get_key('embedding', id, 'npy')
             rts.set(ctx, f'STORING EMBEDDING -> {key}')
@@ -59,7 +58,7 @@ class S3Store(Store):
             await obj.upload_fileobj(filename)
         
     async def getDataset(self, datasetId: str) -> Dataset:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             key = self.get_key('dataset', datasetId, 'json')
             try:
                 obj = await bucket.Object(key)
@@ -80,7 +79,7 @@ class S3Store(Store):
             return dataset
     
     async def hasDataset(self, datasetId: str) -> bool:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             key = self.get_key('dataset', datasetId, 'json')
             obj = await bucket.Object(key)
             try:
@@ -90,7 +89,7 @@ class S3Store(Store):
                 return False
     
     async def getDB(self, resource: Resource, dataset: Dataset) -> str:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             id = '{}/{}'.format(dataset.storeId(), resource.url)
             key = self.get_key('db', id, 'sqlite')
             print('GETTING DB', dataset.catalogId, dataset.id, resource.title, key)
@@ -107,7 +106,7 @@ class S3Store(Store):
         return None
     
     async def getEmbedding(self, dataset: Dataset) -> Embedding:
-        async with self.bucket() as (s3, bucket):
+        async with self.bucket() as bucket:
             id = dataset.storeId()
             key = self.get_key('embedding', id, 'npy')
             try:
