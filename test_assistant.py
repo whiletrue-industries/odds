@@ -12,17 +12,18 @@ from odds.common.llm.openai.openai_llm_runner import OpenAILLMRunner
 import sqlite3
 
 import asyncio
+import time
 
 ASSISTANT_NAME = 'Open data fact checker'
 ASSISTANT_INSTRUCTIONS = """
 You are a fact checker for a news organization.
 Your main focus is to verify the accuracy of claims made in news articles, by using _only_ public data from governmental open data portals.
 
-You have tools which enable you to:
-- Search for relevant datasets using semantic search
-- Retrieve full information about a dataset, including its metadata and the names of the data files it contains
-- Retrieve full information about a data file, including its metadata and its DB schemas
-- Query a data file using an SQL query
+You have these tools you might use:
+- search_datasets: Search for relevant datasets using semantic search
+- fetch_dataset: Retrieve full information about a dataset (based on the dataset's id), including its metadata and the names and ids of the resources it contains.
+- fetch_resource: Retrieve full information about a resource (based on the resource's id), including its metadata and its DB schema (so you can query it)
+- query_resource_database: Query a resource using an SQL query (you need to fetch the DB schema first in order to do a query)
 
 Your goal is to provide an assessment of the accuracy of each relevant claim in the text, based on the data you find.
 You should also provide a confidence score for your assessment.
@@ -53,7 +54,7 @@ TOOLS = [
         type='function',
         function=dict(
             name='fetch_dataset',
-            description='Get the full metadata for a single dataset, including the list of its data files',
+            description='Get the full metadata for a single dataset, including the list of its resources',
             parameters=dict(
                 type='object',
                 properties=dict(
@@ -69,39 +70,39 @@ TOOLS = [
     dict(
         type='function',
         function=dict(
-            name='fetch_data_file',
-            description='Get the full metadata for a single data file in a single dataset ',
+            name='fetch_resource',
+            description='Get the full metadata for a single resource in a single dataset ',
             parameters=dict(
                 type='object',
                 properties=dict(
                     dataset_id=dict(
                         type='string',
-                        description='The dataset id containing this data file'
+                        description='The dataset id containing this resource'
                     ),
-                    data_file_id=dict(
+                    resource_id=dict(
                         type='string',
-                        description='The data file ID to fetch.'
+                        description='The resource ID to fetch.'
                     ),
                 ),
-                required=['dataset_id', 'data_file_id']
+                required=['dataset_id', 'resource_id']
             )
         )
     ),
     dict(
         type='function',
         function=dict(
-            name='query_data_file',
-            description='Perform an SQL query on a data file',
+            name='query_resource_database',
+            description='Perform an SQL query on a resource',
             parameters=dict(
                 type='object',
                 properties=dict(
-                    data_file_id=dict(
+                    resource_id=dict(
                         type='string',
-                        description='The data file ID to query.'
+                        description='The resource ID to query.'
                     ),
                     query=dict(
                         type='string',
-                        description='SQLite compatible query to perform on the data file'
+                        description='SQLite compatible query to perform on the resource'
                     ),
                 ),
                 required=['id', 'query']
@@ -158,8 +159,8 @@ async def fetch_dataset(id):
     print('RESPONSE:', response)
     return response
 
-async def fetch_data_file(id):
-    print('FETCH DATA FILE:', id)
+async def fetch_sesource(id):
+    print('FETCH RESOURCE:', id)
     datasetId, resourceIdx = id.split('##')
     resourceIdx = int(resourceIdx)
     dataset = await store.getDataset(datasetId)
@@ -230,11 +231,11 @@ async def loop(client, thread, run, usage):
                 elif function_name == 'fetch_dataset':
                     id = arguments['dataset_id']
                     output = await fetch_dataset(id)
-                elif function_name == 'fetch_data_file':
-                    id = arguments['data_file_id']
-                    output = await fetch_data_file(id)
-                elif function_name == 'query_data_file':
-                    id = arguments['data_file_id']
+                elif function_name == 'fetch_resource':
+                    id = arguments['resource_id']
+                    output = await fetch_sesource(id)
+                elif function_name == 'query_resource_database':
+                    id = arguments['resource_id']
                     query = arguments['query']
                     output = await query_db(id, query)
                 output = json.dumps(output, ensure_ascii=False)
@@ -249,7 +250,7 @@ async def loop(client, thread, run, usage):
                     run = client.beta.threads.runs.submit_tool_outputs_and_poll(
                         thread_id=thread.id,
                         run_id=run.id,
-                        tool_outputs=tool_outputs
+                        tool_outputs=tool_outputs,
                     )
                     if run.usage:
                         usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
@@ -272,10 +273,11 @@ def main():
     )
     
     assistant = client.beta.assistants.create(
-    name=ASSISTANT_NAME,
-    instructions=ASSISTANT_INSTRUCTIONS,
-    model="gpt-4-turbo",
-    tools=TOOLS,
+        name=ASSISTANT_NAME,
+        instructions=ASSISTANT_INSTRUCTIONS,
+        model="gpt-4o",
+        tools=TOOLS,
+        temperature=0,
     )
 
     thread = client.beta.threads.create()
@@ -291,6 +293,7 @@ def main():
     run = client.beta.threads.runs.create_and_poll(
         thread_id=thread.id,
         assistant_id=assistant.id,
+        temperature=0,
     )
     if run.usage:
         usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
@@ -302,7 +305,7 @@ def main():
     finally:
         print('SUCCESS:', success)
         messages = client.beta.threads.messages.list(
-            thread_id=thread.id
+            thread_id=thread.id, order='asc'
         )
         for message in messages:
             print(f'{message.role}:')
@@ -312,8 +315,11 @@ def main():
                 else:
                     print(block.type)
                     print(block)
-
         print('CLEANUP')
+        # try:
+        #     time.sleep(600)
+        # except KeyboardInterrupt:
+        #     pass
         client.beta.threads.delete(thread.id)
         client.beta.assistants.delete(assistant.id)
         usage.print_total_usage()
