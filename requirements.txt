@@ -11,3 +11,5 @@ peewee
 wtf-peewee
 psycopg2-binary
 plyvel
+fastapi
+uvicorn
