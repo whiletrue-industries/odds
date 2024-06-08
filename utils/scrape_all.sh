@@ -1,4 +1,4 @@
 docker run -it \
-    -v ./odds.config.server.yaml:/srv/odds.config.yaml \
-    -v ./dummy-cache/:/srv/.caches/ \
-    odds-server -- "python utils/scrape_all.py"
+    -v ./odds.config.yaml:/srv/odds.config.yaml \
+    -v ./cache/:/srv/.caches/ \
+    ghcr.io/whiletrue-industries/odds/odds-server:latest -- "python utils/scrape_all.py"

@@ -44,7 +44,8 @@ class S3Store(Store):
             id = '{}/{}'.format(dataset.storeId(), resource.url)
             key = self.get_key('db', id, 'sqlite')
             rts.set(ctx, f'STORING RES-DB {resource.title} -> {key}')
-            await s3.upload_file(dbFile, bucket, key)
+            obj = await bucket.Object(key)
+            await obj.upload_file(dbFile)
 
     async def storeEmbedding(self, dataset: Dataset, embedding: Embedding, ctx: str) -> None:
         async with self.bucket() as (s3, bucket):
@@ -54,7 +55,8 @@ class S3Store(Store):
             filename = BytesIO()
             np.save(filename, embedding)
             filename.seek(0)
-            await s3.upload_fileobj(filename, bucket, key)
+            obj = await bucket.Object(key)
+            await obj.upload_fileobj(filename)
         
     async def getDataset(self, datasetId: str) -> Dataset:
         async with self.bucket() as (s3, bucket):
