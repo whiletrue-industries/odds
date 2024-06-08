@@ -1,6 +1,6 @@
 from .llm_query import LLMQuery
 from .llm_cache import LLMCache
-from .cost_collector import CostCollector
+from ..cost_collector import CostCollector
 
 class LLMRunner:
 

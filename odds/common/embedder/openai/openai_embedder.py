@@ -5,7 +5,7 @@ import math
 from ...datatypes import Embedding
 
 from ..embedder import Embedder
-from ...llm.cost_collector import CostCollector
+from ...cost_collector import CostCollector
 from ...config import config
 from ...retry import Retry
 

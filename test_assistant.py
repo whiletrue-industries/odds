@@ -7,7 +7,7 @@ from odds.common.vectordb import indexer
 from odds.common.store import store
 from odds.common.embedder import embedder
 from odds.common.catalog_repo import catalog_repo
-from odds.common.llm.cost_collector import CostCollector
+from odds.common.cost_collector import CostCollector
 from odds.common.llm.openai.openai_llm_runner import OpenAILLMRunner
 import sqlite3
 
