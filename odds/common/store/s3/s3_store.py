@@ -65,7 +65,6 @@ class S3Store(Store):
                 obj = await bucket.Object(key)
                 await obj.load()
             except Exception as e:
-                print('NOT FOUND', key, e)
                 return None
             try:
                 content = await obj.get()
@@ -108,7 +107,6 @@ class S3Store(Store):
                     await obj.download_file(str(outfile))
                 return str(outfile)
             except Exception as e:
-                print('DB NOT FOUND', key, repr(e))
                 pass
         return None
     
@@ -124,7 +122,6 @@ class S3Store(Store):
                 filename = BytesIO(content)
                 return np.load(filename)
             except:
-                print('EMBEDDING NOT FOUND', key)
                 pass
             return None
 
