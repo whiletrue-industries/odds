@@ -102,7 +102,10 @@ class ResourceProcessor:
                             
                             values = [row[col_name] for row in data]
                             true_values = [x for x in values if x is not None]            
-                            field.sample_values = [str(x) for x, _ in Counter(values).most_common(10)]
+                            try:
+                                field.sample_values = [str(x) for x, _ in Counter(values).most_common(10)]
+                            except:
+                                pass
                             if len(values) > 0:
                                 field.missing_values_percent = int(100 * (len(values) - len(true_values)) / len(values))
                             if field.data_type in ('number', 'integer', 'date', 'time', 'datetime'):
