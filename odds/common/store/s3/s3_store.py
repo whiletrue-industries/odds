@@ -67,17 +67,21 @@ class S3Store(Store):
             except Exception as e:
                 print('NOT FOUND', key, e)
                 return None
-            content = await obj.get()
-            content = await content['Body'].read()
-            data = json.loads(content.decode('utf-8'))
-            resources = data.pop('resources', [])
-            for resource in resources:
-                resource['fields'] = [Field(**f) for f in resource['fields']]
-            data['resources'] = [Resource(**r) for r in resources]
-            if 'embedding' in data:
-                data['status_embedding'] = bool(data.pop('embedding'))
-            dataset = Dataset(**data)
-            return dataset
+            try:
+                content = await obj.get()
+                content = await content['Body'].read()
+                data = json.loads(content.decode('utf-8'))
+                resources = data.pop('resources', [])
+                for resource in resources:
+                    resource['fields'] = [Field(**f) for f in resource['fields']]
+                data['resources'] = [Resource(**r) for r in resources]
+                if 'embedding' in data:
+                    data['status_embedding'] = bool(data.pop('embedding'))
+                dataset = Dataset(**data)
+                return dataset
+            except Exception as e:
+                print('FAILED TO LOAD', key, e)
+                return None
     
     async def hasDataset(self, datasetId: str) -> bool:
         async with self.bucket() as bucket:
