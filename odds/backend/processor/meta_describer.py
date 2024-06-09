@@ -21,6 +21,7 @@ Return only the json object, without any additional formatting, explanation or c
 --------------
 '''
 
+MAX_STR_LEN = 50000
 
 class MetaDescriberQuery(LLMQuery):
 
@@ -38,17 +39,21 @@ class MetaDescriberQuery(LLMQuery):
             {k: v for k, v in r.items() if k in ('title', 'fields', 'row_count')}
             for r in data['resources']
             if r.get('status_loaded')]
-        for resource in data['resources'][3:]:
-            resource.pop('fields')
-            resource['title'] = resource['title'][:128]
         data = {k: v for k, v in data.items() if k in ('id', 'title', 'description', 'publisher', 'publisher_description', 'resources')}
         for k in ('title', 'description', 'publisher', 'publisher_description'):
             data[k] = data[k][:250]
-        data = json.dumps(data, indent=2, ensure_ascii=False)
+
+        for resource in data['resources'][::-1]:
+            encoded = json.dumps(data, indent=2, ensure_ascii=False)
+            if len(encoded) > MAX_STR_LEN:
+                resource.pop('fields')
+                resource['title'] = resource['title'][:128]
+            else:
+                break
 
         return [
             ('system', 'You are an experienced data analyst.'),
-            ('user', INSTRUCTIONS + data)
+            ('user', INSTRUCTIONS + encoded)
         ]
 
     def temperature(self) -> float:
