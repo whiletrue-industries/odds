@@ -70,6 +70,7 @@ class ODDSBackend:
         args = []
         if datasetId:
             datasetFilter = DatasetFilterById
+            args.append(datasetId)
         else:
             datasetFilter = DatasetFilter
         asyncio.run(self.scan(catalogFilter, datasetFilter, args))
