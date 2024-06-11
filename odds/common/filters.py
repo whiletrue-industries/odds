@@ -64,13 +64,13 @@ class DatasetFilterIncomplete(DatasetFilter):
 
 class DatasetFilterNew(DatasetFilter):
 
-    async def consider(self) -> bool:
+    async def consider(self, dataset: Dataset) -> bool:
         return not await store.hasDataset(self.dataset.storeId())
 
 
 class DatasetFilterForce(DatasetFilter):
 
-    async def consider(self) -> bool:
+    async def consider(self, dataset: Dataset) -> bool:
         return True
 
 
@@ -79,8 +79,8 @@ class DatasetFilterById(DatasetFilter):
         super().__init__()
         self.datasetId = datasetId
 
-    async def consider(self) -> bool:
-        return self.dataset.id == self.datasetId
+    async def consider(self, dataset: Dataset) -> bool:
+        return dataset.id == self.datasetId
 
 
 class CatalogFilter:
