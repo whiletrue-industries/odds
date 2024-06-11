@@ -58,6 +58,8 @@ class ResourceProcessor:
             return None
         if not self.sem:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
+        if resource.status_loaded and not resource.loading_error:
+            return None
         resource.status_selected = True
         to_delete = []
         try:
