@@ -38,10 +38,10 @@ class ODDSBackend:
                         if existing:
                             existing.merge(dataset)
                             dataset = existing
-                        await db.storeDataset(dataset, ctx)
                         datasetFilter = datasetFilterCls(catalog, dataset, *datasetFilterArgs)
                         if await datasetFilter.consider():
                             rts.set(cat_ctx, f'CONSIDER DATASET {dataset.id}')
+                            await db.storeDataset(dataset, ctx)
                             dataset_processor.queue(dataset, catalog, datasetFilter, ctx)
                         else:
                             rts.set(cat_ctx, f'SKIP DATASET {dataset.id}')
