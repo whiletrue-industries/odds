@@ -61,6 +61,8 @@ class ResourceProcessor:
         if resource.status_loaded and not resource.loading_error:
             return None
         resource.status_selected = True
+        resource.loading_error = None
+        resource.status_loaded = False
         to_delete = []
         try:
             async with self.sem:
@@ -161,12 +163,14 @@ class ResourceProcessor:
                             resource.status_loaded = True
                         rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS == {len(data)} ROWS')
                         await store.storeDB(resource, dataset, sqlite_filename, ctx)
-                        rts.clear(ctx)
 
                     except Exception as e:
                         rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
                         resource.loading_error = str(e)
                         return
+                    finally:
+                        rts.clear(ctx)
+
             dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
         finally:
             for filename in to_delete:
