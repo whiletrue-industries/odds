@@ -36,7 +36,7 @@ class DatasetProcessor:
         if config.debug:
             rts.set(ctx, f'PROCESS DATASET {dataset.versions.get('resource_analyzer')} {dataset.title}')
         resources = self.prune_resources(dataset, ctx)
-        if await datasetFilter.analyze():
+        if await datasetFilter.analyze(datasetFilter):
             if len(resources) > 0:
                 await asyncio.gather(
                     *[
@@ -49,14 +49,14 @@ class DatasetProcessor:
                 rts.set(ctx, f'SKIP ANALYZE')
         resources = [resource for resource in resources if resource.status_loaded]
         if len(resources) > 0:
-            if await datasetFilter.describe():
+            if await datasetFilter.describe(dataset):
                 await self.meta_describer.describe(dataset, ctx)
             else:
                 if config.debug:
                     rts.set(ctx, f'SKIP DESCRIBE')
-            if await datasetFilter.embed():
+            if await datasetFilter.embed(dataset):
                 await self.embedder.embed(dataset, ctx)
-            if await datasetFilter.index():
+            if await datasetFilter.index(dataset):
                 await self.indexer.index(dataset, ctx)
         await store.storeDataset(dataset, ctx)
         await db.storeDataset(dataset, ctx)

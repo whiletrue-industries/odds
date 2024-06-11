@@ -20,7 +20,7 @@ class ODDSBackend:
         self.scanner_factory = ScannerFactory()
         self.catalogs = catalog_repo.load_catalogs()
 
-    async def scan(self, catalogFilter: CatalogFilter, datasetFilterCls, *datasetFilterArgs) -> None:
+    async def scan(self, catalogFilter: CatalogFilter, datasetFilter: DatasetFilter, *datasetFilterArgs) -> None:
         dataset_processor.set_concurrency(config.dataset_processor_concurrency_limit or 3)
         rts.clearAll()
         scanner_ctx = ''
@@ -38,8 +38,7 @@ class ODDSBackend:
                         if existing:
                             existing.merge(dataset)
                             dataset = existing
-                        datasetFilter = datasetFilterCls(catalog, dataset, *datasetFilterArgs)
-                        if await datasetFilter.consider():
+                        if await datasetFilter.consider(dataset):
                             rts.set(cat_ctx, f'CONSIDER DATASET {dataset.id}')
                             await db.storeDataset(dataset, ctx)
                             dataset_processor.queue(dataset, catalog, datasetFilter, ctx)
@@ -54,23 +53,21 @@ class ODDSBackend:
         await dataset_processor.wait()
 
     def scan_required(self) -> None:
-        asyncio.run(self.scan(CatalogFilter(), DatasetFilterIncomplete))
+        asyncio.run(self.scan(CatalogFilter(), DatasetFilterIncomplete()))
 
     def scan_all(self) -> None:
-        asyncio.run(self.scan(CatalogFilter(), DatasetFilterForce))
+        asyncio.run(self.scan(CatalogFilter(), DatasetFilterForce()))
 
     def scan_new(self) -> None:
-        asyncio.run(self.scan(CatalogFilter(), DatasetFilterNew))
+        asyncio.run(self.scan(CatalogFilter(), DatasetFilterNew()))
 
     def scan_specific(self, catalogId: str = None, datasetId: str = None) -> None:
         if catalogId:
             catalogFilter = CatalogFilterById(catalogId)
         else:
             catalogFilter = CatalogFilter()
-        args = []
         if datasetId:
-            datasetFilter = DatasetFilterById
-            args.append(datasetId)
+            datasetFilter = DatasetFilterById(datasetId)
         else:
-            datasetFilter = DatasetFilter
-        asyncio.run(self.scan(catalogFilter, datasetFilter, args))
+            datasetFilter = DatasetFilterIncomplete()
+        asyncio.run(self.scan(catalogFilter, datasetFilter))
