@@ -42,6 +42,14 @@ class ResourceProcessor:
                     yield row
         return func
 
+    def updater(self, ctx, message):
+        def func(rows):
+            for i, row in enumerate(rows):
+                if i % 1000 == 0:
+                    rts.set(ctx, message(i))
+                yield row
+        return func
+
     async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str):
         if not ResourceProcessor.check_format(resource):
             return None
@@ -71,20 +79,20 @@ class ResourceProcessor:
                                 }
                                 headers.update(catalog.http_headers)
                                 async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
-                                    async for chunk in response.aiter_bytes():
+                                    async for chunk in response.aiter_bytes():  
                                         f.write(chunk)
                                         total_size += len(chunk)
                             
-                        rts.set(ctx, f'DOWNLOADED for {total_size} BYTES from {resource.url} to {filename}')
+                        rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
                         dp, _ = DF.Flow(
                             DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}, deduplicate_headers=True),
                             DF.update_resource(-1, name='data'),
                             DF.validate(on_error=DF.schema_validator.clear),
+                            self.updater(ctx, lambda i: 'LOADED {i} ROWS TO DISK'),
                             DF.stream(stream)
                         ).process()
-                        if total_size > self.BIG_FILE_SIZE:
-                            rts.set(ctx, f'STREAMED BIG FILE {resource.url} TO {stream.name}')
-                        resource.fields = [
+                        rts.set(ctx, f'VALIDATED {total_size} BYTES from {resource.url} to {stream.name}')
+                        potential_fields = [
                             Field(name=field['name'], data_type=field['type'])
                             for field in 
                             dp.resources[0].descriptor['schema']['fields']
@@ -94,14 +102,22 @@ class ResourceProcessor:
                             DF.unstream(stream.name),
                             self.limiter(),
                         ).results(on_error=None)[0][0]
-                        if total_size > self.BIG_FILE_SIZE:
-                            rts.set(ctx, f'READ BIG FILE DATA {resource.url} TO {len(data)} ROWS')
+                        rts.set(ctx, f'READ DATA {total_size} BYTES / {len(data)} ROWS from {resource.url}')
 
-                        for field in resource.fields:
+                        if len(data) == 0:
+                            resource.loading_error = 'NO DATA'
+                            rts.set(ctx, f'NO DATA {resource.url}')
+                            return
+
+                        resource.fields = []
+                        for field in potential_fields:
                             col_name = field.name
                             
                             values = [row[col_name] for row in data]
-                            true_values = [x for x in values if x is not None]            
+                            true_values = [x for x in values if x is not None]
+                            if len(true_values) == 0:
+                                continue
+                            resource.fields.append(field)
                             try:
                                 field.sample_values = [str(x) for x, _ in Counter(values).most_common(10)]
                             except:
@@ -113,8 +129,12 @@ class ResourceProcessor:
                                     field.max_value = str(max(true_values))
                                     field.min_value = str(min(true_values))
                                 except:
-                                    pass
-                        
+                                    pass                    
+                        if len(resource.fields) > 50:
+                            resource.loading_error = f'TOO MANY FIELDS - {len(resource.fields)}'
+                            rts.set(ctx, f'SKIPPING {resource.url} TOO MANY FIELDS')
+                            return
+
                         stream.close()
                         sqlite_filename = f'{TMP_DIR}/{rand}.sqlite'
                         to_delete.append(sqlite_filename)
@@ -122,18 +142,17 @@ class ResourceProcessor:
                         engine = create_engine(sqlite_url)
                         DF.Flow(
                             DF.unstream(stream.name),
+                            self.updater(ctx, lambda i: 'DUMPED {i} ROWS TO SQLITE'),
                             DF.dump_to_sql({'data': {'resource-name': 'data'}}, engine=engine),
                         ).process()
-                        if total_size > self.BIG_FILE_SIZE:
-                            rts.set(ctx, f'DUMPED BIG FILE DATA {resource.url} TO {sqlite_filename}')
+                        rts.set(ctx, f'DUMPED {total_size} BYTES / {len(data)} ROWS from {resource.url} TO {sqlite_filename}')
                         with engine.connect() as conn:
                             # row count:
                             resource.row_count = conn.execute(text('SELECT COUNT(*) FROM data')).fetchone()[0]
                             # get the table's CREATE TABLE text:
                             resource.db_schema = conn.execute(text('SELECT sql FROM sqlite_master WHERE type="table" AND name="data"')).fetchone()[0]
                             resource.status_loaded = True
-                        if total_size > self.BIG_FILE_SIZE:
-                            rts.set(ctx, f'SQLITE BIG FILE DATA {resource.url} HAS {resource.row_count} ROWS')
+                        rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS == {len(data)} ROWS')
                         await store.storeDB(resource, dataset, sqlite_filename, ctx)
                         rts.clear(ctx)
 
@@ -147,7 +166,7 @@ class ResourceProcessor:
                 try:
                     filename.unlink()
                 except:
-                    pass
+                    rts.set(ctx, f'FAILED TO DELETE {filename}: {e}', 'error')
 
     def set_concurrency_limit(self, concurrency_limit):
         self.concurrency_limit = concurrency_limit
