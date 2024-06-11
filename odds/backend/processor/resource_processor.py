@@ -79,10 +79,14 @@ class ResourceProcessor:
                                     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
                                 }
                                 headers.update(catalog.http_headers)
+                                report = 0
                                 async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
                                     async for chunk in response.aiter_bytes():  
                                         f.write(chunk)
                                         total_size += len(chunk)
+                                        while total_size - report > 1000000:
+                                            report += 1000000
+                                            rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
                             
                         rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
                         dp, _ = DF.Flow(
