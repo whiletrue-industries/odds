@@ -36,7 +36,7 @@ class DatasetProcessor:
         if config.debug:
             rts.set(ctx, f'PROCESS DATASET {dataset.versions.get('resource_analyzer')} {dataset.title}')
         resources = self.prune_resources(dataset, ctx)
-        if await datasetFilter.analyze(datasetFilter):
+        if await datasetFilter.analyze(dataset):
             if len(resources) > 0:
                 await asyncio.gather(
                     *[
