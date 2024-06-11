@@ -2,6 +2,7 @@ import asyncio
 from collections import Counter
 import httpx
 import uuid
+import os
 
 import dataflows as DF
 from sqlalchemy import create_engine
@@ -88,7 +89,7 @@ class ResourceProcessor:
                             DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}, deduplicate_headers=True),
                             DF.update_resource(-1, name='data'),
                             DF.validate(on_error=DF.schema_validator.clear),
-                            self.updater(ctx, lambda i: 'LOADED {i} ROWS TO DISK'),
+                            self.updater(ctx, lambda i: f'LOADED {i} ROWS TO DISK'),
                             DF.stream(stream)
                         ).process()
                         rts.set(ctx, f'VALIDATED {total_size} BYTES from {resource.url} to {stream.name}')
@@ -142,7 +143,7 @@ class ResourceProcessor:
                         engine = create_engine(sqlite_url)
                         DF.Flow(
                             DF.unstream(stream.name),
-                            self.updater(ctx, lambda i: 'DUMPED {i} ROWS TO SQLITE'),
+                            self.updater(ctx, lambda i: f'DUMPED {i} ROWS TO SQLITE'),
                             DF.dump_to_sql({'data': {'resource-name': 'data'}}, engine=engine),
                         ).process()
                         rts.set(ctx, f'DUMPED {total_size} BYTES / {len(data)} ROWS from {resource.url} TO {sqlite_filename}')
@@ -164,8 +165,8 @@ class ResourceProcessor:
         finally:
             for filename in to_delete:
                 try:
-                    filename.unlink()
-                except:
+                    os.unlink(filename)
+                except Exception as e:
                     rts.set(ctx, f'FAILED TO DELETE {filename}: {e}', 'error')
 
     def set_concurrency_limit(self, concurrency_limit):
