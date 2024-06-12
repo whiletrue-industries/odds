@@ -131,7 +131,7 @@ class ResourceProcessor:
                                             rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
                             
                         rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
-                        dp = await asyncio.to_thread(self.load_data, ctx, filename, stream)
+                        dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
                         potential_fields = [
                             Field(name=field['name'], data_type=field['type'])
                             for field in 
