@@ -159,12 +159,15 @@ class ResourceProcessor:
                             if len(true_values) == 0:
                                 continue
                             resource.fields.append(field)
-                            field_names.append(col_name)
                             try:
                                 field.sample_values = [str(x) for x, _ in Counter(true_values).most_common(10)]
+                                if len(field.sample_values) == 1:
+                                    # if all values are the same, no need for this field in the db
+                                    continue
                             except:
                                 pass
-                            if len(values) > 0:
+                            field_names.append(col_name)
+                            if len(values) > 0 and len(true_values) != len(values):
                                 field.missing_values_percent = int(100 * (len(values) - len(true_values)) / len(values))
                             if field.data_type in ('number', 'integer', 'date', 'time', 'datetime'):
                                 true_values = set(true_values)
