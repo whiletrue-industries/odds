@@ -14,7 +14,7 @@ from ...common.config import config, CACHE_DIR
 from ...common.realtime_status import realtime_status as rts
 
 
-TMP_DIR = CACHE_DIR / 'resource-processor-temp'
+TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
 TMP_DIR.mkdir(exist_ok=True, parents=True)
 TMP_DIR = str(TMP_DIR)
 
