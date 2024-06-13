@@ -15,7 +15,10 @@ from ...common.realtime_status import realtime_status as rts
 
 
 TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
-TMP_DIR.mkdir(exist_ok=True, parents=True)
+try:
+    TMP_DIR.mkdir(exist_ok=True, parents=True)
+except:
+    pass
 TMP_DIR = str(TMP_DIR)
 
 class ResourceProcessor:
