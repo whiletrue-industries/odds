@@ -25,6 +25,7 @@ class ResourceProcessor:
     ALLOWED_FORMATS = ['csv', 'xlsx', 'xls']
     MISSING_VALUES = ['None', 'NULL', 'N/A', 'NA', 'NAN', 'NaN', 'nan', '-']
     BIG_FILE_SIZE = 10000000
+    MAX_FIELDS = 1000
 
     @staticmethod
     def check_format(resource: Resource):
@@ -54,7 +55,7 @@ class ResourceProcessor:
 
     def validate_data(self, ctx, filename, stream):
         dp, _ = DF.Flow(
-            DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}, deduplicate_headers=True),
+            DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}, deduplicate_headers=True, http_timeout=60),
             DF.update_resource(-1, name='data'),
             DF.validate(on_error=DF.schema_validator.clear),
             self.updater(ctx, lambda i: f'LOADED {i} ROWS TO DISK'),
@@ -87,7 +88,7 @@ class ResourceProcessor:
             # get the table's CREATE TABLE text:
             resource.db_schema = conn.execute(text('SELECT sql FROM sqlite_master WHERE type="table" AND name="data"')).fetchone()[0]
             resource.status_loaded = True
-        rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS == {len(data)} ROWS')
+        rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS')
         return resource
 
     async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str):
@@ -95,17 +96,22 @@ class ResourceProcessor:
             return None
         if not resource.url:
             return None
-        if not self.sem:
-            self.sem = asyncio.Semaphore(self.concurrency_limit)
+        dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
         if resource.status_loaded and not resource.loading_error:
+            resource.loading_error = None
             return None
         if resource.loading_error:
             if resource.loading_error.startswith('TOO MANY FIELDS'):
-                return None
+                past_num_fields = resource.loading_error.split('-')[-1]
+                past_num_fields = int(past_num_fields)
+                if past_num_fields > self.MAX_FIELDS:
+                    return None
         resource.status_selected = True
         resource.loading_error = None
         resource.status_loaded = False
         to_delete = []
+        if not self.sem:
+            self.sem = asyncio.Semaphore(self.concurrency_limit)
         try:
             async with self.sem:
                 rand = uuid.uuid4().hex
@@ -176,8 +182,8 @@ class ResourceProcessor:
                                     field.min_value = str(min(true_values))
                                 except:
                                     pass                    
-                        if len(field_names) > 50:
-                            resource.loading_error = f'TOO MANY FIELDS - {len(resource.fields)}'
+                        if len(field_names) > self.MAX_FIELDS:
+                            resource.loading_error = f'TOO MANY FIELDS - {len(field_names)}'
                             rts.set(ctx, f'SKIPPING {resource.url} TOO MANY FIELDS')
                             return
 
@@ -195,7 +201,6 @@ class ResourceProcessor:
                     finally:
                         rts.clear(ctx)
 
-            dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
         finally:
             for filename in to_delete:
                 try:
