@@ -23,6 +23,7 @@ class Resource:
     status_selected: bool = False
     status_loaded: bool = False
     loading_error: str = None
+    kind: str = 'base'
 
     def merge(self, updates: 'Resource'):
         for field in fields(self):
@@ -31,6 +32,9 @@ class Resource:
 
             if bool(updates_value):
                 setattr(self, field_name, updates_value)
+
+    async def get_openable_url(self, ctx: str) -> str:
+        return self.url
 
 
 class Embedding(np.ndarray):

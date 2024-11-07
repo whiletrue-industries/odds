@@ -1,5 +1,21 @@
+# docker run -d --name api-server -p 80:8000 -v ./odds.config.yaml:/srv/odds.config.yaml     -v ./cache/:/srv/.caches/     ghcr.io/whiletrue-industries/odds/odds-server:latest -- utils/api_server.sh
+
 services:
   api:
-    build: .
+    image: ghcr.io/whiletrue-industries/odds/odds-server:latest
     ports:
       - "8000:80"
+    volumes:
+      - ./odds.config.yaml:/srv/odds.config.yaml
+      - ./.caches/:/srv/.caches/
+    command: utils/api_server.sh
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: odds
+      POSTGRES_PASSWORD: odds
+      POSTGRES_DB: odds
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.caches/db/:/var/lib/postgresql/data

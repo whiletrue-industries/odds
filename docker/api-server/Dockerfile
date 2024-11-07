@@ -3,7 +3,7 @@ FROM --platform=linux/amd64 python:3.12
 RUN apt-get update && apt-get install -y libleveldb-dev ca-certificates && apt-get clean
 RUN pip install --upgrade pip
 WORKDIR /srv
-COPY requirements.txt ./
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY odds ./odds
 COPY setup.py ./

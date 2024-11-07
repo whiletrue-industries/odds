@@ -5,7 +5,7 @@ from .meta_describer import MetaDescriber
 from .dataset_embedder import DatasetEmbedder
 from .dataset_indexer import DatasetIndexer
 from ...common.datatypes import Dataset, DataCatalog
-from ...common.store import store
+from ...common.metadata_store import metadata_store
 from ...common.db import db
 from ...common.config import config
 from ...common.filters import DatasetFilter
@@ -59,10 +59,13 @@ class DatasetProcessor:
                     await self.embedder.embed(dataset, ctx)
                 if await datasetFilter.index(dataset):
                     await self.indexer.index(dataset, ctx)
-            await store.storeDataset(dataset, ctx)
+            await metadata_store.storeDataset(dataset, ctx)
             await db.storeDataset(dataset, ctx)
         except Exception as e:
             rts.set(ctx, f'ERROR {e}', 'error')
+            # Print exception traceback:
+            import traceback
+            traceback.print_exc()
         finally:
             rts.clear(ctx)
 

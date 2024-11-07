@@ -5,7 +5,7 @@ from .scanner.scanner_factory import ScannerFactory
 from ..common.catalog_repo import catalog_repo
 from ..common.datatypes import DataCatalog, Dataset
 from ..common.config import config
-from ..common.store import store
+from ..common.metadata_store import metadata_store
 from ..common.filters import CatalogFilter, CatalogFilterById, \
     DatasetFilter, DatasetFilterById, DatasetFilterNew, DatasetFilterForce, DatasetFilterIncomplete
 from ..common.db import db
@@ -34,7 +34,7 @@ class ODDSBackend:
                     async for dataset in scanner.scan():
                         rts.set(cat_ctx, f'GOT DATASET {dataset.id}')
                         ctx = f'{cat_ctx}/{dataset.id}[{dataset_idx}]'
-                        existing = await store.getDataset(dataset.storeId())
+                        existing = await metadata_store.getDataset(dataset.storeId())
                         if existing:
                             existing.merge(dataset)
                             dataset = existing

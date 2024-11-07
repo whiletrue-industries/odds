@@ -13,3 +13,5 @@ psycopg2-binary
 plyvel
 fastapi
 uvicorn
+aiosqlite
+elasticsearch[async]

@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 from collections import Counter
 from odds.common.vectordb import indexer
 from odds.common.store import store
+from odds.common.metadata_store import metadata_store
 from odds.common.embedder import embedder
 from odds.common.catalog_repo import catalog_repo
 import sqlite3
@@ -39,7 +40,7 @@ async def search_datasets(query: str):
     dataset_ids = [x for y in dataset_ids for x in y]
     dataset_ids = [x[0] for x in Counter(dataset_ids).most_common(10)]
     logging.debug(f'DATASET IDS: {dataset_ids}')
-    datasets = await asyncio.gather(*[store.getDataset(id) for id in dataset_ids])
+    datasets = await asyncio.gather(*[metadata_store.getDataset(id) for id in dataset_ids])
     catalogs = [catalog_repo.get_catalog(dataset.catalogId) for dataset in datasets]
     logging.debug(f'CATALOGS: {[catalog.title for catalog in catalogs]}')
     response = [
@@ -58,7 +59,7 @@ async def search_datasets(query: str):
 async def fetch_dataset(id):
     logging.debug(f'FETCH DATASET: {id}')
     id = decode_id(id)
-    dataset = await store.getDataset(id)
+    dataset = await metadata_store.getDataset(id)
     response = None
     if dataset:
         response = dict(
@@ -82,7 +83,7 @@ async def fetch_dataset(id):
 async def fetch_resource(id):
     logging.debug('FETCH RESOURCE:', id)
     datasetId, resourceIdx = parse_resource_id(id)
-    dataset = await store.getDataset(datasetId)
+    dataset = await metadata_store.getDataset(datasetId)
     response = None
     if dataset:
         resource = dataset.resources[resourceIdx]
@@ -107,7 +108,7 @@ async def fetch_resource(id):
 async def query_db(resource_id, sql):
     logging.debug(f'QUERY DB: {resource_id} -> {sql}')
     datasetId, resourceIdx = parse_resource_id(resource_id)
-    dataset = await store.getDataset(datasetId)
+    dataset = await metadata_store.getDataset(datasetId)
     if dataset:
         resource = dataset.resources[resourceIdx]
         if resource:

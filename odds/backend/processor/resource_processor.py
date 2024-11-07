@@ -122,28 +122,32 @@ class ResourceProcessor:
                     to_delete.append(f'{TMP_DIR}/{rand}.ndjson')
                     try:
                         rts.set(ctx, f'LOADING FROM URL {resource.url}')
-                        suffix = resource.url.split('?')[0].split('.')[-1]
-                        suffix = suffix.replace('/', '.')
-                        filename = f'{TMP_DIR}/{rand}.{suffix}'
+                        usable_url = await resource.get_openable_url(ctx)
+                        if usable_url.startswith('http'):
+                            suffix = usable_url.split('?')[0].split('.')[-1]
+                            suffix = suffix.replace('/', '.')
+                            filename = f'{TMP_DIR}/{rand}.{suffix}'
 
-                        with open(filename, 'wb') as f:
-                            to_delete.append(filename)
-                            total_size = 0
-                            async with httpx.AsyncClient() as client:
-                                headers = {
-                                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
-                                }
-                                headers.update(catalog.http_headers)
-                                report = 0
-                                async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
-                                    async for chunk in response.aiter_bytes():  
-                                        f.write(chunk)
-                                        total_size += len(chunk)
-                                        while total_size - report > 1000000:
-                                            report += 1000000
-                                            rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
+                            with open(filename, 'wb') as f:
+                                to_delete.append(filename)
+                                total_size = 0
+                                async with httpx.AsyncClient() as client:
+                                    headers = {
+                                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
+                                    }
+                                    headers.update(catalog.http_headers)
+                                    report = 0
+                                    async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
+                                        async for chunk in response.aiter_bytes():  
+                                            f.write(chunk)
+                                            total_size += len(chunk)
+                                            while total_size - report > 1000000:
+                                                report += 1000000
+                                                rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
                             
-                        rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
+                            rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
+                        else:
+                            filename = usable_url
                         dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
                         potential_fields = [
                             Field(name=field['name'], data_type=field['type'])

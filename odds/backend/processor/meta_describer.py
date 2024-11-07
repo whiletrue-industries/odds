@@ -41,7 +41,7 @@ class MetaDescriberQuery(LLMQuery):
             if r.get('status_loaded')]
         data = {k: v for k, v in data.items() if k in ('id', 'title', 'description', 'publisher', 'publisher_description', 'resources')}
         for k in ('title', 'description', 'publisher', 'publisher_description'):
-            data[k] = data[k][:250]
+            data[k] = (data[k] or '')[:250]
 
         for resource in data['resources'][::-1]:
             encoded = json.dumps(data, indent=2, ensure_ascii=False)

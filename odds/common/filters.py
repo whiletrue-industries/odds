@@ -1,5 +1,6 @@
 from .datatypes import DataCatalog, Dataset
 from .store import store
+from .metadata_store import metadata_store
 from .config import config
 
 
@@ -65,7 +66,7 @@ class DatasetFilterIncomplete(DatasetFilter):
 class DatasetFilterNew(DatasetFilter):
 
     async def consider(self, dataset: Dataset) -> bool:
-        return not await store.hasDataset(self.dataset.storeId())
+        return not await metadata_store.hasDataset(self.dataset.storeId())
 
 
 class DatasetFilterForce(DatasetFilter):
