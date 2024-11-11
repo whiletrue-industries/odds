@@ -8,3 +8,5 @@ log.txt
 venv/
 odds.config.yaml
 .caches/
+docker-data/
+scripts/
