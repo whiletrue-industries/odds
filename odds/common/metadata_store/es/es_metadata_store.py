@@ -35,6 +35,7 @@ class ESMetadataStore(MetadataStore):
                         'description': {'type': 'text'},
                         'publisher': {'type': 'text'},
                         'publisher_description': {'type': 'text'},
+                        'link': {'type': 'keyword'},
                         'resources': {
                             'type': 'nested',
                             'properties': {

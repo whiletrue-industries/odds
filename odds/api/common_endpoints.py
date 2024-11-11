@@ -37,6 +37,7 @@ async def search_datasets(query: str, catalog_id: str | None) -> list[dict[str, 
             description=dataset.better_description or dataset.description,
             publisher=dataset.publisher,
             catalog=catalog.title,
+            link=dataset.link,
         )
         for dataset, catalog in zip(datasets, catalogs)
     ]
@@ -54,6 +55,7 @@ async def fetch_dataset(id):
             description=dataset.better_description or dataset.description,
             publisher=dataset.publisher,
             publisher_description=dataset.publisher_description,
+            link=dataset.link,
             resources=[
                 dict(
                     id=encode_id(f'{id}/{i}'),

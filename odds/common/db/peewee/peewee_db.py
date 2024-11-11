@@ -38,6 +38,7 @@ class PeeweeDBStorage(DBStorage):
             better_title=dataset.better_title,
             better_description=dataset.better_description,
             versions=dataset.versions,
+            link=dataset.link,
         )
         DatasetModel.insert(id=dataset.storeId(), **params)\
             .on_conflict('update', update=params, conflict_target=(DatasetModel.id,))\

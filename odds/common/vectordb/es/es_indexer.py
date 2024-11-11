@@ -22,7 +22,7 @@ class ESIndexer(Indexer):
             query=dict(
                 multi_match=dict(
                     query=query,
-                    fields=["title", "description", "better_title", "better_description", "publisher", "publisher_description"],
+                    fields=["title", "description", "better_title", "better_description", "publisher", "publisher_description", "link"],
                     boost=0.2,
                     type='cross_fields',
                     operator='or',

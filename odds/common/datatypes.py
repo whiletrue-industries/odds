@@ -51,6 +51,8 @@ class Dataset:
     publisher_description: str = None
     resources: list[Resource] = field(default_factory=list)
 
+    link: str = None
+
     better_title: str = None
     better_description: str = None
     status_embedding: bool = False

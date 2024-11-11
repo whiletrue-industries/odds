@@ -71,7 +71,8 @@ class SocrataCatalogScanner(CatalogScanner):
                         self.catalog.id, resource['id'], resource['name'],
                         description=resource['description'],
                         publisher=resource['attribution'],
-                        resources=resources
+                        resources=resources,
+                        link=row['permalink']
                     )
                     yield dataset
                     if self.done(num_rows):
