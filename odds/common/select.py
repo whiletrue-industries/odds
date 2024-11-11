@@ -1,9 +1,9 @@
 CONFIG = {
     'Config': 'YAMLConfig',
     'CatalogRepo': 'ConfigCatalogRepo',
-    'Store': 'FSStore',
+    # 'Store': 'FSStore',
     'MetadataStore': 'ESMetadataStore',
-    # 'Store': 'S3Store',
+    'Store': 'S3Store',
     'LLMRunner': 'MistralLLMRunner',
     'Embedder': 'OpenAIEmbedder',
     'Indexer': 'ESIndexer',
