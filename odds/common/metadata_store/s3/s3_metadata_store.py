@@ -7,7 +7,7 @@ import aioboto3
 
 from ...config import config, CACHE_DIR
 from ..metadata_store import MetadataStore
-from ...datatypes import Dataset, Embedding, Resource, Field
+from ...datatypes import Dataset, Resource, Field
 from ...realtime_status import realtime_status as rts
 
 
@@ -71,8 +71,8 @@ class S3MetadataStore(MetadataStore):
             except:
                 return False
 
-    async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
-        return []
+    # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
+    #     return []
     
     def get_key(self, kind, id, suffix):
         hash = hashlib.md5(id.encode()).hexdigest()[:16]

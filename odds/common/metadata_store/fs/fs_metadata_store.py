@@ -1,13 +1,10 @@
-from pathlib import Path
-import os
 import hashlib
 import json
-import numpy as np
 import dataclasses
 
 from ..metadata_store import MetadataStore
 from ...config import CACHE_DIR
-from ...datatypes import Dataset, Embedding, Resource, Field
+from ...datatypes import Dataset, Resource, Field
 from ...datatypes_socrata import SocrataResource
 from ...realtime_status import realtime_status as rts
 
@@ -41,8 +38,8 @@ class FSMetadataStore(MetadataStore):
         filename = self.get_filename('dataset', datasetId, 'json')
         return filename.exists()
 
-    async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
-        return []
+    # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
+    #     return []
     
     def get_filename(self, kind, id, suffix):
         hash = hashlib.md5(id.encode()).hexdigest()[:16]

@@ -2,11 +2,11 @@ CONFIG = {
     'Config': 'YAMLConfig',
     'CatalogRepo': 'ConfigCatalogRepo',
     'Store': 'FSStore',
-    'MetadataStore': 'FSMetadataStore',
+    'MetadataStore': 'ESMetadataStore',
     # 'Store': 'S3Store',
     'LLMRunner': 'MistralLLMRunner',
     'Embedder': 'OpenAIEmbedder',
-    'Indexer': 'ChromaDBIndexer',
+    'Indexer': 'ESIndexer',
     'DBStorage': 'PeeweeDBStorage',
     'RealtimeStatus': 'PeeweeRealtimeStatus',
 }

@@ -7,7 +7,7 @@ class Status:
     msg: str
     kind: str
     created: datetime.datetime
-
+    updated: datetime.datetime
 
 class RealtimeStatus:
 

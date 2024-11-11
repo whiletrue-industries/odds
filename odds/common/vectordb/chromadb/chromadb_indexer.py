@@ -5,11 +5,13 @@ import os
 
 from ...config import config, CACHE_DIR
 from ...datatypes import Embedding, Dataset
+from ..indexer import Indexer
+from ...metadata_store import metadata_store
 
 DIRNAME = CACHE_DIR / '.chromadb'
 os.makedirs(DIRNAME, exist_ok=True)
 
-class ChromaDBIndexer:
+class ChromaDBIndexer(Indexer):
 
     COLLECTION_NAME = 'datasets'
 
@@ -26,9 +28,10 @@ class ChromaDBIndexer:
             ids=[dataset.storeId()]
         )
     
-    async def findDatasets(self, embedding: Embedding, num=10) -> list[str]:
+    async def findDatasets(self, embedding: Embedding, num=10, **kw) -> list[Dataset]:
         ret = self.collection.query(
             query_embeddings=[embedding.tolist()],
             n_results=num,
         )
-        return ret.get('ids')[0] if ret and ret.get('ids') else []
+        ids = ret.get('ids')[0] if ret and ret.get('ids') else []
+        

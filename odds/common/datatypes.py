@@ -59,7 +59,7 @@ class Dataset:
     versions: dict = field(default_factory=dict)
 
     def storeId(self):
-        return f"{self.catalogId}/{self.id}"
+        return f"{self.catalogId}__{self.id}"
     
     def merge(self, updates: 'Dataset'):
         for field in fields(self):
@@ -78,15 +78,6 @@ class Dataset:
             else:
                 if bool(updates_value):
                     setattr(self, field_name, updates_value)
-
-    def setEmbedding(self, embedding: Embedding):
-        self.embedding = embedding
-
-    def getEmbedding(self):
-        if hasattr(self, 'embedding'):
-            return self.embedding
-        return None
-    
 
 @dataclass
 class DataCatalog:

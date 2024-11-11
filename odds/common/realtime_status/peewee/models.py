@@ -9,5 +9,4 @@ class Status(BaseModel):
     kind = CharField()
 
     created = DateTimeField(default=datetime.datetime.now)
-    
-
+    updated = DateTimeField(default=datetime.datetime.now)

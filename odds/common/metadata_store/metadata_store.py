@@ -11,5 +11,13 @@ class MetadataStore:
     async def hasDataset(self, datasetId: str) -> bool:
         return False
     
-    async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
-        return []
+    async def setEmbedding(self, dataset: Dataset, embedding: Embedding):
+        dataset.embedding = embedding
+
+    async def getEmbedding(self, dataset: Dataset) -> Embedding:
+        if dataset and hasattr(dataset, 'embedding'):
+            return dataset.embedding
+        return None
+        
+    # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
+    #     return []

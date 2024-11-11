@@ -75,7 +75,7 @@ class MilvusIndexer:
         ret = self.client.insert(collection_name=self.COLLECTION_NAME, data=[{'id': dataset.storeId(), 'vector': embedding.tolist()}])
         print('RRR33', ret)
     
-    async def findDatasets(self, embedding: Embedding, num=10) -> list[Dataset]:
+    async def findDatasets(self, embedding: Embedding, num=10, **kw) -> list[Dataset]:
         async with httpx.AsyncClient() as client:
             params = {
                 'collectionName': self.COLLECTION_NAME,

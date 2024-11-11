@@ -3,6 +3,8 @@ from collections import Counter
 import httpx
 import uuid
 import os
+import csv
+csv.field_size_limit(10000000)
 
 import dataflows as DF
 from sqlalchemy import create_engine
@@ -50,7 +52,7 @@ class ResourceProcessor:
     def updater(self, ctx, message):
         def func(rows):
             for i, row in enumerate(rows):
-                if i % 1000 == 0:
+                if i % 100000 == 0:
                     rts.set(ctx, message(i))
                 yield row
         return func
@@ -174,6 +176,7 @@ class ResourceProcessor:
                             resource.fields.append(field)
                             try:
                                 field.sample_values = [str(x) for x, _ in Counter(true_values).most_common(10)]
+                                field.sample_values = [x for x in field.sample_values if len(x) < 100]
                                 if len(field.sample_values) == 1:
                                     # if all values are the same, no need for this field in the db
                                     continue
@@ -197,9 +200,10 @@ class ResourceProcessor:
                         stream.close()
 
                         sqlite_filename = f'{TMP_DIR}/{rand}.sqlite'
-                        to_delete.append(sqlite_filename)
                         resource = await asyncio.to_thread(self.write_db, ctx, sqlite_filename, stream.name, data, resource, field_names)
-                        await store.storeDB(resource, dataset, sqlite_filename, ctx)
+                        deleted = await store.storeDB(resource, dataset, sqlite_filename, ctx)
+                        if not deleted:
+                            to_delete.append(sqlite_filename)
 
                     except Exception as e:
                         rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')

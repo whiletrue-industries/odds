@@ -1,3 +1,5 @@
+import datetime
+
 from ..realtime_status import RealtimeStatus, Status
 
 from .models import Status as StatusModel
@@ -12,6 +14,7 @@ class PeeweeRealtimeStatus(RealtimeStatus):
         params = dict(
             message=message,
             kind=kind,
+            updated=datetime.datetime.now()
         )
         StatusModel.insert(ctx=ctx, **params)\
             .on_conflict('update', update=params, conflict_target=(StatusModel.ctx,))\
@@ -26,12 +29,12 @@ class PeeweeRealtimeStatus(RealtimeStatus):
 
     def get(self) -> list[Status]:
         return [
-            Status(ctx=s.ctx, msg=s.message, kind=s.kind, created=s.created)
-            for s in StatusModel.select().where(StatusModel.kind!='error').order_by(-StatusModel.created, -StatusModel.kind, StatusModel.ctx)
+            Status(ctx=s.ctx, msg=s.message, kind=s.kind, created=s.created, updated=s.updated)
+            for s in StatusModel.select().where(StatusModel.kind!='error').order_by(-StatusModel.updated, -StatusModel.kind, StatusModel.ctx)
         ]
 
     def errors(self) -> list[Status]:
         return [
-            Status(ctx=s.ctx, msg=s.message, kind=s.kind, created=s.created)
+            Status(ctx=s.ctx, msg=s.message, kind=s.kind, created=s.created, updated=s.updated)
             for s in StatusModel.select().where(StatusModel.kind=='error').order_by(StatusModel.created)
         ]

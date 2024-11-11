@@ -25,31 +25,39 @@ class SocrataCatalogScanner(CatalogScanner):
 
     async def scan(self) -> AsyncIterator[Dataset]:
         num_rows = 0
+        offset = 0
+        used_ids = set()
         async with httpx.AsyncClient() as client:
             headers.update(self.catalog.http_headers)
             domain = self.catalog.url.split('//')[1].split('/')[0]
             while True:
                 if config.debug:
-                    rts.set(self.ctx, f"Getting offset {num_rows} of datasets from {self.catalog.url}")
+                    rts.set(self.ctx, f"Getting offset {offset} of datasets from {self.catalog.url}")
                 try:
                     r = await Retry()(client, 'get',
-                        f"{self.catalog.url}/api/catalog/v1", params={"domains": domain, "offset": num_rows},
+                        f"{self.catalog.url}/api/catalog/v1", params={"domains": domain, "offset": offset},
                         headers=headers,
-                        timeout=240
+                        timeout=60
                     )
                     r.raise_for_status()
                     r = r.json()
                 except Exception as e:
-                    rts.set(self.ctx, f"Error getting offset {num_rows} of datasets from {self.catalog.url}: {e!r}", 'error')
+                    rts.set(self.ctx, f"Error getting offset {offset} of datasets from {self.catalog.url}: {e!r}", 'error')
                     raise
                 rows = r['results']
                 if len(rows) == 0:
                     break
+                print(f'XXXXX got {len(rows)} rows')
                 for row in rows:
-                    num_rows += 1
+                    offset += 1
                     resource = row['resource']
                     if resource['type'] != 'dataset':
                         continue
+                    if resource['id'] in used_ids:
+                        print(f"Skipping duplicate resource {resource['id']}")
+                        continue
+                    used_ids.add(resource['id'])
+                    num_rows += 1
 
                     resources = [
                         SocrataResource(

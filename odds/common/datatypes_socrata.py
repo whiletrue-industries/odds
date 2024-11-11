@@ -1,3 +1,4 @@
+import os
 import httpx
 
 from .config import config, CACHE_DIR
@@ -12,6 +13,7 @@ TEMP_RESOURCE_DIR = CACHE_DIR / 'socrata-resource-temp'
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
 }
+ONGOING_SUFFIX = '.ongoing'
 
 
 class SocrataResource(Resource):
@@ -30,13 +32,14 @@ class SocrataResource(Resource):
             if config.debug:
                 rts.set(ctx, f"Caching socrata resource to {out_filename}")
             async with httpx.AsyncClient() as client:
-                with open(out_filename, 'w') as f:
+                out_filename = str(out_filename)
+                with open(out_filename + ONGOING_SUFFIX, 'w') as f:
                     loaded = False
                     offset = 0
                     limit = 500
                     while not loaded:
                         get_url = f'{resource_url}?$limit={limit}&$offset={offset}'
-                        r = await Retry()(client, 'get', get_url, headers=headers, timeout=240)
+                        r = await Retry()(client, 'get', get_url, headers=headers, timeout=60)
                         r.raise_for_status()
                         
                         chunk = StringIO()
@@ -54,10 +57,12 @@ class SocrataResource(Resource):
                             if i > 0:
                                 line_count += 1
 
-                        if config.debug and offset % 10000 == 0:
-                            rts.set(ctx, f"Caching socrata resource {get_url}, offset {offset}, line count {line_count}")
+                        if config.debug and offset % 100000 == 0:
+                            rts.set(ctx, f"Caching socrata resource {resource_id}, offset {offset}, line count {line_count}")
 
                         if line_count <= 1:
                             loaded = True
-                        offset += line_count        
+                        offset += line_count
+
+                os.rename(out_filename + ONGOING_SUFFIX, out_filename)
         return str(out_filename)

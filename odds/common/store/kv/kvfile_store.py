@@ -3,7 +3,7 @@ import dataclasses
 from kvfile import KVFile
 
 from ..fs.fs_store import FSStore
-from ...datatypes import Dataset, Embedding
+from ...datatypes import Dataset
 
 class KVFileStore(FSStore):
 
@@ -25,5 +25,5 @@ class KVFileStore(FSStore):
     async def hasDataset(self, datasetId: str) -> bool:
         return self.kvfile.get(datasetId) is not None
     
-    async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
-        return []
+    # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
+    #     return []

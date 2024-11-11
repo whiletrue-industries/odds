@@ -29,13 +29,14 @@ class S3Store(Store):
         ) as s3:
             yield await s3.Bucket(config.credentials.s3_store.bucket)
 
-    async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> None:
+    async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> bool:
         async with self.bucket() as bucket:
             id = '{}/{}'.format(dataset.storeId(), resource.url)
             key = self.get_key('db', id, 'sqlite')
             rts.set(ctx, f'STORING RES-DB {resource.title} -> {key}')
             obj = await bucket.Object(key)
             await obj.upload_file(dbFile)
+            return False
 
     async def storeEmbedding(self, dataset: Dataset, embedding: Embedding, ctx: str) -> None:
         async with self.bucket() as bucket:

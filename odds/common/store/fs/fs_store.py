@@ -11,11 +11,12 @@ DIR = CACHE_DIR / '.fsstore'
 
 class FSStore(Store):
 
-    async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> None:
+    async def storeDB(self, resource: Resource, dataset: Dataset, dbFile, ctx: str) -> bool:
         id = '{}/{}'.format(dataset.storeId(), resource.url)
         filename = self.get_filename('db', id, 'sqlite')
         rts.set(ctx, f'STORING RES-DB {resource.title} -> {filename}')
         os.rename(dbFile, filename)
+        return True
 
     async def storeEmbedding(self, dataset: Dataset, embedding: Embedding, ctx: str) -> None:
         id = dataset.storeId()
