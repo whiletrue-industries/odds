@@ -28,6 +28,7 @@ class Dataset(BaseModel):
     description = TextField(null=True)
     publisher = TextField(null=True)
     publisher_description = TextField(null=True)
+    link = TextField(null=True)
     status_embedding = BooleanField(default=False)
     status_indexing = BooleanField(default=False)
     better_title = TextField(null=True)
