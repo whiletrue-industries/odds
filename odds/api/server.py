@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any, Optional
 
 from .answer import answer_question
@@ -22,6 +23,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files from the 'ui' directory on the '/' endpoint
+app.mount("/", StaticFiles(directory="ui", html=True), name="static")
 
 @app.get("/datasets")
 async def search_datasets_handler(query: str) -> List[Dict[str, Any]]:

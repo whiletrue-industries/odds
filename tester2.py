@@ -6,10 +6,10 @@ from odds.common.metadata_store import metadata_store
 async def main():
     query = sys.argv[1]
     b = await embedder.embed(query)
-    ids = await indexer.findDatasets(b)
-    datasets = [await metadata_store.getDataset(id) for id in ids]
+    datasets = await indexer.findDatasets(b, query=query)
+    # datasets = [await metadata_store.getDataset(id) for id in ids]
     for dataset in datasets:
-        print(' - ' + dataset.better_title)
+        print(f' - {dataset.id}: {dataset.better_title}')
 
 
 if __name__ == '__main__':

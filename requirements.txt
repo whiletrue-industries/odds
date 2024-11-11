@@ -1,4 +1,3 @@
-chromadb
 httpx
 aiofiles
 sqlalchemy
@@ -15,3 +14,5 @@ fastapi
 uvicorn
 aiosqlite
 elasticsearch[async]
+openai
+pyyaml

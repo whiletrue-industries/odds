@@ -40,7 +40,7 @@ export class HomeComponent {
     if (this.question) {
       this.loading = true;
       const encoded = encodeURIComponent(this.question);
-      this.http.get('http://localhost:8000/answer', { params: {q: encoded }})
+      this.http.get('/answer', { params: {q: encoded }})
       .pipe(
         catchError((error) => {
           this.answer = 'Error: ' + error.message;

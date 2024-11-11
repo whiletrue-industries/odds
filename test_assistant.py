@@ -113,16 +113,8 @@ TOOLS = [
 
 async def search_datasets(query: str):
     print('SEARCH DATASETS:', query)
-    query_terms = query.split(',')
-    query_terms = [term.strip() for term in query_terms]
-    query_terms = [term for term in query_terms if term]
-    print('QUERY TERMS:', query_terms)
-    embeddings = await asyncio.gather(*[embedder.embed(name) for name in query_terms])
-    dataset_ids = await asyncio.gather(*[indexer.findDatasets(embedding) for embedding in embeddings])
-    dataset_ids = [x for y in dataset_ids for x in y]
-    dataset_ids = [x[0] for x in Counter(dataset_ids).most_common(10)]
-    print('DATASET IDS:', dataset_ids)
-    datasets = await asyncio.gather(*[store.getDataset(id) for id in dataset_ids])
+    embedding = await embedder.embed(query)
+    datasets = await indexer.findDatasets(embedding)
     catalogs = [catalog_repo.get_catalog(dataset.catalogId) for dataset in datasets]
     response = [
         dict(
