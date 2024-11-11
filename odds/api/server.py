@@ -24,9 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files from the 'ui' directory on the '/' endpoint
-app.mount("/", StaticFiles(directory="ui", html=True), name="static")
-
 @app.get("/datasets")
 async def search_datasets_handler(query: str) -> List[Dict[str, Any]]:
     return await search_datasets(query, None)
@@ -46,6 +43,9 @@ async def query_db_handler(resource_id: str, sql: str) -> Optional[Dict[str, Any
 @app.get("/answer")
 async def answer_handler(q: str, catalog_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     return await answer_question(q, catalog_id)
+
+# Serve static files from the 'ui' directory on the '/' endpoint
+app.mount("/", StaticFiles(directory="ui", html=True), name="static")
 
 # Run the server with:
 # uvicorn server:app --reload
