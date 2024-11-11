@@ -1,0 +1,58 @@
+- type: function
+  function:
+    name: search_datasets
+    description: Fetch metadata of relevant datasets using semantic search
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Describe the kind of data you are looking for. e.g. 'Data of government expenditures' or 'Statistics on crime rates'
+      required:
+        - query
+- type: function
+  function:
+    name: fetch_dataset
+    description: Get the full metadata for a single dataset, including the list of its resources
+    parameters:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          description: The dataset ID to fetch.
+      required:
+        - dataset_id
+- type: function
+  function:
+    name: fetch_resource
+    description: Get the full metadata for a single resource in a single dataset
+    parameters:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          description: The dataset id containing this resource
+        resource_id:
+          type: string
+          description: The resource ID to fetch.
+      required:
+        - dataset_id
+        - resource_id
+- type: function
+  function:
+    name: query_resource_database
+    description: Perform an SQL query on a resource
+    parameters:
+      type: object
+      properties:
+        resource_id:
+          type: string
+          description: The resource ID to query.
+        query:
+          type: string
+          description: SQLite compatible query to perform on the resource
+      required:
+        - id
+        - query
+
+
