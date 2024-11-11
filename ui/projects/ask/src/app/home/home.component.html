@@ -1,0 +1,32 @@
+<h1>Ask Anything&hellip;</h1>
+<h2>&hellip;and we'll try to locate the answer in <b>Camden's</b> data catalogue.</h2>
+
+<div class='input' [class.answer]='!!answer'>
+    <input #input placeholder='what are you looking for?' [(ngModel)]='question' [disabled]='!!loading || !!answer' (keydown)='keydown($event)'>
+    @if (!answer) {
+        <button class='send' (click)='ask()' [disabled]='!!loading' [class.visible]='question'></button>
+    }
+</div>
+
+@if (loading) {
+    <div class="loading">
+        <span class="loading-bar"></span>
+        <span class="loading-bar"></span>
+        <span class="loading-bar"></span>
+    </div>
+} @else {
+    @if (!answer) {
+        <div class='examples'>
+            <h3>Not sure what to search for? Here are a few examples:</h3>
+            <div class='example-list'>
+                @for (example of EXAMPLES   ; track example) {
+                    <div class='example'>- &nbsp;"{{ example }}"</div>
+                }
+            </div>
+        </div>
+    } @else {
+        <div class='answer' [innerHTML]='answer'></div>
+
+        <a class='ask-again' (click)='clear()'>Ask another question</a>
+    }
+}

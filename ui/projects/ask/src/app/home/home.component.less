@@ -1,0 +1,208 @@
+@import '../../common.less';
+
+:host {
+    display: flex;
+    flex-flow: column;
+    align-items: flex-start;
+    gap: 8px;
+
+    padding-top: 48px;
+    
+    h1, h2, h3 {
+        margin: 0;
+    }
+
+    h1 {
+        .font-sans-600;
+        font-size: 48px;
+    }
+
+    h2 {
+        .font-sans-300;
+        font-size: 24px;
+
+        b {
+            .font-sans-800;
+        }
+    }
+
+    h3 {
+        .font-sans-500;
+        font-size: 18px;
+    }
+
+    .input {
+        margin: 48px 0;
+        &.answer {
+            margin-bottom: 0;
+        }
+
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        gap: 16px;
+
+        width: 100%;
+
+        input {
+            width: 100%;
+            height: 64px;
+            flex: 1 1 auto;
+            word-wrap: break-word;
+            word-break: break-all;
+
+            border: 2px solid @color-gray-5;
+            background-color: @color-gray-7;
+
+            border-radius: 8px;
+            .font-sans-300;
+            font-size: 20px;
+            .background-image;
+            background-image: url(../../assets/img/icon-search-blue-3.svg);
+            background-size: 24px;
+            background-position: center left 12px;
+            padding-left: 48px;
+            padding-right: 12px;
+            color: @color-blue-0;
+
+            &::placeholder {
+                color: @color-blue-2;
+            }
+
+            &:placeholder-shown {
+                font-weight: 300;
+                color: @color-gray-3;
+                font-size: 24px;
+            }
+
+            outline: none;
+            &:focus {
+                background-image: url(../../assets/img/icon-search-blue-2.svg);
+            }
+
+            &:hover, &:disabled {
+                border: 2px solid @color-blue-4;
+                background-color: @color-blue-8;
+                background-image: url(../../assets/img/icon-search-blue-2.svg);
+            }
+        }
+
+        .send { 
+            appearance: none;
+            border: none;
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid @color-blue-5;
+            background: @color-blue-8;
+
+            visibility: hidden;
+            &.visible {
+                visibility: visible;
+            }
+    
+            &:hover {
+                background: @color-blue-7;
+                border-color: @color-blue-4;
+                .background-image;
+                background-image: url(../../assets/img/icon-send-blue-1.svg);
+                background-size: 32px;
+            }
+
+            .background-image;
+            background-image: url(../../assets/img/icon-send-blue-2.svg);
+            background-size: 32px;
+        }
+    }
+
+    .examples {
+        display: flex;
+        flex-flow: column;
+        gap: 16px;
+
+        .example-list {
+            display: flex;
+            flex-flow: column;
+            gap: 4px;
+
+            padding-inline-start: 32px;
+
+            .example {
+                .font-sans-400;
+                font-size: 16px;
+                font-style: italic;
+            }
+        }
+    }
+
+    .answer {
+        ::ng-deep {
+            .font-sans-400;
+            font-size: 20px;
+            a {
+                text-decoration: underline;
+                cursor: pointer;
+                color: @color-blue-1;
+            }
+            // font-style: italic;
+        }
+    }
+    
+    .ask-again {
+        align-self: flex-end;
+        font-size: 20px;
+        color: @color-blue-1;
+        text-decoration: underline;
+        margin-top: 48px;
+        cursor: pointer;
+    }
+
+    .loading {
+        align-self: center;
+        display: flex;
+        justify-content: space-between;
+        width: 128px;
+        height: 80px;
+        margin-top: 48px;
+
+        .loading-bar {
+            display: flex;
+            align-items: flex-end;
+            width: 24px;
+            height: 100%;
+            background-color: @color-gray-6;
+            box-shadow: inset 0 0 4px @color-gray-5;
+            border-radius: 8px;
+            transform: translateZ(0);
+            overflow: hidden;
+            
+            &:before {
+                content: '';
+                width: 100%;
+                height: 20%;
+                background: linear-gradient(@color-blue-6, @color-blue-4);
+                animation: loading 1.8s infinite;
+            }
+            
+            &:nth-child(2) {
+                &:before {
+                    animation-delay: 0.2s;
+                }
+            }
+            
+            &:nth-child(3) {
+                &:before {
+                    animation-delay: 0.4s;
+                }
+            }
+        }
+    }
+    
+    @keyframes loading {
+        0% { height: 30%; }
+        40%, 70% { height: 100%; }
+        100% { height: 30%; }
+    }
+    
+}
