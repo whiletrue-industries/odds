@@ -17,12 +17,12 @@ class LLMQuery():
     def prompt(self) -> list[tuple[str, str]]:
         pass
 
-    def handle_result(self, result: dict) -> Any:
+    def handle_result(self, result: dict | str) -> Any:
         pass
 
     def expects_json(self) -> bool:
         return True
-    
+
     def max_tokens(self) -> int:
         return 2048
 

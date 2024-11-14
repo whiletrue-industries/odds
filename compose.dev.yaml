@@ -14,7 +14,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./odds.config.yaml:/srv/odds.config.yaml
+      - ./odds.config.local.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
       - certs:/docker/certs
     command: utils/api_server.sh

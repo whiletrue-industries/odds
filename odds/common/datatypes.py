@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, List, Literal
 from dataclasses import dataclass, field, asdict, fields, is_dataclass
 import numpy as np
 
@@ -6,6 +6,8 @@ import numpy as np
 class Field:
     name: str
     data_type: str
+    title: str = None
+    description: str = None
     sample_values: list[Any] = field(default_factory=list)
     missing_values_percent: float = None
     max_value: Any = None
@@ -24,6 +26,8 @@ class Resource:
     status_loaded: bool = False
     loading_error: str = None
     kind: str = 'base'
+    content: str = None
+    chunks: list[dict] = None
 
     def merge(self, updates: 'Resource'):
         for field in fields(self):
@@ -84,8 +88,8 @@ class Dataset:
 @dataclass
 class DataCatalog:
     id: str
-    kind: Literal['CKAN', 'Socrata', 'data.json', 'other']
-    url: str
+    kind: Literal['CKAN', 'Socrata', 'data.json', 'other', 'website']
+    url: str | List[str]
     title: str
     description: str = None
     geo: str = None 

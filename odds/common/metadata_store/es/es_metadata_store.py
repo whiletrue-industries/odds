@@ -46,9 +46,11 @@ class ESMetadataStore(MetadataStore):
                                     'type': 'nested',
                                     'properties': {
                                         'name': {'type': 'keyword'},
+                                        'title': {'type': 'text'},
+                                        'description': {'type': 'text'},
                                         'data_type': {'type': 'keyword'},
                                         # Don't index these:
-                                        'properties': {'index': False, 'type': 'text'},
+                                        'props': {'type': 'text'},
                                     }
                                 },
                                 'row_count': {'type': 'integer'},
@@ -56,7 +58,19 @@ class ESMetadataStore(MetadataStore):
                                 'status_selected': {'type': 'boolean'},
                                 'status_loaded': {'type': 'boolean'},
                                 'loading_error': {'type': 'text'},
-                                'kind': {'type': 'keyword'}
+                                'kind': {'type': 'keyword'},
+                                'content': {'type': 'text'},
+                                'chunks': {
+                                    'type': 'nested', 
+                                    'properties': {
+                                        'embeddings': {
+                                            'type': 'dense_vector',
+                                            'dims': embedder.vector_size(),
+                                            'index': True,
+                                            'similarity': 'cosine'
+                                        }
+                                    }
+                                }
                             }
                         },
                         'better_title': {'type': 'text'},
@@ -86,7 +100,7 @@ class ESMetadataStore(MetadataStore):
                     for k in list(field.keys()):
                         if k not in ['name', 'data_type']:
                             props[k] = field.pop(k)
-                    field['properties'] = json.dumps(props)
+                    field['props'] = json.dumps(props)
             ret = await client.update(index='datasets', id=id, doc=body, doc_as_upsert=True)
         
     async def getDataset(self, datasetId: str) -> Dataset:

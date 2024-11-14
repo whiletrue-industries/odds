@@ -1,4 +1,5 @@
 
+import dataclasses
 from ...common.datatypes import Dataset, Embedding
 from ...common.embedder import embedder
 from ...common.store import store
@@ -8,9 +9,24 @@ from ...common.realtime_status import realtime_status as rts
 
 class DatasetEmbedder:
 
+    CHUNK_SIZE = 256
+    OVERLAP_SIZE = 64
+
+    def chunks(self, content: str) -> list[str]:
+        return [content[i:i + self.CHUNK_SIZE] for i in range(0, len(content), self.CHUNK_SIZE - self.OVERLAP_SIZE)]
+
     async def embed(self, dataset: Dataset, ctx: str) -> None:
         rts.set(ctx, f'EMBEDDING {dataset.better_title}')
         embedding: Embedding = await embedder.embed(dataset.better_title)
+        for resource in dataset.resources:
+            if resource.content:
+                chunks = self.chunks(resource.content)
+                embeddings = []
+                for chunk in chunks:
+                    embedding = await embedder.embed(chunk)
+                    if embedding is not None:
+                        embeddings.append(dict(embeddings=embedding.tolist()))
+                resource.chunks = embeddings
         dataset.status_embedding = embedding is not None
         if dataset.status_embedding:
             await store.storeEmbedding(dataset, embedding, ctx)

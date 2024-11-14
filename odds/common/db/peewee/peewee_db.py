@@ -26,7 +26,7 @@ class PeeweeDBStorage(DBStorage):
 
 
     async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
-        print('SAVING DATASET', dataset.catalogId, dataset.id, dataset.title)
+        print('STORE DATASET TO DB', dataset.catalogId, dataset.id, dataset.title)
         params = dict(
             catalogId=dataset.catalogId,
             title=dataset.title,
@@ -50,7 +50,7 @@ class PeeweeDBStorage(DBStorage):
         ResourceModel.delete().where(ResourceModel.dataset == dataset.storeId()).where(ResourceModel.url.not_in(current_urls)).execute()
 
     async def storeDataCatalog(self, catalog: DataCatalog, ctx: str) -> None:
-        print('SAVING DATA CATALOG', catalog.id)
+        print('STORE DATA CATALOG', catalog.id)
         params = dict(
             kind=catalog.kind,
             url=catalog.url,

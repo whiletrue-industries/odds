@@ -1,9 +1,12 @@
 import asyncio
 from collections import Counter
+from typing import Any, List
 import httpx
 import uuid
 import os
 import csv
+
+
 csv.field_size_limit(10000000)
 
 import dataflows as DF
@@ -11,9 +14,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 
 from ...common.datatypes import Dataset, Resource, Field, DataCatalog
+from ...common.datatypes_website import WebsiteResource
 from ...common.store import store
 from ...common.config import config, CACHE_DIR
 from ...common.realtime_status import realtime_status as rts
+from ...common.llm import llm_runner
+from ...common.llm.llm_query import LLMQuery
 
 
 TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
@@ -23,11 +29,57 @@ except:
     pass
 TMP_DIR = str(TMP_DIR)
 
+class MDConverterQuery(LLMQuery):
+
+    def __init__(self, resource: WebsiteResource):
+        super().__init__(None, None)
+        self.resource = resource
+
+    def model(self) -> str:
+        return 'expensive'
+
+    def temperature(self) -> float:
+        return 0
+
+    def prompt(self) -> list[tuple[str, str]]:
+        prompt = '''Please read the contents of the following website (in simplified HTML format) and assess the data.
+If it contains information relevant to users, do your best to extract the textual data contained in the website into markdown format, as accurately as possible.
+If the website contains tables, lists, or other structured data, please try to extract that data into a tabular format.
+It doesn't have to be perfect, but try to capture the essence of the data as best as you can and format it in a way that would be useful, without modifying the text itself.
+Finally, if it doesn't contain any relevant information (for example, it is only a directory page linking to other pages, login page, a search page, a blank page etc.), simply answer with the single word "IRRELEVANT" and nothing more.
+Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response.
+----------
+'''
+        prompt += self.resource.content
+        prompt = prompt[:int(self.max_tokens()*0.75)]
+
+        # print("XXXXX", self.resource.content)
+
+        return [
+            ('system', 'You are an experienced data analyst and web developer.'),
+            ('user', prompt)
+        ]
+
+    def handle_result(self, result: str) -> Any:
+        if result.strip().upper() == 'IRRELEVANT' or 'IRRELEVANT' in result:
+            self.resource.loading_error = 'IRRELEVANT'
+            self.resource.status_loaded = False
+        else:
+            self.resource.content = result
+            self.resource.status_loaded = True
+
+    def expects_json(self) -> bool:
+        return False
+
+    def max_tokens(self) -> int:
+        return 20480
+
+
 class ResourceProcessor:
 
     sem: asyncio.Semaphore = None
 
-    ALLOWED_FORMATS = ['csv', 'xlsx', 'xls']
+    ALLOWED_FORMATS = ['csv', 'xlsx', 'xls', 'website']
     MISSING_VALUES = ['None', 'NULL', 'N/A', 'NA', 'NAN', 'NaN', 'nan', '-']
     BIG_FILE_SIZE = 10000000
     MAX_FIELDS = 1000
@@ -95,6 +147,110 @@ class ResourceProcessor:
             resource.status_loaded = True
         rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS')
         return resource
+    
+    async def process_tabular(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, to_delete: List[str], ctx: str):
+        rand = uuid.uuid4().hex
+        with open(f'{TMP_DIR}/{rand}.ndjson', 'w') as stream:
+            to_delete.append(f'{TMP_DIR}/{rand}.ndjson')
+            try:
+                rts.set(ctx, f'LOADING FROM URL {resource.url}')
+                usable_url = await resource.get_openable_url(ctx)
+                if usable_url.startswith('http'):
+                    suffix = usable_url.split('?')[0].split('.')[-1]
+                    suffix = suffix.replace('/', '.')
+                    filename = f'{TMP_DIR}/{rand}.{suffix}'
+
+                    with open(filename, 'wb') as f:
+                        to_delete.append(filename)
+                        total_size = 0
+                        async with httpx.AsyncClient() as client:
+                            headers = {
+                                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
+                            }
+                            headers.update(catalog.http_headers)
+                            report = 0
+                            async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
+                                async for chunk in response.aiter_bytes():  
+                                    f.write(chunk)
+                                    total_size += len(chunk)
+                                    while total_size - report > 1000000:
+                                        report += 1000000
+                                        rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
+                    
+                    rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
+                else:
+                    filename = usable_url
+                dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
+                potential_fields = [
+                    Field(name=field['name'], data_type=field['type'])
+                    for field in 
+                    dp.resources[0].descriptor['schema']['fields']
+                ]
+                existing_fields = dict((f.name, f) for f in resource.fields or [])
+                data = await asyncio.to_thread(self.load_sample, ctx, stream.name)
+
+                if len(data) == 0:
+                    resource.loading_error = 'NO DATA'
+                    rts.set(ctx, f'NO DATA {resource.url}')
+                    return
+
+                resource.fields = []
+                field_names = []
+                for field in potential_fields:
+                    col_name = field.name
+                    
+                    values = [row[col_name] for row in data]
+                    true_values = [x for x in values if x is not None]
+                    if len(true_values) == 0:
+                        continue
+                    if col_name in existing_fields:
+                        field.title = existing_fields[col_name].title
+                        field.description = existing_fields[col_name].description
+
+                    resource.fields.append(field)
+                    try:
+                        field.sample_values = [str(x) for x, _ in Counter(true_values).most_common(10)]
+                        field.sample_values = [x for x in field.sample_values if len(x) < 100]
+                        if len(field.sample_values) == 1:
+                            # if all values are the same, no need for this field in the db
+                            continue
+                    except:
+                        pass
+                    field_names.append(col_name)
+                    if len(values) > 0 and len(true_values) != len(values):
+                        field.missing_values_percent = int(100 * (len(values) - len(true_values)) / len(values))
+                    if field.data_type in ('number', 'integer', 'date', 'time', 'datetime'):
+                        true_values = set(true_values)
+                        try:
+                            field.max_value = str(max(true_values))
+                            field.min_value = str(min(true_values))
+                        except:
+                            pass
+                if len(field_names) > self.MAX_FIELDS:
+                    resource.loading_error = f'TOO MANY FIELDS - {len(field_names)}'
+                    rts.set(ctx, f'SKIPPING {resource.url} TOO MANY FIELDS')
+                    return
+
+                stream.close()
+
+                sqlite_filename = f'{TMP_DIR}/{rand}.sqlite'
+                resource = await asyncio.to_thread(self.write_db, ctx, sqlite_filename, stream.name, data, resource, field_names)
+                deleted = await store.storeDB(resource, dataset, sqlite_filename, ctx)
+                if not deleted:
+                    to_delete.append(sqlite_filename)
+
+            except Exception as e:
+                rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
+                resource.loading_error = str(e)
+                return
+            finally:
+                rts.clear(ctx)
+
+    async def process_website(self, catalog: DataCatalog, dataset: Dataset, resource: WebsiteResource, to_delete: List[str], ctx: str):
+        resource.content = open(resource.url, 'r').read()
+        query = MDConverterQuery(resource)
+        await llm_runner.run(query, [dataset.id])
+        rts.clear(ctx)
 
     async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str):
         if not ResourceProcessor.check_format(resource):
@@ -119,98 +275,10 @@ class ResourceProcessor:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
         try:
             async with self.sem:
-                rand = uuid.uuid4().hex
-                with open(f'{TMP_DIR}/{rand}.ndjson', 'w') as stream:
-                    to_delete.append(f'{TMP_DIR}/{rand}.ndjson')
-                    try:
-                        rts.set(ctx, f'LOADING FROM URL {resource.url}')
-                        usable_url = await resource.get_openable_url(ctx)
-                        if usable_url.startswith('http'):
-                            suffix = usable_url.split('?')[0].split('.')[-1]
-                            suffix = suffix.replace('/', '.')
-                            filename = f'{TMP_DIR}/{rand}.{suffix}'
-
-                            with open(filename, 'wb') as f:
-                                to_delete.append(filename)
-                                total_size = 0
-                                async with httpx.AsyncClient() as client:
-                                    headers = {
-                                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
-                                    }
-                                    headers.update(catalog.http_headers)
-                                    report = 0
-                                    async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
-                                        async for chunk in response.aiter_bytes():  
-                                            f.write(chunk)
-                                            total_size += len(chunk)
-                                            while total_size - report > 1000000:
-                                                report += 1000000
-                                                rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
-                            
-                            rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
-                        else:
-                            filename = usable_url
-                        dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
-                        potential_fields = [
-                            Field(name=field['name'], data_type=field['type'])
-                            for field in 
-                            dp.resources[0].descriptor['schema']['fields']
-                        ]
-
-                        data = await asyncio.to_thread(self.load_sample, ctx, stream.name)
-
-                        if len(data) == 0:
-                            resource.loading_error = 'NO DATA'
-                            rts.set(ctx, f'NO DATA {resource.url}')
-                            return
-
-                        resource.fields = []
-                        field_names = []
-                        for field in potential_fields:
-                            col_name = field.name
-                            
-                            values = [row[col_name] for row in data]
-                            true_values = [x for x in values if x is not None]
-                            if len(true_values) == 0:
-                                continue
-                            resource.fields.append(field)
-                            try:
-                                field.sample_values = [str(x) for x, _ in Counter(true_values).most_common(10)]
-                                field.sample_values = [x for x in field.sample_values if len(x) < 100]
-                                if len(field.sample_values) == 1:
-                                    # if all values are the same, no need for this field in the db
-                                    continue
-                            except:
-                                pass
-                            field_names.append(col_name)
-                            if len(values) > 0 and len(true_values) != len(values):
-                                field.missing_values_percent = int(100 * (len(values) - len(true_values)) / len(values))
-                            if field.data_type in ('number', 'integer', 'date', 'time', 'datetime'):
-                                true_values = set(true_values)
-                                try:
-                                    field.max_value = str(max(true_values))
-                                    field.min_value = str(min(true_values))
-                                except:
-                                    pass                    
-                        if len(field_names) > self.MAX_FIELDS:
-                            resource.loading_error = f'TOO MANY FIELDS - {len(field_names)}'
-                            rts.set(ctx, f'SKIPPING {resource.url} TOO MANY FIELDS')
-                            return
-
-                        stream.close()
-
-                        sqlite_filename = f'{TMP_DIR}/{rand}.sqlite'
-                        resource = await asyncio.to_thread(self.write_db, ctx, sqlite_filename, stream.name, data, resource, field_names)
-                        deleted = await store.storeDB(resource, dataset, sqlite_filename, ctx)
-                        if not deleted:
-                            to_delete.append(sqlite_filename)
-
-                    except Exception as e:
-                        rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
-                        resource.loading_error = str(e)
-                        return
-                    finally:
-                        rts.clear(ctx)
+                if resource.file_format == 'website':
+                    await self.process_website(catalog, dataset, resource, to_delete, ctx)
+                else:
+                    await self.process_tabular(catalog, dataset, resource, to_delete, ctx)
 
         finally:
             for filename in to_delete:

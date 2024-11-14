@@ -10,17 +10,6 @@ from ...common.config import config
 from ...common.realtime_status import realtime_status as rts
 
 
-INSTRUCTIONS = '''Following are details on a dataset containing public data. Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
-The JSON should look like this:
-{
-    "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
-    "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
-}
-Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
-Return only the json object, without any additional formatting, explanation or context.
---------------
-'''
-
 MAX_STR_LEN = 50000
 
 class MetaDescriberQuery(LLMQuery):
@@ -33,6 +22,37 @@ class MetaDescriberQuery(LLMQuery):
     def model(self) -> str:
         return 'cheap' if not self.upgraded else 'expensive'
 
+    def temperature(self) -> float:
+        return 0
+
+    def handle_result(self, result: dict) -> None:
+        try:
+            self.dataset.better_title = result['summary']
+            self.dataset.better_description = result['description']
+        except Exception as e:
+            print(f'{self.ctx}:ERROR', e)
+            print(f'{self.ctx}:RESULT', result)
+
+    def upgrade(self):
+        self.upgraded = True
+
+    def max_tokens(self) -> int:
+        return 512
+
+
+class MetaDescriberQueryDataset(MetaDescriberQuery):
+
+    INSTRUCTIONS = '''Following are details on a dataset containing public data.
+    Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
+    The JSON should look like this:
+    {
+        "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
+        "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
+    }
+    Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
+    Return only the json object, without any additional formatting, explanation or context.
+    --------------
+    '''
     def prompt(self) -> list[tuple[str, str]]:
         data = dataclasses.asdict(self.dataset)
         data['resources'] = [
@@ -53,26 +73,30 @@ class MetaDescriberQuery(LLMQuery):
 
         return [
             ('system', 'You are an experienced data analyst.'),
-            ('user', INSTRUCTIONS + encoded)
+            ('user', self.INSTRUCTIONS + encoded)
         ]
 
-    def temperature(self) -> float:
-        return 0
 
-    def handle_result(self, result: dict) -> None:
-        try:
-            self.dataset.better_title = result['summary']
-            self.dataset.better_description = result['description']
-        except Exception as e:
-            print(f'{self.ctx}:ERROR', e)
-            print(f'{self.ctx}:RESULT', result)
+class MetaDescriberQueryWebsite(MetaDescriberQuery):
 
-    def upgrade(self):
-        self.upgraded = True
+    INSTRUCTIONS = '''Following are the contents of a web page containing information with some interest to the public.
+    Provide a summary of this web page in JSON format, including a concise summary and a more detailed description.
+    The JSON should look like this:
+    {
+        "summary": "<What is a good tagline for this web page? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this page.>",
+        "description": "<Provide a good description of this webpage in a single paragraph, using simple terms and avoiding jargon.>"
+    }
+    Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
+    Return only the json object, without any additional formatting, explanation or context.
+    --------------
+    '''
+    def prompt(self) -> list[tuple[str, str]]:
+        content = self.dataset.resources[0].content
 
-    def max_tokens(self) -> int:
-        return 512
-            
+        return [
+            ('system', 'You are an experienced data analyst.'),
+            ('user', self.INSTRUCTIONS + content)
+        ]
 
 
 class MetaDescriber:
@@ -86,9 +110,12 @@ class MetaDescriber:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
 
         async with self.sem:
-            query = MetaDescriberQuery(dataset, ctx)
+            if dataset.resources[0].kind == 'website':
+                query = MetaDescriberQueryWebsite(dataset, ctx)
+            else:
+                query = MetaDescriberQueryDataset(dataset, ctx)
             await llm_runner.run(query, [dataset.id])
-            if dataset.better_title is None:
+            if dataset.better_title is None and not query.upgraded:
                 query.upgrade()
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer

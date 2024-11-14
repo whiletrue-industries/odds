@@ -16,3 +16,5 @@ aiosqlite
 elasticsearch[async]
 openai
 pyyaml
+nh3
+beautifulsoup4

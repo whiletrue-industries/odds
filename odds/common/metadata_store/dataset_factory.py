@@ -2,6 +2,7 @@ import json
 import numpy as np
 
 from ...common.datatypes_socrata import SocrataResource
+from ...common.datatypes_website import WebsiteResource
 
 from ...common.datatypes import Dataset, Resource, Field
 
@@ -11,7 +12,7 @@ def dataset_factory(data: dict) -> Dataset:
     for resource in resources:
         fields = []
         for f in resource['fields']:
-            f.update(json.loads(f.pop('properties') or '{}'))
+            f.update(json.loads(f.pop('props') or '{}'))
             fields.append(Field(**f))
         resource['fields'] = fields
     data['resources'] = [resource_factory(**r) for r in resources]
@@ -28,4 +29,6 @@ def dataset_factory(data: dict) -> Dataset:
 def resource_factory(**data):
     if data.get('kind') == 'socrata':
         return SocrataResource(**data)
+    elif data.get('kind') == 'website':
+        return WebsiteResource(**data)
     return Resource(**data)

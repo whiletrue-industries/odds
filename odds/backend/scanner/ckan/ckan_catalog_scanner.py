@@ -3,10 +3,8 @@ import httpx
 
 from ....common.config import config
 from ....common.datatypes import Dataset, Resource, DataCatalog
-from ....common.filters import DatasetFilter
 from ....common.retry import Retry
 from ....common.realtime_status import realtime_status as rts
-from ...processor.resource_processor import ResourceProcessor
 from ..catalog_scanner import CatalogScanner
 
 

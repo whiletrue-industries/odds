@@ -1,3 +1,4 @@
+from typing import Optional
 import httpx
 import numpy as np
 import math
@@ -20,7 +21,7 @@ class OpenAIEmbedder(Embedder):
         super().__init__()
         self.cost = CostCollector('openai', {'embed': {'tokens': self.COST}})
 
-    async def embed(self, text: str) -> None:
+    async def embed(self, text: str) -> Optional[Embedding]:
         headers = {
             'Authorization': f'Bearer {config.credentials.openai.key}',
             'OpenAI-Organization': config.credentials.openai.org,

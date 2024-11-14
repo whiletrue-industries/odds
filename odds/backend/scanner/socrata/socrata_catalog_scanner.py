@@ -1,3 +1,4 @@
+from dataclasses import Field
 from typing import AsyncIterator
 import httpx
 
@@ -64,6 +65,14 @@ class SocrataCatalogScanner(CatalogScanner):
                             f"{self.catalog.url}/resource/{resource['id']}.csv",
                             'csv',
                             title=resource['name'],
+                            fields=[
+                                Field(name, None, title=title, description=description)
+                                for name, title, description in zip(
+                                    resource['columns_field_name'],
+                                    resource['columns_name'],
+                                    resource['columns_description']
+                                )
+                            ]
                         )
                     ]
                     # print(resource)
@@ -77,5 +86,3 @@ class SocrataCatalogScanner(CatalogScanner):
                     yield dataset
                     if self.done(num_rows):
                         break
-                if self.done(num_rows):
-                    break
