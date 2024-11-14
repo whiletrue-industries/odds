@@ -1,9 +1,8 @@
-from dataclasses import Field
 from typing import AsyncIterator
 import httpx
 
 from ....common.config import config
-from ....common.datatypes import Dataset, DataCatalog
+from ....common.datatypes import Dataset, DataCatalog, Field
 from ....common.datatypes_socrata import SocrataResource
 from ....common.retry import Retry
 from ....common.realtime_status import realtime_status as rts
