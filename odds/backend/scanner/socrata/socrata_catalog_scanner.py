@@ -47,7 +47,7 @@ class SocrataCatalogScanner(CatalogScanner):
                 rows = r['results']
                 if len(rows) == 0:
                     break
-                print(f'XXXXX got {len(rows)} rows')
+                # print(f'XXXXX got {len(rows)} rows')
                 for row in rows:
                     offset += 1
                     resource = row['resource']

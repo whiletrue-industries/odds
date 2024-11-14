@@ -22,7 +22,10 @@ def dataset_factory(data: dict) -> Dataset:
     embedding = None
     if 'embeddings' in data:
         embedding = data.pop('embeddings')
-    dataset = Dataset(**data)
+    id = data.pop('id')
+    catalogId = data.pop('catalogId')
+    title= data.pop('title')
+    dataset = Dataset(catalogId, id, title, **data)
     dataset.status_embedding = bool(embedding)
     if embedding:
         dataset.embedding = np.array(embedding, dtype=np.float32)
