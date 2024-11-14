@@ -59,17 +59,24 @@ async def fetch_dataset(id):
             resources=[]
         )
         for i, resource in enumerate(dataset.resources):
+            to_add = dict()
             if resource.row_count:
-                response['resources'].append(
+                to_add.update(
                     dict(
                         id=encode_id(f'{id}/{i}'),
                         name=resource.title,
                         num_rows=resource.row_count,
                     )
                 )
-                if resource.content:
-                    response['resources'][-1]['content'] = resource.content
-                    response['resources'][-1]['db_schema'] = 'no db schema available'
+            if resource.content:
+                to_add.update(
+                    dict(
+                        content=resource.content,
+                        db_schema='no db schema available'
+                    )
+                )
+            if to_add:
+                response['resources'].append(to_add)
 
     logging.debug('RESPONSE:', response)
     return response
