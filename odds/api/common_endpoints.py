@@ -104,7 +104,7 @@ async def fetch_resource(id):
                             sample_values=field.sample_values,
                         ).items()
                         if v is not None
-                    )                
+                    )
                     for field in resource.fields
                 ],
                 db_schema=resource.db_schema
