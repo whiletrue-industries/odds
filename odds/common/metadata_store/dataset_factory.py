@@ -13,6 +13,9 @@ def dataset_factory(data: dict) -> Dataset:
         fields = []
         for f in resource['fields']:
             f.update(json.loads(f.pop('props', None) or '{}'))
+            f = dict(
+                (k, v) for k, v in f.items() if k in Field.__dataclass_fields__
+            )
             fields.append(Field(**f))
         resource['fields'] = fields
     data['resources'] = [resource_factory(**r) for r in resources]
