@@ -119,6 +119,7 @@ class ESMetadataStore(MetadataStore):
     async def hasDataset(self, datasetId: str) -> bool:
         async with ESClient() as client:
             await self.single_time_init(client)
+            print('FETCHING DATASET', datasetId)
             return await client.exists(index=ES_INDEX, id=datasetId)
 
     # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
