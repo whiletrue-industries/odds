@@ -56,16 +56,21 @@ async def fetch_dataset(id):
             publisher=dataset.publisher,
             publisher_description=dataset.publisher_description,
             link=dataset.link,
-            resources=[
-                dict(
-                    id=encode_id(f'{id}/{i}'),
-                    name=resource.title,
-                    num_rows=resource.row_count,
-                )
-                for i, resource in enumerate(dataset.resources)
-                if resource.row_count
-            ],            
+            resources=[]
         )
+        for i, resource in enumerate(dataset.resources):
+            if resource.row_count:
+                response['resources'].append(
+                    dict(
+                        id=encode_id(f'{id}/{i}'),
+                        name=resource.title,
+                        num_rows=resource.row_count,
+                    )
+                )
+                if resource.content:
+                    response['resources'][-1]['content'] = resource.content
+                    response['resources'][-1]['db_schema'] = 'no db schema available'
+
     logging.debug('RESPONSE:', response)
     return response
 
