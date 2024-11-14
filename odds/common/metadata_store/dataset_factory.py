@@ -12,7 +12,7 @@ def dataset_factory(data: dict) -> Dataset:
     for resource in resources:
         fields = []
         for f in resource['fields']:
-            f.update(json.loads(f.pop('props') or '{}'))
+            f.update(json.loads(f.pop('props', None) or '{}'))
             fields.append(Field(**f))
         resource['fields'] = fields
     data['resources'] = [resource_factory(**r) for r in resources]
