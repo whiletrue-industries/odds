@@ -93,12 +93,18 @@ async def fetch_resource(id):
                 name=resource.title,
                 fields=[
                     dict(
-                        name=field.name,
-                        type=field.data_type,
-                        max=field.max_value,
-                        min=field.min_value,
-                        sample_values=field.sample_values,
-                    )
+                        (k,v)
+                        for k,v in dict(
+                            name=field.name,
+                            title=field.title,
+                            description=field.description,
+                            type=field.data_type,
+                            max=field.max_value,
+                            min=field.min_value,
+                            sample_values=field.sample_values,
+                        ).items()
+                        if v is not None
+                    )                
                     for field in resource.fields
                 ],
                 db_schema=resource.db_schema
