@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any, Optional
 
@@ -51,6 +52,11 @@ async def answer_handler(q: Optional[str] = None, id: Optional[str] = None, cata
 
 # Serve static files from the 'ui' directory on the '/' endpoint
 app.mount("/", StaticFiles(directory="ui", html=True), name="static")
+
+@app.exception_handler(404)
+async def custom_404_handler(request, __):
+    if request.url.path.startswith('/a/'):
+        return FileResponse('ui/index.html')
 
 # Run the server with:
 # uvicorn server:app --reload
