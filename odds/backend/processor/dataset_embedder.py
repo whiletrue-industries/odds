@@ -1,5 +1,5 @@
 
-import dataclasses
+import asyncio
 from ...common.datatypes import Dataset, Embedding
 from ...common.embedder import embedder
 from ...common.store import store
@@ -21,11 +21,8 @@ class DatasetEmbedder:
         for resource in dataset.resources:
             if resource.content:
                 chunks = self.chunks(resource.content)
-                embeddings = []
-                for chunk in chunks:
-                    embedding = await embedder.embed(chunk)
-                    if embedding is not None:
-                        embeddings.append(dict(embeddings=embedding.tolist()))
+                embeddings = asyncio.gather(*[embedder.embed(chunk) for chunk in chunks])
+                embeddings = [dict(embeddings=embedding.tolist()) for embedding in embeddings if embedding is not None]
                 resource.chunks = embeddings
         dataset.status_embedding = embedding is not None
         if dataset.status_embedding:

@@ -1,23 +1,23 @@
+import dataclasses
 import json
 import yaml
 
-from odds.common.catalog_repo import catalog_repo
+from odds.common.qa_repo import qa_repo
 from odds.common.cost_collector import CostCollector
-from odds.common.embedder import embedder
 from odds.common.llm.openai.openai_llm_runner import OpenAILLMRunner
 
 from openai import AsyncOpenAI
 
-from odds.common.vectordb import indexer
 from ..common.config import config
 from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, query_db
+from .evaluate_answer import evaluate
 
 
 async def loop(client, thread, run, usage, catalog_id):
     while True:
         print('RUN:', run.status)
         if run.status == 'completed': 
-            return True
+            return True, None
         elif run.status == 'requires_action':
             tool_outputs = []
             for tool in run.required_action.submit_tool_outputs.tool_calls:
@@ -61,10 +61,9 @@ async def loop(client, thread, run, usage, catalog_id):
                 except Exception as e:
                     print("Failed to submit tool outputs:", e)
             else:
-                return False
+                return False, 'No tool outputs to submit.'
         else:
-            print(run.status)
-            return False
+            return False, str(run.status)
 
 assistant_id = None
 async def get_assistant_id(client: AsyncOpenAI):
@@ -88,58 +87,79 @@ async def get_assistant_id(client: AsyncOpenAI):
     return assistant_id
 
 
-async def answer_question(question, catalog_id):
-    client = AsyncOpenAI(
-        api_key=config.credentials.openai.key,
-        organization=config.credentials.openai.org,
-        project=config.credentials.openai.proj,
-    )
+async def answer_question(*, question=None, catalog_id=None, question_id=None):
+
+    ret = dict()
+    qa = await qa_repo.getQuestion(question=question, id=question_id)
+    if question_id and not qa:
+        return None
     
-    assistant_id = await get_assistant_id(client)
-
-    thread = await client.beta.threads.create()
-
-    await client.beta.threads.messages.create(
-        thread_id=thread.id,
-        role='user',
-        content=question,
-    )
-
-    answer = ''
-
-    usage = CostCollector('assistant', OpenAILLMRunner.COSTS)
-
-    run = await client.beta.threads.runs.create_and_poll(
-        thread_id=thread.id,
-        assistant_id=assistant_id,
-        temperature=0,
-    )
-    if run.usage:
-        usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
-        usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
-
-    success = False
-    error = None
-    try:
-        success = await loop(client, thread, run, usage, catalog_id)
-    except Exception as e:
-        error = str(e)
-    finally:
-        print('SUCCESS:', success)
-        messages = await client.beta.threads.messages.list(
-            thread_id=thread.id, order='asc'
+    if qa is None:
+        client = AsyncOpenAI(
+            api_key=config.credentials.openai.key,
+            organization=config.credentials.openai.org,
+            project=config.credentials.openai.proj,
         )
+        
+        assistant_id = await get_assistant_id(client)
+
+        thread = await client.beta.threads.create()
+
+        await client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role='user',
+            content=question,
+        )
+
         answer = ''
-        async for message in messages:
-            if message.role == 'assistant':
-                for block in message.content:
-                    if block.type == 'text':
-                        answer += block.text.value
-        usage.print_total_usage()
 
-        await client.beta.threads.delete(thread.id)
+        usage = CostCollector('assistant', OpenAILLMRunner.COSTS)
 
-        if error:
-            return dict(success=False, error=error)
-        else:
-            return dict(success=success, answer=answer)
+        run = await client.beta.threads.runs.create_and_poll(
+            thread_id=thread.id,
+            assistant_id=assistant_id,
+            temperature=0,
+        )
+        if run.usage:
+            usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
+            usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
+
+        success = False
+        error = None
+        try:
+            success, error = await loop(client, thread, run, usage, catalog_id)
+        except Exception as e:
+            error = str(e)
+        finally:
+            messages = await client.beta.threads.messages.list(
+                thread_id=thread.id, order='asc'
+            )
+            answer = ''
+            async for message in messages:
+                if message.role == 'assistant':
+                    for block in message.content:
+                        if block.type == 'text':
+                            answer += block.text.value
+            usage.print_total_usage()
+
+            await client.beta.threads.delete(thread.id)
+            ret.update(
+                dict(id=None, question=question, success=success, error=error)
+            )
+            if not error:
+                ret['answer'] = answer
+
+
+    else:
+        ret.update(
+            dict(id=qa.id, question=qa.question, answer=qa.answer, success=qa.success, error=None)
+        )
+
+    if not ret['error']:
+        if not ret['id']:
+            evaluation = await evaluate(question, answer)
+            ret.update(evaluation)
+            qa = await qa_repo.storeQA(question, answer, evaluation['success'], evaluation['score'])
+            ret['id'] = qa.id
+        ret['related'] = [dataclasses.asdict(x) for x in await qa_repo.findRelated(ret['question'], ret['id'])]
+    return ret

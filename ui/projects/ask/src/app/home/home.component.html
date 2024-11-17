@@ -1,8 +1,15 @@
-<h1>Ask Anything&hellip;</h1>
-<h2>&hellip;and we'll try to locate the answer in <b>Camden's</b> data catalogue.</h2>
+@if (!answer) {
+    <h1>Ask Anything&hellip;</h1>
+    <h2>&hellip;and we'll try to locate the answer in <b>Camden's</b> data catalogue.</h2>    
+}
+
 
 <div class='input' [class.answer]='!!answer'>
-    <input #input placeholder='what are you looking for?' [(ngModel)]='question' [disabled]='!!loading || !!answer' (keydown)='keydown($event)'>
+    @if (!loading && !answer) {
+        <input #input placeholder='what are you looking for?' [(ngModel)]='question' [disabled]='!!loading || !!answer' (keydown)='keydown($event)'>
+    } @else {
+        <div class='question'>{{ question }}</div>
+    }
     @if (!answer) {
         <button class='send' (click)='ask()' [disabled]='!!loading' [class.visible]='question'></button>
     }
@@ -27,6 +34,16 @@
     } @else {
         <div class='answer' [innerHTML]='answer'></div>
 
-        <a class='ask-again' (click)='clear()'>Ask another question</a>
+        <div class='related'>
+            <h3>Related Questions</h3>
+            <div class='related-list'>
+                @if (relatedQuestions.length) {
+                    @for (related of relatedQuestions; track related.id) {
+                        <a class='related-question' [href]='"/a/" + related.id'>{{ related.question }}</a>
+                    }
+                }
+                <a class='ask-again' href='/'>Ask a new question</a>
+            </div>
+        </div>
     }
 }

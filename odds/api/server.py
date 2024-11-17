@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import List, Dict, Any, Optional
@@ -41,8 +41,13 @@ async def query_db_handler(resource_id: str, sql: str) -> Optional[Dict[str, Any
     return await query_db(resource_id, sql)
 
 @app.get("/answer")
-async def answer_handler(q: str, catalog_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    return await answer_question(q, catalog_id)
+async def answer_handler(q: Optional[str] = None, id: Optional[str] = None, catalog_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not q and not id:
+        raise HTTPException(status_code=400, detail="Either 'q' or 'id' must be provided")
+    ret = await answer_question(question=q, question_id=id, catalog_id=catalog_id)
+    if not ret:
+        raise HTTPException(status_code=404, detail="Question not found")
+    return ret
 
 # Serve static files from the 'ui' directory on the '/' endpoint
 app.mount("/", StaticFiles(directory="ui", html=True), name="static")

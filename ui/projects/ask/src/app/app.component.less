@@ -1,12 +1,39 @@
+@import '../common.less';
+
 :host {
     width: 100%;
     display: flex;
     flex-flow: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 16px 32px;
-    
+    overscroll-behavior-y: contain;
+
+    .header {
+        width: 100%;
+        display: flex;
+        flex-flow: row;
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        background-color: @color-white;
+
+        .logo {
+            .font-logo-800;
+            font-size: 24px;
+        }
+
+        box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.3);
+        position: sticky;
+        top: 0;
+    }
+
     .container {
+        .desktop({
+            padding: 16px 32px;
+        });
+        .mobile({
+            padding: 16px;
+        });
         width: 100%;
         max-width: 800px;
     }

@@ -9,6 +9,7 @@ CONFIG = {
     'Indexer': 'ESIndexer',
     'DBStorage': 'PeeweeDBStorage',
     'RealtimeStatus': 'PeeweeRealtimeStatus',
+    'QARepo': 'ESQARepo',
 }
 
 def select(kind, context):

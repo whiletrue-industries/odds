@@ -4,6 +4,12 @@
     font-style: normal;
 }
 
+.gaoek-one {
+    font-family: "Gascoek One", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
 .font-sans-100 {
     .open-sans;
     font-weight: 100;
@@ -44,6 +50,11 @@
     font-weight: 800;
 }
 
+.font-logo-800 {
+    .gaoek-one;
+    font-weight: 800;
+}
+
 @color-gray-1: #333231; // neutral-700
 @color-gray-2: #555452; // neutral-600
 @color-gray-3: #767573; // neutral-500
@@ -69,3 +80,29 @@
     background-position: center;
     background-size: contain;
 }
+
+@mobile-threshold: 800px;
+
+.mobile(@rules) {
+    @media only screen and (max-width: (@mobile-threshold - 1px)) {
+        @rules();
+    }
+}
+
+.desktop(@rules) {
+    @media only screen and (min-width: @mobile-threshold) {
+        @rules();
+    }
+}
+
+.mobile({
+    ::ng-deep .layout-desktop {
+        display: none !important;
+    }
+});
+
+.desktop({
+    ::ng-deep .layout-mobile {
+        display: none !important;
+    }
+});
