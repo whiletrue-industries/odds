@@ -78,7 +78,7 @@ class Scraper:
         content = None
         title = None
         final_url = None
-        key = url.split('://')[1].replace('/', '_').replace(':', '_').replace('.', '_')
+        key = url.split('://')[1].replace('/', '_').replace(':', '_').replace('.', '_').replace('?', '_').replace('&', '_')
         cache_file = self.CACHE / f'{key}.json'
         cache_file_clean = self.CACHE / f'{key}.clean.html'
         if cache_file.exists():
