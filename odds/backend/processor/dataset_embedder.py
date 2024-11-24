@@ -21,7 +21,7 @@ class DatasetEmbedder:
         for resource in dataset.resources:
             if resource.content:
                 chunks = self.chunks(resource.content)
-                embeddings = asyncio.gather(*[embedder.embed(chunk) for chunk in chunks])
+                embeddings = await asyncio.gather(*[embedder.embed(chunk) for chunk in chunks])
                 embeddings = [dict(embeddings=embedding.tolist()) for embedding in embeddings if embedding is not None]
                 resource.chunks = embeddings
         dataset.status_embedding = embedding is not None
