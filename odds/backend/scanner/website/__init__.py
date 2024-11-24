@@ -131,7 +131,6 @@ class Scraper:
         for link in links:
             if any(link.startswith(base_url) for base_url in self.base_urls):
                 link = link.split('#')[0]
-                link = link.split('?')[0]
                 link = link.strip()
                 _links.append(link)
         return _links

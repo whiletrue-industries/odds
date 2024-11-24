@@ -1,5 +1,6 @@
 from typing import AsyncIterator
 import httpx
+from hashlib import sha256
 
 from ....common.datatypes_website import WebsiteResource
 
@@ -53,6 +54,7 @@ class Scraper:
         self.out_q = asyncio.Queue()
         self.outstanding = set()
         self.all_urls = set()
+        self.all_hashes = set()
         self.CACHE.mkdir(parents=True, exist_ok=True)
 
     def queue(self, url: str) -> None:
@@ -113,6 +115,11 @@ class Scraper:
                     links = [final_url]
         # print(f'{url}: GOT STATUS', r.status_code)
         # use bs4 to get canonical link:
+        content_hash = sha256(content.encode()).hexdigest()
+        if content_hash in self.all_hashes:
+            links = []
+        else:
+            self.all_hashes.add(content_hash)
         if links is None:
             soup = bs4.BeautifulSoup(content, 'html.parser')
             canonical = soup.find('link', rel='canonical')
@@ -149,7 +156,6 @@ class Scraper:
         for link in links:
             if any(link.startswith(base_url) for base_url in self.base_urls):
                 link = link.split('#')[0]
-                link = link.split('?')[0]
                 link = link.strip()
                 _links.append(link)
         return _links
