@@ -39,7 +39,7 @@ class AllowedAttributes():
 class Scraper:
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
     WORKER_COUNT = 5
     CACHE = CACHE_DIR / 'web-scraper'
@@ -89,9 +89,9 @@ class Scraper:
                 final_url = data.get('final_url')
 
         if content is None:
-            async with httpx.AsyncClient(headers=self.headers, timeout=30) as client:
+            async with httpx.AsyncClient() as client:
                 await asyncio.sleep(self.WORKER_COUNT / 4)
-                r = await client.get(url, follow_redirects=True)
+                r = await client.get(url, follow_redirects=True, headers=self.headers, timeout=30)
                 r.raise_for_status()
                 # check content type to ensure it's html:
                 content_type = r.headers.get('content-type', '').lower()
