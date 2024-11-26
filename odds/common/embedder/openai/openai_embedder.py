@@ -38,16 +38,17 @@ class OpenAIEmbedder(Embedder):
                 headers=headers,
                 timeout=60,
             )
-            response.raise_for_status()
-            result = response.json()
-            if result['usage']:
-                self.cost.start_transaction()
-                self.cost.update_cost('embed', 'tokens', result['usage']['total_tokens'])
-                self.cost.end_transaction()
-            if result.get('data') and result['data'][0].get('object') == 'embedding' and result['data'][0]['embedding']:
-                vector: list[float] = result['data'][0]['embedding']
-                embedding: Embedding = np.array(vector, dtype=np.float32)
-                return embedding
+            if response:
+                response.raise_for_status()
+                result = response.json()
+                if result['usage']:
+                    # self.cost.start_transaction()
+                    self.cost.update_cost('embed', 'tokens', result['usage']['total_tokens'])
+                    # self.cost.end_transaction()
+                if result.get('data') and result['data'][0].get('object') == 'embedding' and result['data'][0]['embedding']:
+                    vector: list[float] = result['data'][0]['embedding']
+                    embedding: Embedding = np.array(vector, dtype=np.float32)
+                    return embedding
             return None
     
     def print_total_usage(self):

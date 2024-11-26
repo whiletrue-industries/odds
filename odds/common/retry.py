@@ -22,7 +22,7 @@ class Retry:
                 return response
             except Exception as e:
                 if response:
-                    print('RETRYING', repr(e), args[0], response.status_code, response.text)
+                    print('RETRYING', repr(e), args[0], response.status_code, response.text[:200])
                 else:
                     print('RETRYING', repr(e), args[0])
                 if i == self.retries - 1:

@@ -42,6 +42,7 @@ class Scraper:
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
     }
     WORKER_COUNT = 5
+    PERIOD = 0.25
     CACHE = CACHE_DIR / 'web-scraper'
     WS = re.compile(r'\s+', re.UNICODE | re.MULTILINE)
     ALLOWED_TAGS = {'a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
@@ -57,13 +58,15 @@ class Scraper:
         self.all_hashes = set()
         self.CACHE.mkdir(parents=True, exist_ok=True)
 
-    def queue(self, url: str) -> None:
+    async def queue(self, url: str) -> None:
         if url not in self.all_urls:
             self.all_urls.add(url)
+            # print('OS +', url, len(self.outstanding))
             self.outstanding.add(url)
             self.q.put_nowait(url)
 
     def mark_done(self, url: str) -> None:
+        # print(f'OS - ({len(self.outstanding)}): {url}')
         self.outstanding.remove(url)
         if self.done():
             for i in range(self.WORKER_COUNT):
@@ -87,10 +90,11 @@ class Scraper:
                 content = data.get('content')
                 content_type = data.get('content_type')
                 final_url = data.get('final_url')
+                print(f'GOT FROM CACHE: {url} -> {final_url}')
 
         if content is None:
             async with httpx.AsyncClient() as client:
-                await asyncio.sleep(self.WORKER_COUNT / 4)
+                await asyncio.sleep(self.PERIOD * self.WORKER_COUNT)
                 r = await client.get(url, follow_redirects=True, headers=self.headers, timeout=30)
                 r.raise_for_status()
                 # check content type to ensure it's html:
@@ -105,7 +109,7 @@ class Scraper:
                         'final_url': final_url
                     }, file)
                 
-        if not content_type.startswith('text/html'):
+        if not content or not content_type.startswith('text/html'):
             links = []
         if links is None:
             if final_url != url:
@@ -115,11 +119,12 @@ class Scraper:
                     links = [final_url]
         # print(f'{url}: GOT STATUS', r.status_code)
         # use bs4 to get canonical link:
-        content_hash = sha256(content.encode()).hexdigest()
-        if content_hash in self.all_hashes:
-            links = []
-        else:
-            self.all_hashes.add(content_hash)
+        if links is None:
+            content_hash = sha256(content.encode()).hexdigest()
+            if content_hash in self.all_hashes:
+                links = []
+            else:
+                self.all_hashes.add(content_hash)
         if links is None:
             soup = bs4.BeautifulSoup(content, 'html.parser')
             canonical = soup.find('link', rel='canonical')
@@ -172,12 +177,12 @@ class Scraper:
                 print(f'{url} worker {i} error scraping: {e!r}')
                 new_urls = []
             for new_url in new_urls:
-                self.queue(new_url)
+                await self.queue(new_url)
             self.mark_done(url)
 
     async def __call__(self):
         for base_url in self.base_urls:
-            self.queue(base_url)
+            await self.queue(base_url)
         async with asyncio.TaskGroup() as tg:
             for i in range(self.WORKER_COUNT):
                 tg.create_task(self.worker(i))

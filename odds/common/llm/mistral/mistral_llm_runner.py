@@ -46,10 +46,10 @@ class MistralLLMRunner(LLMRunner):
             if response is not None:
                 result = response.json()
                 if result['usage']:
-                    self.cost_collector.start_transaction()
+                    # self.cost_collector.start_transaction()
                     self.cost_collector.update_cost(query.model(), 'prompt', result['usage']['prompt_tokens'])
                     self.cost_collector.update_cost(query.model(), 'completion', result['usage']['completion_tokens'])
-                    self.cost_collector.end_transaction()
+                    # self.cost_collector.end_transaction()
                 if result.get('choices') and result['choices'][0].get('message') and result['choices'][0]['message'].get('content'):
                     content: str = result['choices'][0]['message']['content']
                     self.cache.set_cache(request, content)
