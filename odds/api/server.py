@@ -1,3 +1,4 @@
+import dataclasses
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -6,6 +7,7 @@ from typing import List, Dict, Any, Optional
 
 from .answer import answer_question
 from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, query_db
+from odds.common.deployment_repo import deployment_repo
 
 ### A FastAPI server that serves the odds API
 # Exposes the following methods:
@@ -50,8 +52,12 @@ async def answer_handler(q: Optional[str] = None, id: Optional[str] = None, cata
         raise HTTPException(status_code=404, detail="Question not found")
     return ret
 
-# Serve static files from the 'ui' directory on the '/' endpoint
-app.mount("/", StaticFiles(directory="ui", html=True), name="static")
+@app.get("/deployment/{deployment_id}")
+async def fetch_deployment(deployment_id: str) -> Optional[Dict[str, Any]]:
+    dep = await deployment_repo.get_deployment(deployment_id)
+    if not dep:
+        raise HTTPException(status_code=404, detail="Deployment not found")
+    return dataclasses.asdict(dep)
 
 @app.exception_handler(404)
 async def custom_404_handler(request, __):

@@ -34,7 +34,12 @@
             "styles": [
               "projects/ask/src/styles.less"
             ],
-            "scripts": []
+            "scripts": [],
+            "server": "projects/ask/src/main.server.ts",
+            "prerender": true,
+            "ssr": {
+              "entry": "projects/ask/src/server.ts"
+            }
           },
           "configurations": {
             "production": {

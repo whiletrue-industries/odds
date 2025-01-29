@@ -100,6 +100,7 @@ class DataCatalog:
 class Deployment:
     id: str
     catalogIds: List[str]
-    orgName: str
-    catalogDescriptions: str
-    displayName: str
+    agentOrgName: str
+    agentCatalogDescriptions: str
+    uiLogoHtml: str
+    uiDisplayHtml: str

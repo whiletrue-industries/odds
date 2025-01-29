@@ -1,6 +1,7 @@
 CONFIG = {
     'Config': 'YAMLConfig',
     'CatalogRepo': 'ConfigCatalogRepo',
+    'DeploymentRepo': 'ConfigDeploymentRepo',
     # 'Store': 'FSStore',
     'MetadataStore': 'ESMetadataStore',
     'Store': 'S3Store',
