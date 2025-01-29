@@ -15,7 +15,7 @@ Your response must be provided as a well formatted JSON object with the followin
 {{
     "score": 0-10,  // A score from 0 to 10 indicating the quality of the answer, 10 being the best
     "success": true/false,  // A boolean indicating whether the question was answered correctly based on the criteria above
-    "evaluation": "<resoning>"  // A string providing a justification for the score given
+    "evaluation": "<reasoning>"  // A string providing a justification for the score given
 }}
 ----
 Question: {0}

@@ -8,13 +8,12 @@ import { environment } from '../../environments/environment';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
-  selector: 'app-home',
-  standalone: true,
-  imports: [
-    FormsModule,
-  ],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.less'
+    selector: 'app-home',
+    imports: [
+        FormsModule,
+    ],
+    templateUrl: './home.component.html',
+    styleUrl: './home.component.less'
 })
 export class HomeComponent {
 

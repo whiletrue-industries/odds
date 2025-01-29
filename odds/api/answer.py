@@ -66,7 +66,7 @@ async def loop(client, thread, run, usage, catalog_id):
             return False, str(run.status)
 
 assistant_id = None
-async def get_assistant_id(client: AsyncOpenAI):
+async def get_assistant_id(client: AsyncOpenAI, catalog_id: str):
     global assistant_id
     if assistant_id is not None:
         return assistant_id
@@ -101,7 +101,7 @@ async def answer_question(*, question=None, catalog_id=None, question_id=None):
             project=config.credentials.openai.proj,
         )
         
-        assistant_id = await get_assistant_id(client)
+        assistant_id = await get_assistant_id(client, catalog_id)
 
         thread = await client.beta.threads.create()
 

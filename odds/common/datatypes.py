@@ -96,3 +96,10 @@ class DataCatalog:
     http_headers: dict = field(default_factory=dict)
 
 
+@dataclass
+class Deployment:
+    id: str
+    catalogIds: List[str]
+    orgName: str
+    catalogDescriptions: str
+    displayName: str
