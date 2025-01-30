@@ -7,11 +7,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - env:
+      - name: Build API Docker
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_APP_IMAGE_NAME_API: "ghcr.io/whiletrue-industries/odds/odds-server"
-          DOCKER_APP_IMAGE_NAME_UI: "ghcr.io/whiletrue-industries/odds/odds-ui"
-          DOCKER_APP_IMAGE_NAME_PROXY: "ghcr.io/whiletrue-industries/odds/odds-proxy"
         run: |
           echo "${GITHUB_TOKEN}" | docker login ghcr.io -u whiletrue-industries --password-stdin &&\
 
@@ -27,7 +26,11 @@ jobs:
             docker tag app "${DOCKER_APP_IMAGE_NAME_API}:latest" &&\
             docker push "${DOCKER_APP_IMAGE_NAME_API}:latest"
           fi
-
+      - name: Build UI Docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_APP_IMAGE_NAME_UI: "ghcr.io/whiletrue-industries/odds/odds-ui"
+        run: |
           if docker pull "${DOCKER_APP_IMAGE_NAME_UI}:latest"; then
             CACHE_FROM_ARG="--cache-from ${DOCKER_APP_IMAGE_NAME_UI}:latest"
           else
@@ -40,7 +43,11 @@ jobs:
             docker tag fe "${DOCKER_APP_IMAGE_NAME_UI}:latest" &&\
             docker push "${DOCKER_APP_IMAGE_NAME_UI}:latest"
           fi
-
+      - name: Build PROXY Docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_APP_IMAGE_NAME_PROXY: "ghcr.io/whiletrue-industries/odds/odds-proxy"
+        run: |
           docker build --build-arg VERSION=${GITHUB_SHA} -t pr -f docker/proxy/Dockerfile . &&\
           docker tag pr "${DOCKER_APP_IMAGE_NAME_PROXY}:${GITHUB_SHA}" &&\
           docker push "${DOCKER_APP_IMAGE_NAME_PROXY}:${GITHUB_SHA}" &&\
