@@ -31,4 +31,5 @@ class ConfigDeploymentRepo(DeploymentRepo):
         return ret
 
     async def get_deployment(self, deployment_id: str) -> Deployment:
+        await self.load_deployments()
         return self.deployments.get(deployment_id)
