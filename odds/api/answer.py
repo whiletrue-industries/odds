@@ -2,6 +2,7 @@ import dataclasses
 import json
 import yaml
 
+from odds.common.datatypes import Deployment
 from odds.common.deployment_repo import deployment_repo
 from odds.common.qa_repo import qa_repo
 from odds.common.cost_collector import CostCollector
@@ -29,7 +30,7 @@ async def loop(client, thread, run, usage, deployment):
                 function_name = tool.function.name
                 if function_name == 'search_datasets':
                     query = arguments['query']
-                    output = await search_datasets(query, deployment.catalog_ids)
+                    output = await search_datasets(query, deployment.catalogIds)
                 elif function_name == 'fetch_dataset':
                     id = arguments['dataset_id']
                     output = await fetch_dataset(id)
@@ -66,20 +67,25 @@ async def loop(client, thread, run, usage, deployment):
         else:
             return False, str(run.status)
 
-assistant_id = None
-async def get_assistant_id(client: AsyncOpenAI, catalog_id: str):
-    global assistant_id
+assistant_ids = dict()
+async def get_assistant_id(client: AsyncOpenAI, deployment: Deployment):
+    assistant_id = assistant_ids.get(deployment.id)
     if assistant_id is not None:
         return assistant_id
+    assistant_name = f"{config.assistant.name} ({deployment.id})"
     assistants = await client.beta.assistants.list()
     async for assistant in assistants:
-        if assistant.name == config.assistant.name:
-            assistant_id = assistant.id
-            return assistant_id
+        if assistant.name == assistant_name:
+            assistant_ids[deployment.id] = assistant.id
+            return assistant.id
+    instructions = open(config.assistant.instructions_file).read()
+    instructions = instructions\
+        .replace(":org-name:", deployment.agentOrgName)\
+        .replace(":catalog-descriptions:", deployment.agentCatalogDescriptions)
     assistant = await client.beta.assistants.create(
-        name=config.assistant.name,
-        description=config.assistant.description,
-        instructions=open(config.assistant.instructions_file).read(),
+        name=assistant_name,
+        description=f'{config.assistant.description} for {deployment.agentOrgName}',
+        instructions=instructions,
         model="gpt-4o",
         tools=yaml.safe_load(open(config.assistant.tools_file)),
         temperature=0,

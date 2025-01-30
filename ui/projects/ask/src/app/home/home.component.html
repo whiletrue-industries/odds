@@ -1,49 +1,56 @@
-@if (!answer) {
-    <h1>Ask Anything&hellip;</h1>
-    <h2>&hellip;and we'll try to locate the answer in <b>Camden's</b> data catalogue.</h2>    
-}
+<div class='header'>
+    <a class='logo' [routerLink]='["/" + deployment_id]' [innerHTML]='deployment?.uiLogoHtml'>
+    </a>
+</div>
+<div class='container'>
 
-
-<div class='input' [class.answer]='!!answer'>
-    @if (!loading && !answer) {
-        <input #input placeholder='what are you looking for?' [(ngModel)]='question' [disabled]='!!loading || !!answer' (keydown)='keydown($event)'>
-    } @else {
-        <div class='question'>{{ question }}</div>
-    }
     @if (!answer) {
-        <button class='send' (click)='ask()' [disabled]='!!loading' [class.visible]='question'></button>
+        <h1>Ask Anything&hellip;</h1>
+        <h2>&hellip;and we'll try to locate the answer in <span [innerHTML]='deployment?.uiDisplayHtml'></span></h2>    
+    }
+    
+    
+    <div class='input' [class.answer]='!!answer'>
+        @if (!loading && !answer) {
+            <input #input placeholder='what are you looking for?' [(ngModel)]='question' [disabled]='!!loading || !!answer' (keydown)='keydown($event)'>
+        } @else {
+            <div class='question'>{{ question }}</div>
+        }
+        @if (!answer) {
+            <button class='send' (click)='ask()' [disabled]='!!loading' [class.visible]='question'></button>
+        }
+    </div>
+    
+    @if (loading) {
+        <div class="loading">
+            <span class="loading-bar"></span>
+            <span class="loading-bar"></span>
+            <span class="loading-bar"></span>
+        </div>
+    } @else {
+        @if (!answer) {
+            <div class='examples'>
+                <h3>Not sure what to search for? Here are a few examples:</h3>
+                <div class='example-list'>
+                    @for (example of EXAMPLES   ; track example) {
+                        <div class='example'>- &nbsp;"{{ example }}"</div>
+                    }
+                </div>
+            </div>
+        } @else {
+            <div class='answer' [innerHTML]='answer'></div>
+    
+            <div class='related'>
+                <h3>Related Questions</h3>
+                <div class='related-list'>
+                    @if (relatedQuestions.length) {
+                        @for (related of relatedQuestions; track related.id) {
+                            <a class='related-question' [routerLink]='["/" + deployment_id, "a", related.id]'>{{ related.question }}</a>
+                        }
+                    }
+                    <a class='ask-again' [routerLink]='["/" + deployment_id]'>Ask a new question</a>
+                </div>
+            </div>
+        }
     }
 </div>
-
-@if (loading) {
-    <div class="loading">
-        <span class="loading-bar"></span>
-        <span class="loading-bar"></span>
-        <span class="loading-bar"></span>
-    </div>
-} @else {
-    @if (!answer) {
-        <div class='examples'>
-            <h3>Not sure what to search for? Here are a few examples:</h3>
-            <div class='example-list'>
-                @for (example of EXAMPLES   ; track example) {
-                    <div class='example'>- &nbsp;"{{ example }}"</div>
-                }
-            </div>
-        </div>
-    } @else {
-        <div class='answer' [innerHTML]='answer'></div>
-
-        <div class='related'>
-            <h3>Related Questions</h3>
-            <div class='related-list'>
-                @if (relatedQuestions.length) {
-                    @for (related of relatedQuestions; track related.id) {
-                        <a class='related-question' [href]='deployment_id + "/a/" + related.id'>{{ related.question }}</a>
-                    }
-                }
-                <a class='ask-again' [routerLink]='["/" + deployment_id]'>Ask a new question</a>
-            </div>
-        </div>
-    }
-}

@@ -1,306 +1,343 @@
 @import '../../common.less';
 
 :host {
+    width: 100%;
     display: flex;
     flex-flow: column;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    overscroll-behavior-y: contain;
 
-    .desktop({
-        padding-top: 48px;
-    });
-    .mobile({
-        padding-top: 8px;
-    });
-    
-    h1, h2, h3 {
-        margin: 0;
-    }
-
-    h1 {
-        .font-sans-600;
-        font-size: 48px;
-    }
-
-    h2 {
-        .font-sans-300;
-        font-size: 24px;
-
-        b {
-            .font-sans-800;
-        }
-    }
-
-    h3 {
-        .font-sans-700;
-        font-size: 18px;
-    }
-
-    .input {
-        .desktop({
-            margin: 48px 0;
-        });
-        .mobile({
-            margin: 24px 0;
-        });
-        &.answer {
-            margin-bottom: 0;
-        }
-
-        display: flex;
-        .desktop({
-            flex-flow: row;
-            gap: 16px;
-        });
-        .mobile({
-            flex-flow: column;
-            gap: 8px;
-        });
-        align-items: center;
-
+    .header {
         width: 100%;
+        display: flex;
+        flex-flow: row;
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        background-color: @color-white;
 
-        .question, input {
-            width: 100%;
-            flex: 1 1 auto;
-            word-wrap: break-word;
-            border: 2px solid @color-blue-4;
-            background-color: @color-blue-8;
-            .background-image;
-            background-image: url(../../assets/img/icon-search-blue-2.svg);
-            background-size: 24px;
-            background-position: center left 12px;
-            padding-left: 48px;
-            padding-right: 12px;
-            color: @color-blue-0;
-            border-radius: 8px;
-            .font-sans-300;
+        .logo {
+            .font-logo-800;
             font-size: 24px;
         }
 
-        input {
-            height: 64px;
+        box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.3);
+        position: sticky;
+        top: 0;
+    }
 
-            border: 2px solid @color-gray-5;
-            background-color: @color-gray-7;
-
-            .background-image;
-            background-image: url(../../assets/img/icon-search-blue-3.svg);
-            background-size: 24px;
-            background-position: center left 12px;
-
-            &::placeholder {
-                color: @color-blue-2;
+    .container {
+        .desktop({
+            padding: 16px 32px;
+        });
+        .mobile({
+            padding: 16px;
+        });
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        flex-flow: column;
+        align-items: flex-start;
+        gap: 8px;
+    
+        .desktop({
+            padding-top: 48px;
+        });
+        .mobile({
+            padding-top: 8px;
+        });
+        
+        h1, h2, h3 {
+            margin: 0;
+        }
+    
+        h1 {
+            .font-sans-600;
+            font-size: 48px;
+        }
+    
+        h2 {
+            .font-sans-300;
+            font-size: 24px;
+    
+            ::ng-deep {
+                b, strong {
+                    .font-sans-800;
+                }
             }
-
-            &:placeholder-shown {
-                font-weight: 300;
-                color: @color-gray-3;
-                font-size: 24px;
+        }
+    
+        h3 {
+            .font-sans-700;
+            font-size: 18px;
+        }
+    
+        .input {
+            .desktop({
+                margin: 48px 0;
+            });
+            .mobile({
+                margin: 24px 0;
+            });
+            &.answer {
+                margin-bottom: 0;
             }
-
-            outline: none;
-            &:focus {
-                background-image: url(../../assets/img/icon-search-blue-2.svg);
-            }
-
-            &:hover, &:disabled {
+    
+            display: flex;
+            .desktop({
+                flex-flow: row;
+                gap: 16px;
+            });
+            .mobile({
+                flex-flow: column;
+                gap: 8px;
+            });
+            align-items: center;
+    
+            width: 100%;
+    
+            .question, input {
+                width: 100%;
+                flex: 1 1 auto;
+                word-wrap: break-word;
                 border: 2px solid @color-blue-4;
                 background-color: @color-blue-8;
-                background-image: url(../../assets/img/icon-search-blue-2.svg);
-            }
-        }
-
-        .question {
-            min-height: 64px;
-            padding-top: 8px;
-            padding-bottom: 8px;
-            display: flex;
-            flex-flow: row;
-            align-items: center;
-        }
-
-        .send { 
-            appearance: none;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 1px solid @color-blue-5;
-            background: @color-blue-8;
-
-            visibility: hidden;
-            &.visible {
-                visibility: visible;
-            }
-    
-            .background-image;
-            background-image: url(../../assets/img/icon-send-blue-2.svg);
-
-            .desktop({
-                width: 64px;
-                height: 64px;
-                background-size: 32px;
-            });
-
-            .mobile({
-                width: 100%;
-                align-self: flex-end;
-                height: 32px;
-                background-size: 24px;
-            });
-
-            &:hover {
-                background: @color-blue-7;
-                border-color: @color-blue-4;
-                .background-image;
-                background-image: url(../../assets/img/icon-send-blue-1.svg);
-                .desktop({
-                    background-size: 32px;
-                });
-    
-                .mobile({
-                    background-size: 24px;
-                });    
-            }
-
-        }
-    }
-
-    .examples {
-        display: flex;
-        flex-flow: column;
-        gap: 16px;
-
-        .example-list {
-            display: flex;
-            flex-flow: column;
-            gap: 4px;
-
-            padding-inline-start: 32px;
-
-            .example {
-                .font-sans-400;
-                font-size: 16px;
-                font-style: italic;
-            }
-        }
-    }
-
-    .answer {
-        ::ng-deep {
-            .font-sans-400;
-            font-size: 20px;
-            a {
-                text-decoration: underline;
-                cursor: pointer;
-                color: @color-blue-1;
-            }
-            // font-style: italic;
-        }
-    }
-    
-    .related {
-        display: flex;
-        flex-flow: column;
-        gap: 16px;
-        margin-top: 48px;
-        width: 100%;
-
-        .related-list {
-            display: flex;
-            flex-flow: column;
-            gap: 4px;
-            width: 100%;
-
-            padding: 0 32px;
-
-            .related-question, .ask-again {
-                width: 100%;
-                min-height: 32px;
-                flex: 1 1 auto;
-                border: 2px solid @color-gray-5;
-                background-color: @color-gray-7;
                 .background-image;
                 background-image: url(../../assets/img/icon-search-blue-2.svg);
                 background-size: 24px;
                 background-position: center left 12px;
-                padding: 4px 48px;
-                color: @color-blue-2;
+                padding-left: 48px;
+                padding-right: 12px;
+                color: @color-blue-0;
                 border-radius: 8px;
-                .font-sans-500;
-                font-size: 20px;
-                cursor: pointer;
-           }
-
-            .ask-again {
-                border-color: @color-blue-6;
-                background-color: @color-blue-8;
-                font-style: italic;
-                font-weight: 700;
-                margin-top: 24px;
+                .font-sans-300;
+                font-size: 24px;
             }
-
-            .related-question, .ask-again {
-                &:hover {
+    
+            input {
+                height: 64px;
+    
+                border: 2px solid @color-gray-5;
+                background-color: @color-gray-7;
+    
+                .background-image;
+                background-image: url(../../assets/img/icon-search-blue-3.svg);
+                background-size: 24px;
+                background-position: center left 12px;
+    
+                &::placeholder {
+                    color: @color-blue-2;
+                }
+    
+                &:placeholder-shown {
+                    font-weight: 300;
+                    color: @color-gray-3;
+                    font-size: 24px;
+                }
+    
+                outline: none;
+                &:focus {
+                    background-image: url(../../assets/img/icon-search-blue-2.svg);
+                }
+    
+                &:hover, &:disabled {
                     border: 2px solid @color-blue-4;
                     background-color: @color-blue-8;
-                    background-image: 
-                        url(../../assets/img/icon-search-blue-2.svg),
-                        url(../../assets/img/icon-send-blue-1.svg);
-                    background-size: 24px, 24px;
-                    background-position: center left 12px, center right 12px;
-                    color: @color-blue-0;
+                    background-image: url(../../assets/img/icon-search-blue-2.svg);
                 }
             }
-
+    
+            .question {
+                min-height: 64px;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                display: flex;
+                flex-flow: row;
+                align-items: center;
+            }
+    
+            .send { 
+                appearance: none;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                border: 1px solid @color-blue-5;
+                background: @color-blue-8;
+    
+                visibility: hidden;
+                &.visible {
+                    visibility: visible;
+                }
+        
+                .background-image;
+                background-image: url(../../assets/img/icon-send-blue-2.svg);
+    
+                .desktop({
+                    width: 64px;
+                    height: 64px;
+                    background-size: 32px;
+                });
+    
+                .mobile({
+                    width: 100%;
+                    align-self: flex-end;
+                    height: 32px;
+                    background-size: 24px;
+                });
+    
+                &:hover {
+                    background: @color-blue-7;
+                    border-color: @color-blue-4;
+                    .background-image;
+                    background-image: url(../../assets/img/icon-send-blue-1.svg);
+                    .desktop({
+                        background-size: 32px;
+                    });
+        
+                    .mobile({
+                        background-size: 24px;
+                    });    
+                }
+    
+            }
         }
-    }
-
-    .loading {
-        align-self: center;
-        display: flex;
-        justify-content: space-between;
-        width: 128px;
-        height: 80px;
-        margin-top: 48px;
-
-        .loading-bar {
+    
+        .examples {
             display: flex;
-            align-items: flex-end;
-            width: 24px;
-            height: 100%;
-            background-color: @color-gray-6;
-            box-shadow: inset 0 0 4px @color-gray-5;
-            border-radius: 8px;
-            transform: translateZ(0);
-            overflow: hidden;
-            
-            &:before {
-                content: '';
-                width: 100%;
-                height: 20%;
-                background: linear-gradient(@color-blue-6, @color-blue-4);
-                animation: loading 1.8s infinite;
-            }
-            
-            &:nth-child(2) {
-                &:before {
-                    animation-delay: 0.2s;
-                }
-            }
-            
-            &:nth-child(3) {
-                &:before {
-                    animation-delay: 0.4s;
+            flex-flow: column;
+            gap: 16px;
+    
+            .example-list {
+                display: flex;
+                flex-flow: column;
+                gap: 4px;
+    
+                padding-inline-start: 32px;
+    
+                .example {
+                    .font-sans-400;
+                    font-size: 16px;
+                    font-style: italic;
                 }
             }
         }
-    }
     
-    @keyframes loading {
-        0% { height: 30%; }
-        40%, 70% { height: 100%; }
-        100% { height: 30%; }
-    }
+        .answer {
+            ::ng-deep {
+                .font-sans-400;
+                font-size: 20px;
+                a {
+                    text-decoration: underline;
+                    cursor: pointer;
+                    color: @color-blue-1;
+                }
+                // font-style: italic;
+            }
+        }
+        
+        .related {
+            display: flex;
+            flex-flow: column;
+            gap: 16px;
+            margin-top: 48px;
+            width: 100%;
     
+            .related-list {
+                display: flex;
+                flex-flow: column;
+                gap: 4px;
+                width: 100%;
+    
+                padding: 0 32px;
+    
+                .related-question, .ask-again {
+                    width: 100%;
+                    min-height: 32px;
+                    flex: 1 1 auto;
+                    border: 2px solid @color-gray-5;
+                    background-color: @color-gray-7;
+                    .background-image;
+                    background-image: url(../../assets/img/icon-search-blue-2.svg);
+                    background-size: 24px;
+                    background-position: center left 12px;
+                    padding: 4px 48px;
+                    color: @color-blue-2;
+                    border-radius: 8px;
+                    .font-sans-500;
+                    font-size: 20px;
+                    cursor: pointer;
+               }
+    
+                .ask-again {
+                    border-color: @color-blue-6;
+                    background-color: @color-blue-8;
+                    font-style: italic;
+                    font-weight: 700;
+                    margin-top: 24px;
+                }
+    
+                .related-question, .ask-again {
+                    &:hover {
+                        border: 2px solid @color-blue-4;
+                        background-color: @color-blue-8;
+                        background-image: 
+                            url(../../assets/img/icon-search-blue-2.svg),
+                            url(../../assets/img/icon-send-blue-1.svg);
+                        background-size: 24px, 24px;
+                        background-position: center left 12px, center right 12px;
+                        color: @color-blue-0;
+                    }
+                }
+    
+            }
+        }
+    
+        .loading {
+            align-self: center;
+            display: flex;
+            justify-content: space-between;
+            width: 128px;
+            height: 80px;
+            margin-top: 48px;
+    
+            .loading-bar {
+                display: flex;
+                align-items: flex-end;
+                width: 24px;
+                height: 100%;
+                background-color: @color-gray-6;
+                box-shadow: inset 0 0 4px @color-gray-5;
+                border-radius: 8px;
+                transform: translateZ(0);
+                overflow: hidden;
+                
+                &:before {
+                    content: '';
+                    width: 100%;
+                    height: 20%;
+                    background: linear-gradient(@color-blue-6, @color-blue-4);
+                    animation: loading 1.8s infinite;
+                }
+                
+                &:nth-child(2) {
+                    &:before {
+                        animation-delay: 0.2s;
+                    }
+                }
+                
+                &:nth-child(3) {
+                    &:before {
+                        animation-delay: 0.4s;
+                    }
+                }
+            }
+        }
+        
+        @keyframes loading {
+            0% { height: 30%; }
+            40%, 70% { height: 100%; }
+            100% { height: 30%; }
+        }    
+    }
 }

@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { catchError, filter, switchMap, tap, timer } from 'rxjs';
+import { catchError, filter, from, map, switchMap, tap, timer } from 'rxjs';
 import { marked } from 'marked';
 import { environment } from '../../environments/environment';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ApiService } from '../api.service';
 
 @Component({
     selector: 'app-home',
@@ -29,23 +30,34 @@ export class HomeComponent {
   loading = false;
   relatedQuestions: { question: string, id: string }[] = [];
   deployment_id: string = '';
+  deployment: any = null;
 
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
 
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer, 
+  constructor(private api: ApiService, private sanitizer: DomSanitizer, 
               private route: ActivatedRoute, private router: Router) {
     this.route.params.pipe(
-      tap((params) => {
+      switchMap((params) => {
         this.deployment_id = params['deployment'];
         if (!params['id']) {
           this.clear()
+        }
+        if (this.deployment_id) {
+          return this.api.getDeployment(this.deployment_id).pipe(
+            map((deployment) => {
+              this.deployment = deployment;
+              return params;
+            })
+          )
+        } else {
+          return from([params]);
         }
       }),
       filter(params => !!params['id']),
       tap(() => {
         this.loading = true;
       }),
-      switchMap(params => this.http.get(environment.endpoint, { params: {id: params['id'], deployment_id: this.deployment_id }})),
+      switchMap(params => this.api.getAnswer(params['id'], undefined, this.deployment_id)),
       catchError((error) => {
         this.loading = false;
         this.router.navigate(['/', this.deployment_id]);
@@ -74,7 +86,7 @@ export class HomeComponent {
   ask() {
     if (this.question) {
       this.loading = true;
-      this.http.get(environment.endpoint, { params: {q: this.question, deployment_id: this.deployment_id }})
+      this.api.getAnswer(undefined, this.question, this.deployment_id)
       .pipe(
         catchError((error) => {
           this.setAnswer('Error: ' + error.message);
