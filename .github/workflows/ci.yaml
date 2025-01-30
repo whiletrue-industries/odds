@@ -33,7 +33,7 @@ jobs:
           else
             CACHE_FROM_ARG=""
           fi &&\
-          docker build $CACHE_FROM_ARG --build-arg VERSION=${GITHUB_SHA} -t fe -f docker/frontend/Dockerfile . &&\
+          docker build $CACHE_FROM_ARG --build-arg VERSION=${GITHUB_SHA} -t fe -f docker/ui/Dockerfile . &&\
           docker tag fe "${DOCKER_APP_IMAGE_NAME_UI}:${GITHUB_SHA}" &&\
           docker push "${DOCKER_APP_IMAGE_NAME_UI}:${GITHUB_SHA}" &&\
           if [ "${GITHUB_REF}" == "refs/heads/main" ]; then
