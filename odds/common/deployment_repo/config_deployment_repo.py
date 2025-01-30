@@ -8,9 +8,8 @@ class ConfigDeploymentRepo(DeploymentRepo):
     def __init__(self):
         self.deployments = None
         self.deployment_list = []
-        self.load_deployments()
 
-    def load_deployments(self) -> list[Deployment]:
+    async def load_deployments(self) -> list[Deployment]:
         if self.deployments is not None:
             return self.deployment_list
         self.deployments = {}
@@ -31,5 +30,5 @@ class ConfigDeploymentRepo(DeploymentRepo):
             self.deployment_list.append(deployment)
         return ret
 
-    def get_deployment(self, deployment_id: str) -> Deployment:
+    async def get_deployment(self, deployment_id: str) -> Deployment:
         return self.deployments.get(deployment_id)
