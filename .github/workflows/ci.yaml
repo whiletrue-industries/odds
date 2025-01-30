@@ -10,7 +10,8 @@ jobs:
       - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_APP_IMAGE_NAME_API: "ghcr.io/whiletrue-industries/odds/odds-server"
-          DOCKER_APP_IMAGE_NAME_FRONTEND: "ghcr.io/whiletrue-industries/odds/odds-ui"
+          DOCKER_APP_IMAGE_NAME_UI: "ghcr.io/whiletrue-industries/odds/odds-ui"
+          DOCKER_APP_IMAGE_NAME_PROXY: "ghcr.io/whiletrue-industries/odds/odds-proxy"
         run: |
           echo "${GITHUB_TOKEN}" | docker login ghcr.io -u whiletrue-industries --password-stdin &&\
 
@@ -27,15 +28,23 @@ jobs:
             docker push "${DOCKER_APP_IMAGE_NAME_API}:latest"
           fi
 
-          if docker pull "${DOCKER_APP_IMAGE_NAME_FRONTEND}:latest"; then
-            CACHE_FROM_ARG="--cache-from ${DOCKER_APP_IMAGE_NAME_FRONTEND}:latest"
+          if docker pull "${DOCKER_APP_IMAGE_NAME_UI}:latest"; then
+            CACHE_FROM_ARG="--cache-from ${DOCKER_APP_IMAGE_NAME_UI}:latest"
           else
             CACHE_FROM_ARG=""
           fi &&\
           docker build $CACHE_FROM_ARG --build-arg VERSION=${GITHUB_SHA} -t fe -f docker/frontend/Dockerfile . &&\
-          docker tag fe "${DOCKER_APP_IMAGE_NAME_FRONTEND}:${GITHUB_SHA}" &&\
-          docker push "${DOCKER_APP_IMAGE_NAME_FRONTEND}:${GITHUB_SHA}" &&\
+          docker tag fe "${DOCKER_APP_IMAGE_NAME_UI}:${GITHUB_SHA}" &&\
+          docker push "${DOCKER_APP_IMAGE_NAME_UI}:${GITHUB_SHA}" &&\
           if [ "${GITHUB_REF}" == "refs/heads/main" ]; then
-            docker tag fe "${DOCKER_APP_IMAGE_NAME_FRONTEND}:latest" &&\
-            docker push "${DOCKER_APP_IMAGE_NAME_FRONTEND}:latest"
+            docker tag fe "${DOCKER_APP_IMAGE_NAME_UI}:latest" &&\
+            docker push "${DOCKER_APP_IMAGE_NAME_UI}:latest"
+          fi
+
+          docker build --build-arg VERSION=${GITHUB_SHA} -t pr -f docker/proxy/Dockerfile . &&\
+          docker tag pr "${DOCKER_APP_IMAGE_NAME_PROXY}:${GITHUB_SHA}" &&\
+          docker push "${DOCKER_APP_IMAGE_NAME_PROXY}:${GITHUB_SHA}" &&\
+          if [ "${GITHUB_REF}" == "refs/heads/main" ]; then
+            docker tag pr "${DOCKER_APP_IMAGE_NAME_PROXY}:latest" &&\
+            docker push "${DOCKER_APP_IMAGE_NAME_PROXY}:latest"
           fi

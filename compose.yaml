@@ -1,6 +1,15 @@
 # docker run -d --name api-server -p 80:8000 -v ./odds.config.yaml:/srv/odds.config.yaml     -v ./cache/:/srv/.caches/     ghcr.io/whiletrue-industries/odds/odds-server:latest -- utils/api_server.sh
 
 services:
+
+  proxy:
+    depends_on:
+      - api
+      - ui
+    image: ghcr.io/whiletrue-industries/odds/odds-proxy:latest
+    ports:
+      - "8080:80"
+
   api:
     depends_on:
       - db
@@ -10,7 +19,7 @@ services:
       # - kibana
     image: ghcr.io/whiletrue-industries/odds/odds-server:latest
     ports:
-      - "80:8000"
+      - "8000:8000"
     volumes:
       - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
