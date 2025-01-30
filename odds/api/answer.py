@@ -2,6 +2,7 @@ import dataclasses
 import json
 import yaml
 
+from odds.common.deployment_repo import deployment_repo
 from odds.common.qa_repo import qa_repo
 from odds.common.cost_collector import CostCollector
 from odds.common.llm.openai.openai_llm_runner import OpenAILLMRunner
@@ -13,7 +14,7 @@ from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, qu
 from .evaluate_answer import evaluate
 
 
-async def loop(client, thread, run, usage, deployment_id):
+async def loop(client, thread, run, usage, deployment):
     while True:
         print('RUN:', run.status)
         if run.status == 'completed': 
@@ -28,7 +29,7 @@ async def loop(client, thread, run, usage, deployment_id):
                 function_name = tool.function.name
                 if function_name == 'search_datasets':
                     query = arguments['query']
-                    output = await search_datasets(query, deployment_id)
+                    output = await search_datasets(query, deployment.catalog_ids)
                 elif function_name == 'fetch_dataset':
                     id = arguments['dataset_id']
                     output = await fetch_dataset(id)
@@ -95,13 +96,15 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
         return None
     
     if qa is None:
+        deployment = await deployment_repo.get_deployment(deployment_id)
+
         client = AsyncOpenAI(
             api_key=config.credentials.openai.key,
             organization=config.credentials.openai.org,
             project=config.credentials.openai.proj,
         )
         
-        assistant_id = await get_assistant_id(client, deployment_id)
+        assistant_id = await get_assistant_id(client, deployment)
 
         thread = await client.beta.threads.create()
 
@@ -127,7 +130,7 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
         success = False
         error = None
         try:
-            success, error = await loop(client, thread, run, usage, deployment_id)
+            success, error = await loop(client, thread, run, usage, deployment)
         except Exception as e:
             error = str(e)
         finally:

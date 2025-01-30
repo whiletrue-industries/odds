@@ -10,17 +10,17 @@ from ...retry import Retry
 class OpenAILLMRunner(LLMRunner):
 
     MODELS = dict(
-        cheap='gpt-3.5-turbo-0125',
+        cheap='gpt-4o-mini',
         expensive='gpt-4o',
     )
     COSTS = dict(
         cheap=dict(
-            prompt=0.5/1000000,
-            completion=1.5/1000000
+            prompt=0.15/1000000,
+            completion=0.6/1000000
         ),
         expensive=dict(
-            prompt=5/1000000,
-            completion=15/1000000
+            prompt=2.5/1000000,
+            completion=10/1000000
         ),
     )
 
