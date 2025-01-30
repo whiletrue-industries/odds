@@ -47,7 +47,7 @@ class CKANCatalogScanner(CatalogScanner):
                 for row in rows:
                     resources = [
                         Resource(
-                            resource['url'],
+                            resource['url'].replace('datacity.jerusalem.muni.il', 'jerusalem.datacity.org.il'),
                             resource['format'],
                             title=resource['name'],                        
                         )
