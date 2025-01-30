@@ -32,6 +32,7 @@ class ESQARepo(QARepo):
                         'answer': {'type': 'text'},
                         'success': {'type': 'boolean'},
                         'score': {'type': 'integer'},
+                        'deployment_id': {'type': 'keyword'},
                         'embeddings': {
                             'type': 'dense_vector',
                             'dims': embedder.vector_size(),
@@ -47,31 +48,32 @@ class ESQARepo(QARepo):
         data = dict((k, v) for k, v in data.items() if k in QA.__dataclass_fields__)
         return QA(**data)
     
-    def getId(self, question: str) -> str:
+    def getId(self, question: str, deployment_id: str) -> str:
         question = question.strip().lower()
-        question = '_'.join(question.split())
+        question = '_'.join(question.split()) + f'__{deployment_id}'
         question = question.encode()
         return sha256(question).hexdigest()[:16]
 
-    async def storeQA(self, question: str, answer: str, success: bool, score: int) -> QA:
+    async def storeQA(self, question: str, answer: str, success: bool, score: int, deployment_id: str) -> QA:
         async with ESClient() as client:
             await self.single_time_init(client)
-            id = self.getId(question)
+            id = self.getId(question, deployment_id)
             body = dict(
                 id=id,
                 question=question,
                 answer=answer,
                 success=success,
                 score=score,
+                deployment_id=deployment_id,
                 embeddings=(await embedder.embed(question)).tolist()
             )
             await client.create(index=ES_INDEX, id=id, body=body)
             return self.toQa(body)
 
-    async def getQuestion(self, *, question: str=None, id: str=None) -> Optional[QA]:
+    async def getQuestion(self, *, question: str=None, id: str=None, deployment_id: str=None) -> Optional[QA]:
         assert question or id
         if not id:
-            id = self.getId(question)
+            id = self.getId(question, deployment_id)
         async with ESClient() as client:
             try:
                 await self.single_time_init(client)
@@ -84,7 +86,7 @@ class ESQARepo(QARepo):
                 pass
         return None
     
-    async def findRelated(self, question: str, own_id: str) -> List[QA]:
+    async def findRelated(self, question: str, own_id: str, deployment_id: str) -> List[QA]:
         async with ESClient() as client:
             await self.single_time_init(client)
             embedding = await embedder.embed(question)
@@ -103,6 +105,9 @@ class ESQARepo(QARepo):
                                         'term': {'id': own_id}
                                     }
                                 }
+                            },    
+                            {
+                                'term': {'deployment_id': deployment_id}
                             },
                             {
                                 'bool': {
@@ -133,6 +138,9 @@ class ESQARepo(QARepo):
                                     'term': {'id': own_id}
                                 }
                             }
+                        },
+                        {
+                            'term': {'deployment_id': deployment_id}
                         },
                         {
                             'bool': {

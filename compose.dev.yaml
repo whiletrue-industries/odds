@@ -1,6 +1,16 @@
 # docker run -d --name api-server -p 80:8000 -v ./odds.config.yaml:/srv/odds.config.yaml     -v ./cache/:/srv/.caches/     ghcr.io/whiletrue-industries/odds/odds-server:latest -- utils/api_server.sh
 
 services:
+
+  proxy:
+    depends_on:
+      - api
+      - ui
+    build:
+      dockerfile: docker/proxy/Dockerfile
+      context: .
+    ports:
+      - "8080:80"
   api:
     depends_on:
       - db
@@ -11,15 +21,24 @@ services:
     build: 
       dockerfile: docker/api-server/Dockerfile
       context: .
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     volumes:
       - ./odds.config.local.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
       - certs:/docker/certs
     command: utils/api_server.sh
+  
+  ui:
+    build:
+      dockerfile: docker/ui/Dockerfile
+      context: .
+    # image: ghcr.io/whiletrue-industries/odds/odds-ui:latest
+    # ports:
+    #   - "4000:4000"      
+
   db:
-    image: postgres:16
+    image: docker.io/library/postgres:16
     environment:
       POSTGRES_USER: odds
       POSTGRES_PASSWORD: odds
@@ -28,7 +47,6 @@ services:
       - "5432:5432"
     volumes:
       - ./.caches/db/:/var/lib/postgresql/data
-
 
   es-setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}

@@ -15,7 +15,7 @@ class ESIndexer(Indexer):
         # update the embedding field in the document in the ES index:
         pass
     
-    async def findDatasets(self, embedding: Embedding, query, num=10, catalog_id=None) -> list[str]:
+    async def findDatasets(self, embedding: Embedding, query, num=10, deployment_id=None) -> list[str]:
         async with ESClient() as es:
             # search for the nearest neighbors of the given embedding in the ES
             # index and return the ids of the datasets:

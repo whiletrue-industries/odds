@@ -44,10 +44,12 @@ async def query_db_handler(resource_id: str, sql: str) -> Optional[Dict[str, Any
     return await query_db(resource_id, sql)
 
 @app.get("/answer")
-async def answer_handler(q: Optional[str] = None, id: Optional[str] = None, catalog_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    if not q and not id:
+async def answer_handler(q: Optional[str] = None, id: Optional[str] = None, deployment_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not deployment_id:
+        raise HTTPException(status_code=400, detail="deployment_id must be provided")        
+    if not (q or id):
         raise HTTPException(status_code=400, detail="Either 'q' or 'id' must be provided")
-    ret = await answer_question(question=q, question_id=id, catalog_id=catalog_id)
+    ret = await answer_question(question=q, question_id=id, deployment_id=deployment_id)
     if not ret:
         raise HTTPException(status_code=404, detail="Question not found")
     return ret

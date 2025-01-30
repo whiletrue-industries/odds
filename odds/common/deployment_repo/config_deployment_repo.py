@@ -7,11 +7,12 @@ class ConfigDeploymentRepo(DeploymentRepo):
 
     def __init__(self):
         self.deployments = None
+        self.deployment_list = []
         self.load_deployments()
 
     def load_deployments(self) -> list[Deployment]:
         if self.deployments is not None:
-            return list(self.deployments.values())
+            return self.deployment_list
         self.deployments = {}
         deployments = config.deployments
         ret = [
@@ -27,6 +28,7 @@ class ConfigDeploymentRepo(DeploymentRepo):
         ]
         for deployment in ret:
             self.deployments[deployment.id] = deployment
+            self.deployment_list.append(deployment)
         return ret
 
     def get_deployment(self, deployment_id: str) -> Deployment:

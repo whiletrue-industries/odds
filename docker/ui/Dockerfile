@@ -1,4 +1,4 @@
-FROM node:lts-bookworm-slim AS build
+FROM docker.io/library/node:lts-bookworm-slim AS build
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN apt-get install -y ca-certificates
 RUN npm install
 RUN npm run -- ng build
 
-FROM node:lts-bookworm-slim AS frontend
+FROM docker.io/library/node:lts-bookworm-slim AS frontend
 
 WORKDIR /app
 RUN apt-get update

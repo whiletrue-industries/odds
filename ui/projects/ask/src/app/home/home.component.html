@@ -39,10 +39,10 @@
             <div class='related-list'>
                 @if (relatedQuestions.length) {
                     @for (related of relatedQuestions; track related.id) {
-                        <a class='related-question' [href]='"/a/" + related.id'>{{ related.question }}</a>
+                        <a class='related-question' [href]='deployment_id + "/a/" + related.id'>{{ related.question }}</a>
                     }
                 }
-                <a class='ask-again' href='/'>Ask a new question</a>
+                <a class='ask-again' [routerLink]='["/" + deployment_id]'>Ask a new question</a>
             </div>
         </div>
     }

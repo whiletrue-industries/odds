@@ -13,7 +13,7 @@ from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, qu
 from .evaluate_answer import evaluate
 
 
-async def loop(client, thread, run, usage, catalog_id):
+async def loop(client, thread, run, usage, deployment_id):
     while True:
         print('RUN:', run.status)
         if run.status == 'completed': 
@@ -28,7 +28,7 @@ async def loop(client, thread, run, usage, catalog_id):
                 function_name = tool.function.name
                 if function_name == 'search_datasets':
                     query = arguments['query']
-                    output = await search_datasets(query, catalog_id)
+                    output = await search_datasets(query, deployment_id)
                 elif function_name == 'fetch_dataset':
                     id = arguments['dataset_id']
                     output = await fetch_dataset(id)
@@ -87,10 +87,10 @@ async def get_assistant_id(client: AsyncOpenAI, catalog_id: str):
     return assistant_id
 
 
-async def answer_question(*, question=None, catalog_id=None, question_id=None):
+async def answer_question(*, question=None, question_id=None, deployment_id=None):
 
     ret = dict()
-    qa = await qa_repo.getQuestion(question=question, id=question_id)
+    qa = await qa_repo.getQuestion(question=question, id=question_id, deployment_id=deployment_id)
     if question_id and not qa:
         return None
     
@@ -101,7 +101,7 @@ async def answer_question(*, question=None, catalog_id=None, question_id=None):
             project=config.credentials.openai.proj,
         )
         
-        assistant_id = await get_assistant_id(client, catalog_id)
+        assistant_id = await get_assistant_id(client, deployment_id)
 
         thread = await client.beta.threads.create()
 
@@ -127,7 +127,7 @@ async def answer_question(*, question=None, catalog_id=None, question_id=None):
         success = False
         error = None
         try:
-            success, error = await loop(client, thread, run, usage, catalog_id)
+            success, error = await loop(client, thread, run, usage, deployment_id)
         except Exception as e:
             error = str(e)
         finally:
@@ -159,7 +159,7 @@ async def answer_question(*, question=None, catalog_id=None, question_id=None):
         if not ret['id']:
             evaluation = await evaluate(question, answer)
             ret.update(evaluation)
-            qa = await qa_repo.storeQA(question, answer, evaluation['success'], evaluation['score'])
+            qa = await qa_repo.storeQA(question, answer, evaluation['success'], evaluation['score'], deployment_id)
             ret['id'] = qa.id
-        ret['related'] = [dataclasses.asdict(x) for x in await qa_repo.findRelated(ret['question'], ret['id'])]
+        ret['related'] = [dataclasses.asdict(x) for x in await qa_repo.findRelated(ret['question'], ret['id'], deployment_id)]
     return ret

@@ -24,10 +24,10 @@ def parse_resource_id(id):
     return datasetId, resourceIdx
 
 
-async def search_datasets(query: str, catalog_id: str | None) -> list[dict[str, Any]]:
+async def search_datasets(query: str, deployment_id: str | None) -> list[dict[str, Any]]:
     logging.debug(f'SEARCH DATASETS: {query}')
     embedding = await embedder.embed(query)
-    datasets = await indexer.findDatasets(embedding, query, catalog_id=catalog_id)
+    datasets = await indexer.findDatasets(embedding, query, deployment_id=deployment_id)
     catalogs = [catalog_repo.get_catalog(dataset.catalogId) for dataset in datasets]
     logging.debug(f'CATALOGS: {[catalog.title for catalog in catalogs]}')
     response = [

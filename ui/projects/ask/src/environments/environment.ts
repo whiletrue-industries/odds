@@ -1,3 +1,3 @@
 export const environment = {
-    endpoint: '/answer',
+    endpoint: '/api/answer',
 };

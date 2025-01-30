@@ -5,11 +5,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { catchError, filter, switchMap, tap, timer } from 'rxjs';
 import { marked } from 'marked';
 import { environment } from '../../environments/environment';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-home',
     imports: [
+        RouterModule,
         FormsModule,
     ],
     templateUrl: './home.component.html',
@@ -27,6 +28,7 @@ export class HomeComponent {
   question: string = '';
   loading = false;
   relatedQuestions: { question: string, id: string }[] = [];
+  deployment_id: string = '';
 
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
 
@@ -34,6 +36,7 @@ export class HomeComponent {
               private route: ActivatedRoute, private router: Router) {
     this.route.params.pipe(
       tap((params) => {
+        this.deployment_id = params['deployment'];
         if (!params['id']) {
           this.clear()
         }
@@ -42,10 +45,10 @@ export class HomeComponent {
       tap(() => {
         this.loading = true;
       }),
-      switchMap(params => this.http.get(environment.endpoint, { params: {id: params['id'] }})),
+      switchMap(params => this.http.get(environment.endpoint, { params: {id: params['id'], deployment_id: this.deployment_id }})),
       catchError((error) => {
         this.loading = false;
-        this.router.navigate(['/']);
+        this.router.navigate(['/', this.deployment_id]);
         return error;
       }),
     ).subscribe((data: any) => {
@@ -71,7 +74,7 @@ export class HomeComponent {
   ask() {
     if (this.question) {
       this.loading = true;
-      this.http.get(environment.endpoint, { params: {q: this.question }})
+      this.http.get(environment.endpoint, { params: {q: this.question, deployment_id: this.deployment_id }})
       .pipe(
         catchError((error) => {
           this.setAnswer('Error: ' + error.message);
@@ -86,7 +89,7 @@ export class HomeComponent {
           }
           marked(response.answer, {async: true}).then((content) => {
             this.setAnswer(content);
-            this.router.navigate(['/a', response.id]);
+            this.router.navigate(['/' + this.deployment_id, 'a', response.id]);
           });
         },
       );
@@ -94,7 +97,7 @@ export class HomeComponent {
   }
 
   clear() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/', this.deployment_id]);
     this.question = '';
     this.answer = null;
     timer(100).subscribe(() => {

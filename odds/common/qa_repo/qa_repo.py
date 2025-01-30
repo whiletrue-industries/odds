@@ -9,16 +9,17 @@ class QA:
     answer: str
     success: bool
     score: int
+    deployment_id: str
 
 
 class QARepo:
 
-    async def storeQA(self, question: str, answer: str, success: bool, score: int) -> QA:
+    async def storeQA(self, question: str, answer: str, success: bool, score: int, deployment_id: str) -> QA:
         return None
 
-    async def getQuestion(self, *, question: str=None, id: str=None) -> Optional[QA]:
+    async def getQuestion(self, *, question: str=None, id: str=None, deployment_id: str=None) -> Optional[QA]:
         return None
     
-    async def findRelated(self, question: str, own_id: str) -> List[QA]:
+    async def findRelated(self, question: str, own_id: str, deployment_id: str=None) -> List[QA]:
         return []
         
