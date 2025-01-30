@@ -69,5 +69,5 @@ class ODDSBackend:
         if datasetId:
             datasetFilter = DatasetFilterById(datasetId)
         else:
-            datasetFilter = DatasetFilterIncomplete()
+            datasetFilter = DatasetFilterForce()
         asyncio.run(self.scan(catalogFilter, datasetFilter))
