@@ -5,6 +5,7 @@ WORKDIR /srv
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY odds ./odds
+COPY assistant ./assistant
 COPY setup.py ./
 RUN pip install -e .
 COPY utils ./utils
