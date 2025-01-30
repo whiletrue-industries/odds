@@ -1,6 +1,7 @@
 import dataclasses
 import json
 import yaml
+from pathlib import Path
 
 from odds.common.datatypes import Deployment
 from odds.common.deployment_repo import deployment_repo
@@ -14,6 +15,7 @@ from ..common.config import config
 from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, query_db
 from .evaluate_answer import evaluate
 
+ROOT = Path(__file__).parent.parent.parent
 
 async def loop(client, thread, run, usage, deployment):
     while True:
@@ -78,7 +80,7 @@ async def get_assistant_id(client: AsyncOpenAI, deployment: Deployment):
         if assistant.name == assistant_name:
             assistant_ids[deployment.id] = assistant.id
             return assistant.id
-    instructions = open(config.assistant.instructions_file).read()
+    instructions = (ROOT / config.assistant.instructions_file).open().read()
     instructions = instructions\
         .replace(":org-name:", deployment.agentOrgName)\
         .replace(":catalog-descriptions:", deployment.agentCatalogDescriptions)
@@ -87,7 +89,7 @@ async def get_assistant_id(client: AsyncOpenAI, deployment: Deployment):
         description=f'{config.assistant.description} for {deployment.agentOrgName}',
         instructions=instructions,
         model="gpt-4o",
-        tools=yaml.safe_load(open(config.assistant.tools_file)),
+        tools=yaml.safe_load((ROOT / config.assistant.tools_file).open()),
         temperature=0,
     )
     assistant_id = assistant.id
