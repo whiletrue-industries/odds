@@ -50,6 +50,7 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
         "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
     }
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
+    Always match in your response the language of the dataset's title and description.
     Return only the json object, without any additional formatting, explanation or context.
     --------------
     '''

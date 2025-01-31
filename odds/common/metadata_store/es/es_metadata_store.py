@@ -100,7 +100,7 @@ class ESMetadataStore(MetadataStore):
                     for k in list(field.keys()):
                         if k not in ['name', 'data_type']:
                             props[k] = field.pop(k)
-                    field['props'] = json.dumps(props)
+                    field['props'] = json.dumps(props, ensure_ascii=False)
             ret = await client.update(index='datasets', id=id, doc=body, doc_as_upsert=True)
         
     async def getDataset(self, datasetId: str) -> Dataset:
