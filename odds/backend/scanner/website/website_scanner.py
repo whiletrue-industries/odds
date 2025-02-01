@@ -135,6 +135,14 @@ class Scraper:
             title = soup.find('title').text
         if links is None:
             allowed_attributes = AllowedAttributes(final_url)
+            nh3.clean(
+                content,
+                attribute_filter=allowed_attributes,
+                link_rel='',
+                url_schemes={'http', 'https'},
+            )
+            links = allowed_attributes.links
+            allowed_attributes = AllowedAttributes(final_url)
             content = nh3.clean(
                 content,
                 tags=self.ALLOWED_TAGS,
@@ -155,7 +163,6 @@ class Scraper:
                 local_path=str(cache_file_clean),
                 content=content
             ))
-            links = allowed_attributes.links
 
         _links = []
         for link in links:
