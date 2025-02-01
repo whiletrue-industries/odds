@@ -47,7 +47,7 @@ class Scraper:
     WS = re.compile(r'\s+', re.UNICODE | re.MULTILINE)
     ALLOWED_TAGS = {'a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
             'em', 'i', 'li', 'ol', 'strong', 'ul', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'title'}
-    CLEAN_TAGS = {'script', 'style', 'meta', 'iframe'}
+    CLEAN_TAGS = {'script', 'style', 'meta', 'iframe', 'nav', 'header', 'footer', 'form'}
 
     def __init__(self, base_urls) -> None:
         self.base_urls = base_urls

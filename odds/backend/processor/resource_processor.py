@@ -5,6 +5,7 @@ import httpx
 import uuid
 import os
 import csv
+import bs4
 
 
 csv.field_size_limit(10000000)
@@ -40,6 +41,16 @@ class MDConverterQuery(LLMQuery):
 
     def temperature(self) -> float:
         return 0
+    
+    # def prepare_content(self, content):
+    #     soup = bs4.BeautifulSoup(content, 'html.parser')
+    #     for comment in soup.find_all(text=lambda text: isinstance(text, bs4.Comment)):
+    #         comment.extract()
+    #     for tag in soup.find_all('img'):
+    #         if tag.get('src', '').startswith('data:'):
+    #             tag.decompose()
+    #     return str(soup)
+
 
     def prompt(self) -> list[tuple[str, str]]:
         prompt = '''Please read the contents of the following website (in simplified HTML format) and assess the data.
@@ -50,7 +61,9 @@ Finally, if it doesn't contain any relevant information (for example, it is only
 Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response.
 ----------
 '''
-        prompt += self.resource.content
+        content = self.resource.content
+        # content = self.prepare_content(content)
+        prompt += content
         prompt = prompt[:int(self.max_tokens()*0.75)]
 
         # print("XXXXX", self.resource.content)
