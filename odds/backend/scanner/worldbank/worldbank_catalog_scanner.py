@@ -31,10 +31,11 @@ class WorldBankCatalogScanner(CatalogScanner):
             while True:
                 try:
                     r = await Retry()(client, 'get',
-                        f"https://datacatalogapi.worldbank.org/ddhxext/DatasetList", params={"$top": 100, "$skip": skip},
+                        f"https://datacatalogapi.worldbank.org/ddhxext/DatasetList", params={"$top": 99, "$skip": skip},
                         headers=headers,
                         timeout=240
                     )
+                    print('RRR', r.url)
                     r.raise_for_status()
                     r = r.json()
                 except Exception as e:
@@ -43,6 +44,7 @@ class WorldBankCatalogScanner(CatalogScanner):
                 data = r.get('data', [])
                 if config.debug:
                     rts.set(self.ctx, f"Getting skip {skip} of datasets from worldbank api, got {len(data)} datasets", 'info')
+                print('IDS', [x['dataset_unique_id'] for x in data][:10])
                 dataset_ids.extend(data)
                 if len(data) == 0 or self.done(len(dataset_ids)):
                     break
