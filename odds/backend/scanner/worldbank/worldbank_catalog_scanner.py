@@ -6,6 +6,7 @@ from ....common.datatypes import Dataset, Resource, DataCatalog
 from ....common.retry import Retry
 from ....common.realtime_status import realtime_status as rts
 from ..catalog_scanner import CatalogScanner
+from ...settings import ALLOWED_FORMATS
 
 
 class WorldBankCatalogScanner(CatalogScanner):
@@ -70,6 +71,7 @@ class WorldBankCatalogScanner(CatalogScanner):
                     for resource in dataset['Resources']
                     if resource.get('url')
                 ]
+                resources = list(r for r in resources if r.file_format in ALLOWED_FORMATS)
                 if len(resources) == 0:
                     continue
                 identification = dataset.get('identification', {})

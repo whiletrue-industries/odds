@@ -21,6 +21,7 @@ from ...common.config import config, CACHE_DIR
 from ...common.realtime_status import realtime_status as rts
 from ...common.llm import llm_runner
 from ...common.llm.llm_query import LLMQuery
+from ..settings import ALLOWED_FORMATS
 
 
 TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
@@ -92,20 +93,19 @@ class ResourceProcessor:
 
     sem: asyncio.Semaphore = None
 
-    ALLOWED_FORMATS = ['csv', 'xlsx', 'xls', 'website']
     MISSING_VALUES = ['None', 'NULL', 'N/A', 'NA', 'NAN', 'NaN', 'nan', '-']
     BIG_FILE_SIZE = 10000000
     MAX_FIELDS = 1000
 
     @staticmethod
     def check_format(resource: Resource):
-        if resource.file_format.lower() not in ResourceProcessor.ALLOWED_FORMATS:
+        if resource.file_format.lower() not in ALLOWED_FORMATS:
             return None
         return resource
     
     @staticmethod
     def format_idx(resource: Resource):
-        return ResourceProcessor.ALLOWED_FORMATS.index(resource.file_format.lower())
+        return ALLOWED_FORMATS.index(resource.file_format.lower())
 
     def limiter(self):
         def func(rows):
