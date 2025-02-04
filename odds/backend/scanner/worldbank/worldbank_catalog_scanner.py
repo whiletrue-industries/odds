@@ -28,8 +28,6 @@ class WorldBankCatalogScanner(CatalogScanner):
             headers.update(self.catalog.http_headers)
             dataset_ids = []
             while True:
-                if config.debug:
-                    rts.set(self.ctx, f"Getting skip {skip} of datasets from worldbank api")
                 try:
                     r = await Retry()(client, 'get',
                         f"https://datacatalogapi.worldbank.org/ddhxext/DatasetList", params={"$top": 100, "$skip": skip},
@@ -42,6 +40,8 @@ class WorldBankCatalogScanner(CatalogScanner):
                     rts.set(self.ctx, f"Error getting skip {skip} of datasets from worldbank api: {e!r}", 'error')
                     raise
                 data = r.get('data', [])
+                if config.debug:
+                    rts.set(self.ctx, f"Getting skip {skip} of datasets from worldbank api, got {len(data)} datasets", 'info')
                 dataset_ids.extend(data)
                 if len(data) == 0 or self.done(len(dataset_ids)):
                     break
