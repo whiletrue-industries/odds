@@ -28,7 +28,7 @@ class WorldBankCatalogScanner(CatalogScanner):
             headers.update(self.catalog.http_headers)
             while True:
                 if config.debug:
-                    rts.set(self.ctx, f"Getting page {page} of datasets from worldbank api")
+                    rts.set(self.ctx, f"Getting skip {skip} of datasets from worldbank api")
                 try:
                     r = await Retry()(client, 'get',
                         f"https://datacatalogapi.worldbank.org/ddhxext/DatasetList", params={"$top": 100, "$skip": skip},
