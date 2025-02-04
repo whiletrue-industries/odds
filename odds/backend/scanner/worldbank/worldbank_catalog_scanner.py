@@ -31,7 +31,7 @@ class WorldBankCatalogScanner(CatalogScanner):
             while True:
                 try:
                     r = await Retry()(client, 'get',
-                        f"https://datacatalogapi.worldbank.org/ddhxext/DatasetList", params={"$top": 99, "$skip": skip},
+                        f"https://datacatalogapi.worldbank.org/ddhxext/DatasetList?$top=100&$skip{skip}",
                         headers=headers,
                         timeout=240
                     )
