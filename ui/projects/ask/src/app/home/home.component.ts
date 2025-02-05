@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, Title, Meta } from '@angular/platform-browser';
 import { catchError, filter, from, map, switchMap, tap, timer } from 'rxjs';
 import { marked } from 'marked';
 import { environment } from '../../environments/environment';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ApiService } from '../api.service';
+import { ApiService, Deployment } from '../api.service';
 
 @Component({
     selector: 'app-home',
@@ -30,12 +30,14 @@ export class HomeComponent {
   loading = false;
   relatedQuestions: { question: string, id: string }[] = [];
   deployment_id: string = '';
-  deployment: any = null;
+  deployment: Deployment | null = null;
 
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
 
   constructor(private api: ApiService, private sanitizer: DomSanitizer, 
-              private route: ActivatedRoute, private router: Router) {
+              private route: ActivatedRoute, private router: Router, 
+              private title: Title, private meta: Meta
+            ) {
     this.route.params.pipe(
       switchMap((params) => {
         this.deployment_id = params['deployment'];
@@ -46,6 +48,8 @@ export class HomeComponent {
           return this.api.getDeployment(this.deployment_id).pipe(
             map((deployment) => {
               this.deployment = deployment;
+              this.title.setTitle(`Data Deep Search - ${deployment.agentOrgName}`);
+              this.meta.updateTag({ name: 'description', content: `Ask Anything, and we'll try to locate the answer in ${deployment.agentCatalogDescriptions}` });
               return params;
             })
           )

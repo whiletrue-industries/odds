@@ -3,6 +3,15 @@ import { Injectable } from '@angular/core';
 import { environment } from '../environments/environment';
 import { from, Observable, tap } from 'rxjs';
 
+export type Deployment = {
+  id: string,
+  catalogIds: string[],
+  agentOrgName: string,
+  agentCatalogDescriptions: string,
+  uiLogoHtml: string,
+  uiDisplayHtml: string
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -13,7 +22,7 @@ export class ApiService {
   constructor(private http: HttpClient) { 
   }
 
-  getDeployment(id: string): Observable<any> {
+  getDeployment(id: string): Observable<Deployment> {
     if (this.deployments[id]) {
       return from([this.deployments[id]]);
     } else {
