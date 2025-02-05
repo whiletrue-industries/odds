@@ -83,6 +83,7 @@ class WorldBankCatalogScanner(CatalogScanner):
                     description='\n'.join(filter(None, [identification.get('title'), identification.get('subtitle'), identification.get('description')])),
                     publisher=identification.get('citation'),
                     publisher_description='',
-                    resources=resources
+                    resources=resources,
+                    link=f'https://datacatalog.worldbank.org/search/dataset/{dataset_unique_id}'
                 )
                 yield dataset

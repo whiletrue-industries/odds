@@ -67,7 +67,10 @@ class ESQARepo(QARepo):
                 deployment_id=deployment_id,
                 embeddings=(await embedder.embed(question)).tolist()
             )
-            await client.create(index=ES_INDEX, id=id, body=body)
+            try:
+                await client.create(index=ES_INDEX, id=id, body=body)
+            except elasticsearch.ConflictError:
+                await client.update(index=ES_INDEX, id=id, body={'doc': body})
             return self.toQa(body)
 
     async def getQuestion(self, *, question: str=None, id: str=None, deployment_id: str=None) -> Optional[QA]:
