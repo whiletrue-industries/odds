@@ -71,6 +71,10 @@ export class HomeComponent {
       this.question = data.question;
       this.relatedQuestions = data.related;
       this.setAnswer(data.answer);
+      const shortQuestion = data.question.length > 100 ? data.question.slice(0, 100) + '…' : this.question;
+      const shortAnswer = data.answer.length > 100 ? data.answer.slice(0, 100) + '…' : data.answer;
+      this.title.setTitle(`${shortQuestion} | Data Deep Search - ${this.deployment?.agentOrgName || ''}`);
+      this.meta.updateTag({ name: 'description', content: shortAnswer});
     });
   }
 
