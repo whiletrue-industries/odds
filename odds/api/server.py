@@ -28,8 +28,9 @@ app.add_middleware(
 )
 
 @app.get("/datasets")
-async def search_datasets_handler(query: str) -> List[Dict[str, Any]]:
-    return await search_datasets(query, None)
+async def search_datasets_handler(query: str, deployment_id: str) -> List[Dict[str, Any]]:
+    deployment = await deployment_repo.get_deployment(deployment_id)
+    return await search_datasets(query, deployment.catalogIds)
 
 @app.get("/dataset/{id}")
 async def fetch_dataset_handler(id: str) -> Optional[Dict[str, Any]]:
