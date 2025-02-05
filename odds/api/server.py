@@ -16,7 +16,7 @@ from odds.common.deployment_repo import deployment_repo
 # - fetch_resource(id: str) -> Optional[Dict[str, str]]
 # - query_db(resource_id: str, query: str) -> Optional[Dict[str, Any]]
 
-app = FastAPI()
+app = FastAPI(openapi_url=None)
 
 # Enable CORS:
 app.add_middleware(
@@ -61,11 +61,6 @@ async def fetch_deployment(deployment_id: str) -> Optional[Dict[str, Any]]:
     if not dep:
         raise HTTPException(status_code=404, detail="Deployment not found")
     return dataclasses.asdict(dep)
-
-@app.exception_handler(404)
-async def custom_404_handler(request, __):
-    if request.url.path.startswith('/a/'):
-        return FileResponse('ui/index.html')
 
 # Run the server with:
 # uvicorn server:app --reload
