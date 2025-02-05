@@ -7,7 +7,9 @@
       properties:
         query:
           type: string
-          description: Describe the kind of data you are looking for. e.g. 'Data of government expenditures' or 'Statistics on crime rates'
+          description: |
+            The name the dataset you are looking for. e.g. 'Data of government expenditures' or 'Statistics on crime rates'.
+            If you're not sure about the name, provide a good guess of what such a dataset might be called.
       required:
         - query
 - type: function
