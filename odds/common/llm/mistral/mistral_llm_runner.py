@@ -10,17 +10,17 @@ from ...retry import Retry
 class MistralLLMRunner(LLMRunner):
 
     MODELS = dict(
-        cheap='open-mixtral-8x7b',
-        expensive='open-mixtral-8x22b',
+        cheap='mistral-small-latest',
+        expensive='mistral-small-latest',
     )
     COSTS = dict(
         cheap=dict(
-            prompt=0.7/1000000,
-            completion=0.7/1000000
+            prompt=.2/1000000,
+            completion=.6/1000000
         ),
         expensive=dict(
-            prompt=2/1000000,
-            completion=6/1000000
+            prompt=.2/1000000,
+            completion=.6/1000000
         ),
     )
 
