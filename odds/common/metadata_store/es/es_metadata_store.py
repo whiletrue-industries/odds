@@ -101,7 +101,12 @@ class ESMetadataStore(MetadataStore):
                         if k not in ['name', 'data_type']:
                             props[k] = field.pop(k)
                     field['props'] = json.dumps(props, ensure_ascii=False)
-            ret = await client.update(index='datasets', id=id, doc=body, doc_as_upsert=True)
+            try:
+                ret = await client.update(index='datasets', id=id, doc=body, doc_as_upsert=True)
+            except Exception as e:
+                rts.set(ctx, f'ERROR STORING DATASET {dataset.title} -> {id}: {e!r}', 'error')
+                json.dump(body, open(f'/srv/.caches/error_{id}.json', 'w'))
+                raise
         
     async def getDataset(self, datasetId: str) -> Dataset:
         async with ESClient() as client:
