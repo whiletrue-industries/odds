@@ -106,7 +106,6 @@ class ESMetadataStore(MetadataStore):
             except Exception as e:
                 rts.set(ctx, f'ERROR STORING DATASET {dataset.title} -> {id}: {e!r}', 'error')
                 json.dump(body, open(f'/srv/.caches/error_{id}.json', 'w'))
-                raise
         
     async def getDataset(self, datasetId: str) -> Dataset:
         async with ESClient() as client:
