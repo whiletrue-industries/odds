@@ -5,6 +5,7 @@ from .ckan.ckan_catalog_scanner import CKANCatalogScanner
 from .socrata.socrata_catalog_scanner import SocrataCatalogScanner
 from .website.website_scanner import WebsiteCatalogScanner
 from .worldbank.worldbank_catalog_scanner import WorldBankCatalogScanner
+from .arcgis.arcgis_catalog_scanner import ArcGISCatalogScanner
 
 
 class ScannerFactory:
@@ -18,3 +19,5 @@ class ScannerFactory:
             return WebsiteCatalogScanner(catalog, ctx)
         if catalog.kind == 'worldbank':
             return WorldBankCatalogScanner(catalog, ctx)
+        if catalog.kind == 'arcgis':
+            return ArcGISCatalogScanner(catalog, ctx)
