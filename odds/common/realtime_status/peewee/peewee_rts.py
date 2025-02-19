@@ -12,7 +12,7 @@ class PeeweeRealtimeStatus(RealtimeStatus):
 
     def set(self, ctx: str, message: str, kind='info') -> None:
         params = dict(
-            message=message,
+            message=message[:254],
             kind=kind,
             updated=datetime.datetime.now()
         )
