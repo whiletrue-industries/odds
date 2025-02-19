@@ -9,7 +9,8 @@ export type Deployment = {
   agentOrgName: string,
   agentCatalogDescriptions: string,
   uiLogoHtml: string,
-  uiDisplayHtml: string
+  uiDisplayHtml: string,
+  examples: string[],
 };
 
 @Injectable({

@@ -104,3 +104,4 @@ class Deployment:
     agentCatalogDescriptions: str
     uiLogoHtml: str
     uiDisplayHtml: str
+    examples: List[str]

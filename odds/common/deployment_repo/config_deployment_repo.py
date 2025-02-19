@@ -22,6 +22,7 @@ class ConfigDeploymentRepo(DeploymentRepo):
                 deployment['agent_catalog_descriptions'],
                 deployment['ui_logo_html'],
                 deployment['ui_display_html'],
+                deployment['examples']
             )
             for deployment in deployments
         ]

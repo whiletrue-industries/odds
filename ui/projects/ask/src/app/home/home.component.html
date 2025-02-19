@@ -29,14 +29,16 @@
         </div>
     } @else {
         @if (!answer) {
-            <div class='examples'>
-                <h3>Not sure what to search for? Here are a few examples:</h3>
-                <div class='example-list'>
-                    @for (example of EXAMPLES   ; track example) {
-                        <div class='example'>- &nbsp;"{{ example }}"</div>
-                    }
+            @if (deployment?.examples) {
+                <div class='examples'>
+                    <h3>Not sure what to search for? Here are a few examples:</h3>
+                    <div class='example-list'>
+                        @for (example of deployment?.examples ; track example) {
+                            <div class='example'>- &nbsp;"{{ example }}"</div>
+                        }
+                    </div>
                 </div>
-            </div>
+            }
         } @else {
             <div class='answer' [innerHTML]='answer'></div>
     
