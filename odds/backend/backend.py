@@ -61,7 +61,7 @@ class ODDSBackend:
     def scan_new(self) -> None:
         asyncio.run(self.scan(CatalogFilter(), DatasetFilterNew()))
 
-    def scan_specific(self, catalogId: str = None, datasetId: str = None) -> None:
+    def scan_specific(self, catalogId: str = None, datasetId: str = None, force=True) -> None:
         if catalogId:
             catalogFilter = CatalogFilterById(catalogId)
         else:
@@ -69,5 +69,8 @@ class ODDSBackend:
         if datasetId:
             datasetFilter = DatasetFilterById(datasetId)
         else:
-            datasetFilter = DatasetFilterForce()
+            if force:
+                datasetFilter = DatasetFilterForce()
+            else:
+                datasetFilter = DatasetFilterIncomplete()
         asyncio.run(self.scan(catalogFilter, datasetFilter))
