@@ -12,10 +12,11 @@ class PeeweeRealtimeStatus(RealtimeStatus):
 
     def set(self, ctx: str, message: str, kind='info') -> None:
         params = dict(
-            message=message[:254],
+            message=message,
             kind=kind,
             updated=datetime.datetime.now()
         )
+        ctx = ctx[:254]
         StatusModel.insert(ctx=ctx, **params)\
             .on_conflict('update', update=params, conflict_target=(StatusModel.ctx,))\
             .execute()
