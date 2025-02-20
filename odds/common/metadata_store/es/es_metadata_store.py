@@ -117,7 +117,11 @@ class ESMetadataStore(MetadataStore):
                 if not data:
                     return None
                 data = dict(data)
-                return dataset_factory(data)
+                try:
+                    return dataset_factory(data)
+                except Exception as e:
+                    print('ERROR PARSING DATASET', datasetId, e)
+                    return None
             return None
     
     async def hasDataset(self, datasetId: str) -> bool:
