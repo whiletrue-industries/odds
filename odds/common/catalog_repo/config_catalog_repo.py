@@ -20,7 +20,7 @@ class ConfigCatalogRepo(CatalogRepo):
                 description=catalog.get('description'),
                 geo=catalog.get('geo'),
                 http_headers=catalog.get('http_headers') or {},
-                ban=catalog.get('ban') or [],
+                ignore_query=catalog.get('ignore_query') or False,
             )
             for catalog in catalogs
         ]

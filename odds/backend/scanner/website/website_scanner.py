@@ -50,9 +50,9 @@ class Scraper:
             'em', 'i', 'li', 'ol', 'strong', 'ul', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'title'}
     CLEAN_TAGS = {'script', 'style', 'meta', 'iframe', 'nav', 'header', 'footer', 'form'}
 
-    def __init__(self, base_urls, ban_urls) -> None:
+    def __init__(self, base_urls, ignore_query=False) -> None:
         self.base_urls = base_urls
-        self.ban_urls = ban_urls
+        self.ignore_query = ignore_query
         self.q = asyncio.Queue()
         self.out_q = asyncio.Queue()
         self.outstanding = set()
@@ -136,8 +136,6 @@ class Scraper:
             if final_url != url:
                 if not any(final_url.startswith(base_url) for base_url in self.base_urls):
                     links = []
-                elif any(final_url.startswith(ban_url) for ban_url in self.ban_urls):
-                    links = []
                 else:
                     links = [final_url]
         # print(f'{url}: GOT STATUS', r.status_code)
@@ -189,10 +187,10 @@ class Scraper:
 
         _links = []
         for link in links:
-            if any(link.startswith(ban_url) for ban_url in self.ban_urls):
-                continue
             if any(link.startswith(base_url) for base_url in self.base_urls):
                 link = link.split('#')[0]
+                if self.ignore_query:
+                    link = link.split('?')[0]
                 link = link.strip()
                 _links.append(link)
         return _links
@@ -243,8 +241,8 @@ class WebsiteCatalogScanner(CatalogScanner):
         bases = self.catalog.url
         if not isinstance(bases, list):
             bases = [bases]
-        ban = self.catalog.ban or []
-        scraper = Scraper(bases, ban)
+        ignore_query = self.catalog.ignore_query or False
+        scraper = Scraper(bases, ignore_query)
         count = 0
         async for item in scraper():
             count += 1

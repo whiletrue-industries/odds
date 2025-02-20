@@ -94,7 +94,7 @@ class DataCatalog:
     description: str = None
     geo: str = None 
     http_headers: dict = field(default_factory=dict)
-    ban: List[str] = None
+    ignore_query: bool = None
 
 
 @dataclass
