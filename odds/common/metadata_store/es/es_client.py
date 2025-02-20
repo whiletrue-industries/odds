@@ -13,7 +13,7 @@ class ESClient:
         es = AsyncElasticsearch(
             f'https://{config.credentials.es.host}:{config.credentials.es.port}/',
             basic_auth=(config.credentials.es.username, config.credentials.es.password),
-            ca_certs=config.credentials.es.ca_cert_path, timeout=30
+            ca_certs=config.credentials.es.ca_cert_path, request_timeout=60, retry_on_timeout=True
         )
         return es
 
