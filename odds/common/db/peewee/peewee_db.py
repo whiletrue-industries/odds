@@ -40,12 +40,13 @@ class PeeweeDBStorage(DBStorage):
             versions=dataset.versions,
             link=dataset.link,
         )
-        DatasetModel.insert(id=dataset.storeId(), **params)\
+        id = dataset.storeId()[:254]
+        DatasetModel.insert(id=id, **params)\
             .on_conflict('update', update=params, conflict_target=(DatasetModel.id,))\
             .execute()
         current_urls = set()
         for resource in dataset.resources:
-            self.storeResource(dataset.storeId(), resource)
+            self.storeResource(id, resource)
             current_urls.add(resource.url)
         ResourceModel.delete().where(ResourceModel.dataset == dataset.storeId()).where(ResourceModel.url.not_in(current_urls)).execute()
 
