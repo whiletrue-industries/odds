@@ -102,7 +102,8 @@ class Scraper:
                 content_hash = sha256(content_.encode()).hexdigest()
                 content_hash_file = self.CACHE_HASHES / f'{content_hash}.touch'
                 if not content_hash_file.exists():
-                    content_hash_file.open('w').write(content_hash).close()
+                    with content_hash_file.open('w') as f:
+                        f.write(content_hash)
                 print(f'GOT FROM CACHE: {url} -> {final_url}')
 
         if content is None:
@@ -117,8 +118,8 @@ class Scraper:
                     content_hash = sha256(content_.encode()).hexdigest()
                     content_hash_file = self.CACHE_HASHES / f'{content_hash}.touch'
                     if not content_hash_file.exists():
-                        content = content_
-                        content_hash_file.open('w').write(content_hash).close()
+                        with content_hash_file.open('w') as f:
+                            f.write(content_hash)
                         content = content_
                 final_url = str(r.url)
                 with open(cache_file, 'w') as file:
