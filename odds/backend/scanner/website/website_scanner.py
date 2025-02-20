@@ -107,7 +107,13 @@ class Scraper:
                 # check content type to ensure it's html:
                 content_type = r.headers.get('content-type', '').lower()
                 if content_type.startswith('text/html'):
-                    content = r.text
+                    content_ = r.text
+                    content_hash = sha256(content_.encode()).hexdigest()
+                    content_hash_file = self.CACHE / f'{content_hash}.touch'
+                    if not content_hash_file.exists():
+                        content = content_
+                        content_hash_file.open('w').write(content_hash).close()
+                        content = content_
                 final_url = str(r.url)
                 with open(cache_file, 'w') as file:
                     json.dump({
