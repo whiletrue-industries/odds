@@ -88,12 +88,13 @@ class Dataset:
 @dataclass
 class DataCatalog:
     id: str
-    kind: Literal['CKAN', 'Socrata', 'data.json', 'other', 'website']
+    kind: Literal['CKAN', 'Socrata', 'data.json', 'other', 'website', 'arcgis']
     url: str | List[str]
     title: str
     description: str = None
     geo: str = None 
     http_headers: dict = field(default_factory=dict)
+    ban: List[str] = None
 
 
 @dataclass

@@ -19,7 +19,8 @@ class ConfigCatalogRepo(CatalogRepo):
                 catalog['id'], catalog['kind'], catalog['url'], catalog['title'],
                 description=catalog.get('description'),
                 geo=catalog.get('geo'),
-                http_headers=catalog.get('http_headers') or {}
+                http_headers=catalog.get('http_headers') or {},
+                ban=catalog.get('ban') or [],
             )
             for catalog in catalogs
         ]
