@@ -82,9 +82,11 @@ class Scraper:
         title = None
         final_url = None
         key = url.split('://')[1].replace('/', '_').replace(':', '_').replace('.', '_').replace('?', '_').replace('&', '_')
-        if len(key) > 240:
+        maxlen = 255 - len('.clean.html')
+        croplen = maxlen - 12 - 1
+        if len(key) > maxlen:
             hash = sha256(key.encode()).hexdigest()[:12]
-            fkey = f'{key[:240]}_{hash}'
+            fkey = f'{key[:croplen]}_{hash}'
         else:
             fkey = key
         cache_file = self.CACHE / f'{fkey}.json'
