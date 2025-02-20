@@ -44,6 +44,7 @@ class Scraper:
     WORKER_COUNT = 5
     PERIOD = 0.25
     CACHE = CACHE_DIR / 'web-scraper'
+    CACHE_HASHES = CACHE / 'hashes'
     WS = re.compile(r'\s+', re.UNICODE | re.MULTILINE)
     ALLOWED_TAGS = {'a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
             'em', 'i', 'li', 'ol', 'strong', 'ul', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'title'}
@@ -57,6 +58,7 @@ class Scraper:
         self.all_urls = set()
         self.all_hashes = set()
         self.CACHE.mkdir(parents=True, exist_ok=True)
+        self.CACHE_HASHES.mkdir(parents=True, exist_ok=True)
 
     async def queue(self, url: str) -> None:
         if url not in self.all_urls:
@@ -97,6 +99,10 @@ class Scraper:
                 content = data.get('content')
                 content_type = data.get('content_type')
                 final_url = data.get('final_url')
+                content_hash = sha256(content_.encode()).hexdigest()
+                content_hash_file = self.CACHE_HASHES / f'{content_hash}.touch'
+                if not content_hash_file.exists():
+                    content_hash_file.open('w').write(content_hash).close()
                 print(f'GOT FROM CACHE: {url} -> {final_url}')
 
         if content is None:
@@ -109,7 +115,7 @@ class Scraper:
                 if content_type.startswith('text/html'):
                     content_ = r.text
                     content_hash = sha256(content_.encode()).hexdigest()
-                    content_hash_file = self.CACHE / f'{content_hash}.touch'
+                    content_hash_file = self.CACHE_HASHES / f'{content_hash}.touch'
                     if not content_hash_file.exists():
                         content = content_
                         content_hash_file.open('w').write(content_hash).close()
