@@ -100,7 +100,7 @@ class Scraper:
                 content = data.get('content')
                 content_type = data.get('content_type')
                 final_url = data.get('final_url')
-                content_hash = sha256(content_.encode()).hexdigest()
+                content_hash = sha256(content.encode()).hexdigest()
                 content_hash_file = self.CACHE_HASHES / f'{content_hash}.touch'
                 if not content_hash_file.exists():
                     with content_hash_file.open('w') as f:
