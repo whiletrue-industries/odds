@@ -50,7 +50,7 @@ class ArcGISCatalogScanner(CatalogScanner):
                     startindex += 1
                     id = row['id']
                     properties = row['properties']
-                    if properties['type'] != 'CSV':
+                    if properties['type'] != filetype:
                         continue
                     if id in used_ids:
                         print(f"Skipping duplicate resource {id}")
