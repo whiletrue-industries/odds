@@ -22,19 +22,18 @@ class ArcGISCatalogScanner(CatalogScanner):
             return True
         return False
 
-    async def scan(self) -> AsyncIterator[Dataset]:
+    async def scan_aux(self, collection, filetype) -> AsyncIterator[Dataset]:
         num_rows = 0
         startindex = 1
         used_ids = set()
         async with httpx.AsyncClient() as client:
             headers.update(self.catalog.http_headers)
-            domain = self.catalog.url.split('//')[1].split('/')[0]
             while True:
                 if config.debug:
                     rts.set(self.ctx, f"Getting offset {startindex-1} of datasets from {self.catalog.url}")
                 try:
                     r = await Retry()(client, 'get',
-                        f"{self.catalog.url}/api/search/v1/collections/dataset/items", params={"startindex": startindex, "filter": "type='CSV'"},
+                        f"{self.catalog.url}/api/search/v1/collections/{collection}/items", params={"startindex": startindex, "filter": f"type='{filetype}'"},
                         headers=headers,
                         timeout=60
                     )
@@ -60,6 +59,7 @@ class ArcGISCatalogScanner(CatalogScanner):
                     title = row['properties']['title']
                     description = row['properties']['description']
                     filename = properties['name']
+                    file_format = filename.split('.')[-1].lower()
                     publisher = properties['source']
                     link = f'{self.catalog.url}/datasets/{id}/about'
 
@@ -69,7 +69,7 @@ class ArcGISCatalogScanner(CatalogScanner):
                     resources = [
                         Resource(
                             f'{data_url}#{filename}',
-                            'csv',
+                            file_format,
                             title=filename,
                         )
                     ]
@@ -84,3 +84,9 @@ class ArcGISCatalogScanner(CatalogScanner):
                     yield dataset
                     if self.done(num_rows):
                         break
+
+    async def scan(self) -> AsyncIterator[Dataset]:
+        async for dataset in self.scan_aux('dataset', 'CSV'):
+            yield dataset
+        async for dataset in self.scan_aux('document', 'Microsoft Excel'):
+            yield dataset
