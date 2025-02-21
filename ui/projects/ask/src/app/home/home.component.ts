@@ -91,10 +91,11 @@ export class HomeComponent {
     });
   }
 
-  ask() {
-    if (this.question) {
+  ask(example?: string) {
+    const question = example || this.question;
+    if (question) {
       this.loading = true;
-      this.api.getAnswer(undefined, this.question, this.deployment_id)
+      this.api.getAnswer(undefined, question, this.deployment_id)
       .pipe(
         catchError((error) => {
           this.setAnswer('Error: ' + error.message);

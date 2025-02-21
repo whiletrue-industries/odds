@@ -33,8 +33,10 @@
                 <div class='examples'>
                     <h3>Not sure what to search for? Here are a few examples:</h3>
                     <div class='example-list'>
-                        @for (example of deployment?.examples ; track example) {
-                            <div class='example'>- &nbsp;"{{ example }}"</div>
+                        @for (example of deployment?.examples ; track example) {                        
+                            <div class='example'>- &nbsp;"
+                                <a (click)='ask(example)'>{{ example }}</a>
+                            "</div>
                         }
                     </div>
                 </div>
