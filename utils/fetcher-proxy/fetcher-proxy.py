@@ -21,11 +21,20 @@ async def fetch_url(request: Request, url: str):
         }
         timeout = 30.0
         async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.get(url, headers=headers)
-            return {
-                "status_code": response.status_code,
-                "body": response.text,
-                "url": response.url
-            }
+            try:
+                response = await client.get(url, headers=headers)
+                return {
+                    "status_code": response.status_code,
+                    "body": response.text,
+                    "url": response.url,
+                    "content-type": response.headers.get("content-type"),
+                }
+            except Exception as e:
+                return {
+                    "status_code": 599,
+                    "body": str(e),
+                    "url": url,
+                    "content-type": "text/plain",
+                }
     except httpx.RequestError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
