@@ -95,6 +95,7 @@ class DataCatalog:
     geo: str = None 
     http_headers: dict = field(default_factory=dict)
     ignore_query: bool = None
+    fetcher_proxy: str = None
 
 
 @dataclass

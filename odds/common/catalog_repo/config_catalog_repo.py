@@ -21,6 +21,7 @@ class ConfigCatalogRepo(CatalogRepo):
                 geo=catalog.get('geo'),
                 http_headers=catalog.get('http_headers') or {},
                 ignore_query=catalog.get('ignore_query') or False,
+                fetcher_proxy=catalog.get('fetcher_proxy'),
             )
             for catalog in catalogs
         ]

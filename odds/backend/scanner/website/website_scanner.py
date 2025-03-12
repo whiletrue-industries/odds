@@ -251,7 +251,8 @@ class WebsiteCatalogScanner(CatalogScanner):
         if not isinstance(bases, list):
             bases = [bases]
         ignore_query = self.catalog.ignore_query or False
-        scraper = Scraper(bases, ignore_query)
+        fetcher_proxy = self.catalog.fetcher_proxy or None
+        scraper = Scraper(bases, ignore_query=ignore_query, fetcher_proxy=fetcher_proxy)
         count = 0
         async for item in scraper():
             count += 1
