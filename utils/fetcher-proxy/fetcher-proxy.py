@@ -24,7 +24,8 @@ async def fetch_url(request: Request, url: str):
             response = await client.get(url, headers=headers)
             return {
                 "status_code": response.status_code,
-                "body": response.text
+                "body": response.text,
+                "url": response.url
             }
     except httpx.RequestError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
