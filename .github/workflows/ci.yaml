@@ -55,3 +55,16 @@ jobs:
             docker tag pr "${DOCKER_APP_IMAGE_NAME_PROXY}:latest" &&\
             docker push "${DOCKER_APP_IMAGE_NAME_PROXY}:latest"
           fi
+      - name: Build PROXY-FETCHER Docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_APP_IMAGE_NAME_FETCHER_PROXY: "ghcr.io/whiletrue-industries/odds/odds-fetcher-proxy"
+        run: |
+          cd utils/fetcher-proxy &&\
+          docker build --build-arg VERSION=${GITHUB_SHA} -t pf  . &&\
+          docker tag pf "${DOCKER_APP_IMAGE_NAME_FETCHER_PROXY}:${GITHUB_SHA}" &&\
+          docker push "${DOCKER_APP_IMAGE_NAME_FETCHER_PROXY}:${GITHUB_SHA}" &&\
+          if [ "${GITHUB_REF}" == "refs/heads/main" ]; then
+            docker tag pf "${DOCKER_APP_IMAGE_NAME_FETCHER_PROXY}:latest" &&\
+            docker push "${DOCKER_APP_IMAGE_NAME_FETCHER_PROXY}:latest"
+          fi
