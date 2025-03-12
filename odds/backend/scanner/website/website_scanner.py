@@ -50,8 +50,9 @@ class Scraper:
             'em', 'i', 'li', 'ol', 'strong', 'ul', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'title'}
     CLEAN_TAGS = {'script', 'style', 'meta', 'iframe', 'nav', 'header', 'footer', 'form'}
 
-    def __init__(self, base_urls, ignore_query=False) -> None:
+    def __init__(self, base_urls, ignore_query=False, fetcher_proxy=None) -> None:
         self.base_urls = base_urls
+        self.fetcher_proxy = fetcher_proxy
         self.ignore_query = ignore_query
         self.q = asyncio.Queue()
         self.out_q = asyncio.Queue()
@@ -110,19 +111,27 @@ class Scraper:
         if content is None:
             async with httpx.AsyncClient() as client:
                 await asyncio.sleep(self.PERIOD * self.WORKER_COUNT)
-                r = await client.get(url, follow_redirects=True, headers=self.headers, timeout=30)
-                r.raise_for_status()
+                if self.fetcher_proxy:
+                    r = await client.get(f'{self.fetcher_proxy}/fetch', params=dict(url=url), timeout=30)
+                    r.raise_for_status()
+                    r = r.json()
+                    final_url = r['url']
+                    content_type = r['content-type']
+                    text = r['body']
+                else:
+                    r = await client.get(url, follow_redirects=True, headers=self.headers, timeout=30)
+                    r.raise_for_status()
+                    final_url = str(r.url)
+                    content_type = r.headers.get('content-type', '').lower()
+                    text = r.text
                 # check content type to ensure it's html:
-                content_type = r.headers.get('content-type', '').lower()
                 if content_type.startswith('text/html'):
-                    content_ = r.text
-                    content_hash = sha256(content_.encode()).hexdigest()
+                    content_hash = sha256(text.encode()).hexdigest()
                     content_hash_file = self.CACHE_HASHES / f'{content_hash}.touch'
                     if not content_hash_file.exists():
                         with content_hash_file.open('w') as f:
                             f.write(content_hash)
-                        content = content_
-                final_url = str(r.url)
+                        content = text
                 with open(cache_file, 'w') as file:
                     json.dump({
                         'content': content,
