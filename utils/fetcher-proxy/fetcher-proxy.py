@@ -26,7 +26,7 @@ async def fetch_url(request: Request, url: str):
                 return {
                     "status_code": response.status_code,
                     "body": response.text,
-                    "url": response.url,
+                    "url": str(response.url),
                     "content-type": response.headers.get("content-type"),
                 }
             except Exception as e:
