@@ -20,7 +20,7 @@ ROOT = Path(__file__).parent.parent.parent
 
 async def loop(client, thread, stream, usage, deployment):
     while True:
-        event: AssistantStreamEvent = next(stream)
+        event: AssistantStreamEvent = await stream.__anext__()
         if event.event == 'thread.run.completed':
             if run.usage:
                 usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
@@ -144,10 +144,11 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
         usage = CostCollector('assistant', OpenAILLMRunner.COSTS)
 
         yield dict(type='status', value='running')
-        stream = client.beta.threads.runs.stream(
+        stream = client.beta.threads.runs.create(
             thread_id=thread.id,
             assistant_id=assistant_id,
             temperature=0,
+            stream=True
         )
 
         # if run.usage: TODO
