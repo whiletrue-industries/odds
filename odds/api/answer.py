@@ -73,7 +73,8 @@ async def loop(client, thread, stream, usage, deployment):
                 except Exception as e:
                     print("Failed to submit tool outputs:", e)
             else:
-                return False, 'No tool outputs to submit.'
+                yield dict(type='error', value='No tool outputs to submit.')
+                return
         elif event.event == 'thread.message.delta':
             text = ''
             for block in event.data.delta.content:
@@ -163,6 +164,7 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
                 result = msg
                 if 'type' in msg:
                     yield msg
+                assert not msg.get('type') == 'error', msg.get('value')
             success, error = result['success'], result['error']
         except Exception as e:
             error = str(e)
