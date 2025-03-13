@@ -10,6 +10,7 @@ from odds.common.cost_collector import CostCollector
 from odds.common.llm.openai.openai_llm_runner import OpenAILLMRunner
 
 from openai import AsyncOpenAI
+from openai.types.beta.assistant_stream_event import AssistantStreamEvent
 
 from ..common.config import config
 from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, query_db
@@ -17,12 +18,17 @@ from .evaluate_answer import evaluate
 
 ROOT = Path(__file__).parent.parent.parent
 
-async def loop(client, thread, run, usage, deployment):
+async def loop(client, thread, stream, usage, deployment):
     while True:
-        print('RUN:', run.status)
-        if run.status == 'completed': 
-            return True, None
-        elif run.status == 'requires_action':
+        event: AssistantStreamEvent = await stream.__anext__()
+        if event.event == 'thread.run.completed':
+            if run.usage:
+                usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
+                usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
+            yield dict(success=True, error=None)
+            return
+        elif event.event == 'thread.run.requires_action':
+            run = event.data
             tool_outputs = []
             for tool in run.required_action.submit_tool_outputs.tool_calls:
                 if not tool.type == 'function':
@@ -30,6 +36,10 @@ async def loop(client, thread, run, usage, deployment):
                 print(f'TOOL - {tool.type}: {tool.function.name}({tool.function.arguments})')
                 arguments = json.loads(tool.function.arguments)
                 function_name = tool.function.name
+                yield dict(type='tool', value=dict(
+                    name=function_name,
+                    arguments=arguments
+                ))
                 if function_name == 'search_datasets':
                     query = arguments['query']
                     output = await search_datasets(query, deployment.catalogIds)
@@ -52,22 +62,26 @@ async def loop(client, thread, run, usage, deployment):
             # Submit all tool outputs at once after collecting them in a list
             if tool_outputs:
                 try:
-                    run = await client.beta.threads.runs.submit_tool_outputs_and_poll(
+                    stream = await client.beta.threads.runs.submit_tool_outputs_and_poll(
                         thread_id=thread.id,
                         run_id=run.id,
                         tool_outputs=tool_outputs,
+                        stream=True
                     )
-                    if run.usage:
-                        usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
-                        usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
                     print("Tool outputs submitted successfully.")
                     continue
                 except Exception as e:
                     print("Failed to submit tool outputs:", e)
             else:
                 return False, 'No tool outputs to submit.'
+        elif event.event == 'thread.message.delta':
+            text = ''
+            for block in event.data.delta.content:
+                if block.type == 'text':
+                    text += block.value
+            yield dict(type='text', value=text)
         else:
-            return False, str(run.status)
+            print(f'Event: {event.event}')
 
 assistant_ids = dict()
 async def get_assistant_id(client: AsyncOpenAI, deployment: Deployment):
@@ -101,9 +115,11 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
     ret = dict()
     qa = await qa_repo.getQuestion(question=question, id=question_id, deployment_id=deployment_id)
     if question_id and not qa:
-        return None
+        yield dict(type='not-found')
+        return
     
     if qa is None:
+        yield dict(type='status', value='preparing')
         deployment = await deployment_repo.get_deployment(deployment_id)
 
         client = AsyncOpenAI(
@@ -126,19 +142,28 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
 
         usage = CostCollector('assistant', OpenAILLMRunner.COSTS)
 
-        run = await client.beta.threads.runs.create_and_poll(
+        yield dict(type='status', value='running')
+        stream = client.beta.threads.runs.stream(
             thread_id=thread.id,
             assistant_id=assistant_id,
             temperature=0,
         )
-        if run.usage:
-            usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
-            usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
 
-        success = False
-        error = None
+        # if run.usage: TODO
+        #     usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
+        #     usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
+        # success = False
+        # error = None
+        # try:
+        #     success, error = await loop(client, thread, run, usage, deployment)
+
         try:
-            success, error = await loop(client, thread, run, usage, deployment)
+            result = None    
+            async for msg in loop(client, thread, stream, usage, deployment):
+                result = msg
+                if 'type' in msg:
+                    yield msg
+            success, error = result['success'], result['error']
         except Exception as e:
             error = str(e)
         finally:
@@ -159,7 +184,7 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
             )
             if not error:
                 ret['answer'] = answer
-
+            yield dict(type='status', value='complete')
 
     else:
         ret.update(
@@ -173,4 +198,4 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
             qa = await qa_repo.storeQA(question, answer, evaluation['success'], evaluation['score'], deployment_id)
             ret['id'] = qa.id
         ret['related'] = [dataclasses.asdict(x) for x in await qa_repo.findRelated(ret['question'], ret['id'], deployment_id)]
-    return ret
+    yield dict(type='answer', value=ret)
