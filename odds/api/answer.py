@@ -20,7 +20,7 @@ ROOT = Path(__file__).parent.parent.parent
 
 async def loop(client, thread, stream, usage, deployment):
     while True:
-        event: AssistantStreamEvent = await stream.__anext__()
+        event: AssistantStreamEvent = next(stream)
         if event.event == 'thread.run.completed':
             if run.usage:
                 usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
