@@ -21,6 +21,7 @@ ROOT = Path(__file__).parent.parent.parent
 async def loop(client, thread, stream, usage, deployment):
     while True:
         event: AssistantStreamEvent = await stream.__anext__()
+        print(f'Event: {event.event}, data: {event.data!r}')
         if event.event == 'thread.run.completed':
             if run.usage:
                 usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
@@ -62,7 +63,7 @@ async def loop(client, thread, stream, usage, deployment):
             # Submit all tool outputs at once after collecting them in a list
             if tool_outputs:
                 try:
-                    stream = await client.beta.threads.runs.submit_tool_outputs_and_poll(
+                    stream = await client.beta.threads.runs.submit_tool_outputs(
                         thread_id=thread.id,
                         run_id=run.id,
                         tool_outputs=tool_outputs,
@@ -81,8 +82,6 @@ async def loop(client, thread, stream, usage, deployment):
                 if block.type == 'text':
                     text += block.value
             yield dict(type='text', value=text)
-        else:
-            print(f'Event: {event.event}')
 
 assistant_ids = dict()
 async def get_assistant_id(client: AsyncOpenAI, deployment: Deployment):
