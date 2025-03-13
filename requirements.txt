@@ -18,4 +18,4 @@ openai
 pyyaml
 nh3
 beautifulsoup4
-aiohttp-sse
+sse_starlette
