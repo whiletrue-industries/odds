@@ -158,8 +158,9 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
         # try:
         #     success, error = await loop(client, thread, run, usage, deployment)
 
+        success, error = False, None
         try:
-            result = None    
+            result = None
             async for msg in loop(client, thread, stream, usage, deployment):
                 result = msg
                 if 'type' in msg:
