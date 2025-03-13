@@ -79,8 +79,8 @@ async def loop(client, thread, stream, usage, deployment):
         elif event.event == 'thread.message.delta':
             text = ''
             for block in event.data.delta.content:
-                if block.type == 'text':
-                    text += block.text
+                if block.type == 'text' and block.text.value:
+                    text += block.text.value
             yield dict(type='text', value=text)
 
 assistant_ids = dict()
