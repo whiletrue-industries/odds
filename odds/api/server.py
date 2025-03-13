@@ -1,3 +1,4 @@
+import json
 import dataclasses
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,7 +74,7 @@ async def answer_streaming_handler(q: Optional[str] = None, id: Optional[str] = 
     check_answer(deployment_id, q, id)
     async def gen():
         async for msg in answer_question(question=q, question_id=id, deployment_id=deployment_id):
-            yield dict(data=msg)
+            yield dict(data=json.dumps(msg, ensure_ascii=False))
     return EventSourceResponse(gen(), headers=CORS_HEADERS)
 
 @app.get("/deployment/{deployment_id}")
