@@ -73,7 +73,7 @@ async def answer_streaming_handler(q: Optional[str] = None, id: Optional[str] = 
     check_answer(deployment_id, q, id)
     async def gen():
         async for msg in answer_question(question=q, question_id=id, deployment_id=deployment_id):
-            yield msg
+            yield dict(data=msg)
     return EventSourceResponse(gen())
 
 @app.get("/deployment/{deployment_id}")
