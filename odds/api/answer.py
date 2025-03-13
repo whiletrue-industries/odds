@@ -144,7 +144,7 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
         usage = CostCollector('assistant', OpenAILLMRunner.COSTS)
 
         yield dict(type='status', value='running')
-        stream = client.beta.threads.runs.create(
+        stream = await client.beta.threads.runs.create(
             thread_id=thread.id,
             assistant_id=assistant_id,
             temperature=0,
