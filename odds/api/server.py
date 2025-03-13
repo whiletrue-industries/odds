@@ -74,7 +74,7 @@ async def answer_streaming_handler(q: Optional[str] = None, id: Optional[str] = 
     async def gen():
         async for msg in answer_question(question=q, question_id=id, deployment_id=deployment_id):
             yield msg
-    return EventSourceResponse(gen)
+    return EventSourceResponse(gen())
 
 @app.get("/deployment/{deployment_id}")
 async def fetch_deployment(deployment_id: str) -> Optional[Dict[str, Any]]:
