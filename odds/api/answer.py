@@ -21,7 +21,7 @@ ROOT = Path(__file__).parent.parent.parent
 async def loop(client, thread, stream, usage, deployment):
     while True:
         event: AssistantStreamEvent = await stream.__anext__()
-        print(f'Event: {event.event}, data: {event.data!r}')
+        print(f'Event: {event.event}, data: {repr(event.data)[:100]}')
         if event.event == 'thread.run.completed':
             if run.usage:
                 usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
@@ -80,7 +80,7 @@ async def loop(client, thread, stream, usage, deployment):
             text = ''
             for block in event.data.delta.content:
                 if block.type == 'text':
-                    text += block.value
+                    text += block.text
             yield dict(type='text', value=text)
 
 assistant_ids = dict()
