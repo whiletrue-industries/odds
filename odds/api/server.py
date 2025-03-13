@@ -71,7 +71,7 @@ async def answer_handler(q: Optional[str] = None, id: Optional[str] = None, depl
 @app.get("/answer-streaming")
 async def answer_streaming_handler(q: Optional[str] = None, id: Optional[str] = None, deployment_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     check_answer(deployment_id, q, id)
-    return EventSourceResponse(answer_question(question=q, question_id=id, deployment_id=deployment_id))
+    return EventSourceResponse(dict(data=ev) for ev in answer_question(question=q, question_id=id, deployment_id=deployment_id))
 
 @app.get("/deployment/{deployment_id}")
 async def fetch_deployment(deployment_id: str) -> Optional[Dict[str, Any]]:
