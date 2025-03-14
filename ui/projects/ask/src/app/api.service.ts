@@ -50,9 +50,8 @@ export class ApiService {
     // Use SSE to get streaming answers
     return new Observable(observer => {
       const params: any = {deployment_id, q};
-      const url = new URL(environment.endpointStreaming);
-      url.search = new URLSearchParams(params).toString();
-      const eventSource = new EventSource(url.toString());
+      const url = `${environment.endpointStreaming}?${new URLSearchParams(params).toString()}`;
+      const eventSource = new EventSource(url);
       eventSource.onmessage = (event) => {
         // console.log('EVENT', event);
         try {
