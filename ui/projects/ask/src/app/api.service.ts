@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { environment } from '../environments/environment';
 import { from, Observable, tap } from 'rxjs';
 
@@ -20,7 +20,7 @@ export class ApiService {
 
   deployments: any = {};
 
-  constructor(private http: HttpClient) { 
+  constructor(private http: HttpClient, private zone: NgZone) { 
   }
 
   getDeployment(id: string): Observable<Deployment> {
@@ -44,5 +44,35 @@ export class ApiService {
       params['q'] = q;
     }
     return this.http.get(environment.endpoint, {params});
+  }
+
+  getAnswerStreaming(q: string, deployment_id: string): Observable<any> {
+    // Use SSE to get streaming answers
+    return new Observable(observer => {
+      const params: any = {deployment_id, q};
+      const url = new URL(environment.endpointStreaming);
+      url.search = new URLSearchParams(params).toString();
+      const eventSource = new EventSource(url.toString());
+      eventSource.onmessage = (event) => {
+        // console.log('EVENT', event);
+        try {
+          this.zone.run(() => {
+            observer.next(JSON.parse(event.data));
+          });
+        } catch (error) {
+          console.error('PARSE ERROR', error);
+          observer.error(error);
+        }
+      };
+      eventSource.onerror = (error) => {
+        console.error('EVENTSOURCE ERROR', error);
+        eventSource.close(); //
+        observer.complete();
+        // observer.error(error);
+      };
+      return () => {
+        eventSource.close();
+      };
+    });
   }
 }

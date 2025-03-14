@@ -4,10 +4,25 @@
     font-style: normal;
 }
 
-.gaoek-one {
-    font-family: "Gascoek One", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
+.font-icons {
+    font-family: 'Material Symbols Outlined', sans-serif;
+    font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24
+}
+
+.icon-check-circle {
+    content: '\e86c';
+}
+
+.icon-settings {
+    content: '\e8b8';
+}
+
+.icon-database-search {
+    content: '\f38e';
 }
 
 .font-sans-100 {
@@ -50,9 +65,10 @@
     font-weight: 800;
 }
 
-.font-logo-800 {
-    .gaoek-one;
-    font-weight: 800;
+.font-logo-700 {
+    font-optical-sizing: auto;
+    .open-sans;
+    font-weight: 700;
 }
 
 @color-gray-1: #333231; // neutral-700
@@ -74,6 +90,8 @@
 @color-blue-6: #DAE5FE; // primary-200
 @color-blue-7: #E9F0FE; // primary-150
 @color-blue-8: #F8FBFF; // primary-100
+
+@color-green-2: #00A86B; 
 
 .background-image {
     background-repeat: no-repeat;
@@ -106,3 +124,29 @@
         display: none !important;
     }
 });
+
+.animation-rotate {
+    animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.animation-move-on-a-circle {
+    animation: move-on-a-circle 3s linear infinite;
+}
+
+@keyframes move-on-a-circle {
+    0% {
+        transform: rotate(0deg) translateX(3px) rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg) translateX(3px) rotate(-360deg);
+    }
+}

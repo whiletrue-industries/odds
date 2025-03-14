@@ -170,6 +170,7 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
         except Exception as e:
             error = str(e)
         finally:
+            yield dict(type='status', value='complete')
             messages = await client.beta.threads.messages.list(
                 thread_id=thread.id, order='asc'
             )
@@ -187,7 +188,6 @@ async def answer_question(*, question=None, question_id=None, deployment_id=None
             )
             if not error:
                 ret['answer'] = answer
-            yield dict(type='status', value='complete')
 
     else:
         ret.update(

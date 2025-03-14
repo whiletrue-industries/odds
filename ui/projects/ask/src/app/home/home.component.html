@@ -11,7 +11,7 @@
     
     
     <div class='input' [class.answer]='!!answer'>
-        @if (!loading && !answer) {
+        @if (!fullAnswer) {
             <input #input placeholder='what are you looking for?' [(ngModel)]='question' [disabled]='!!loading || !!answer' (keydown)='keydown($event)'>
         } @else {
             <div class='question'>{{ question }}</div>
@@ -21,40 +21,42 @@
         }
     </div>
     
-    @if (loading) {
-        <div class="loading">
-            <span class="loading-bar"></span>
-            <span class="loading-bar"></span>
-            <span class="loading-bar"></span>
-        </div>
-    } @else {
-        @if (!answer) {
-            @if (deployment?.examples) {
-                <div class='examples'>
-                    <h3>Not sure what to search for? Here are a few examples:</h3>
-                    <div class='example-list'>
-                        @for (example of deployment?.examples ; track example) {                        
-                            <div class='example'>- &nbsp;"
-                                <a (click)='ask(example)'>{{ example }}</a>
-                            "</div>
-                        }
-                    </div>
-                </div>
-            }
-        } @else {
-            <div class='answer' [innerHTML]='answer'></div>
-    
-            <div class='related'>
-                <h3>Related Questions</h3>
-                <div class='related-list'>
-                    @if (relatedQuestions.length) {
-                        @for (related of relatedQuestions; track related.id) {
-                            <a class='related-question' [routerLink]='["/" + deployment_id, "a", related.id]'>{{ related.question }}</a>
-                        }
+    @if (!answer && !steps.length) {
+        @if (deployment?.examples) {
+            <div class='examples'>
+                <h3>Not sure what to search for? Here are a few examples:</h3>
+                <div class='example-list'>
+                    @for (example of deployment?.examples ; track example) {                        
+                        <div class='example'>- &nbsp;"
+                            <a (click)='ask(example)'>{{ example }}</a>
+                        "</div>
                     }
-                    <a class='ask-again' [routerLink]='["/" + deployment_id]'>Ask a new question</a>
                 </div>
             </div>
         }
+    } @else if (!answer) {
+        <div class='steps'>
+            @for (step of steps; track $index) {
+                <div class='step' [attr.data-kind]='step.kind' [class.last]='$index === steps.length - 1'>
+                    <div class='step-icon'></div>
+                    <div class='step-text'>{{step.message}}</div>
+                </div>
+            }
+        </div>
+    } @else {
+        <div class='answer' [innerHTML]='answer'></div>            
+    }
+    @if (fullAnswer) {    
+        <div class='related'>
+            <h3 [class.loading]='relatedQuestions === null'>Related Questions</h3>
+            <div class='related-list'>
+                @if (relatedQuestions && relatedQuestions.length > 0) {
+                    @for (related of relatedQuestions; track related.id) {
+                        <a class='related-question' [routerLink]='["/" + deployment_id, "a", related.id]'>{{ related.question }}</a>
+                    }
+                }
+                <a class='ask-again' [routerLink]='["/" + deployment_id]'>Ask a new question</a>
+            </div>
+        </div>
     }
 </div>
