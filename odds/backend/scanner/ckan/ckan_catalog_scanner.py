@@ -55,7 +55,7 @@ class CKANCatalogScanner(CatalogScanner):
                     ]
                     dataset = Dataset(
                         self.catalog.id, row['name'], row['title'], 
-                        description=row['notes'],
+                        description=row.get('notes') or '',
                         publisher=row.get('organization', {}).get('title'),
                         publisher_description=row.get('organization', {}).get('description'),
                         resources=resources
