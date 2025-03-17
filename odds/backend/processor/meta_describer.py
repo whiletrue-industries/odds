@@ -72,7 +72,7 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
             else:
                 break
 
-        language = 'Always match in your response the language of the page\'s title and description.'
+        language = 'Always match in your response the language of the dataset\'s title and description.'
         if self.catalog.language:
             language = f'Both summary and description MUST be returned in {self.catalog.language}.'
         instructions = self.INSTRUCTIONS.format(language=language)
@@ -131,4 +131,4 @@ class MetaDescriber:
                 query.upgrade()
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer
-            rts.set(ctx, f'DESCRIBED {dataset.title} -> {dataset.better_title}')
+            rts.set(ctx, f'DESCRIBED ({catalog.language}) {dataset.title} -> {dataset.better_title}')
