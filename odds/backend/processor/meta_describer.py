@@ -53,6 +53,8 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     }}
 
     How to calculate the improvement score:
+    A continuous scale from 0 to 100 is used to measure the improvement of the new title and description compared to the original.
+    Use the following guidelines to determine the improvement score - the score can be any number between 0 and 100, not just the ones listed below:
     0: No improvement, the new title and description are the same as the original.
     25: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
     50: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
