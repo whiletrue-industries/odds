@@ -35,8 +35,8 @@ class CKANCatalogScanner(CatalogScanner):
                 try:
                     if self.catalog.fetcher_proxy:
                         url = f"{self.catalog.url}/api/3/action/package_search?rows=100&start={(page - 1) * 100}"
-                        url = f"{self.catalog.fetcher_proxy}/fetch"
                         params = dict(raw=1, url=url)
+                        url = f"{self.catalog.fetcher_proxy}/fetch"
                     else:
                         url = f"{self.catalog.url}/api/3/action/package_search"
                         params = dict(rows=100, start=(page - 1) * 100)
