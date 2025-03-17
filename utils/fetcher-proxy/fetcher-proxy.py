@@ -12,7 +12,8 @@ from fastapi import FastAPI, HTTPException, Request, Response
 app = FastAPI()
 
 @app.get("/fetch")
-async def fetch_url(request: Request, url: str, raw: bool = False):
+@app.get("/fetch/{filename}")
+async def fetch_url(request: Request, url: str, raw: bool = False, filename: str = None):
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:136.0) Gecko/20100101 Firefox/136.0',
