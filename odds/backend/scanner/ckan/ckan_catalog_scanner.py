@@ -1,6 +1,6 @@
 from typing import AsyncIterator
 import httpx
-import json
+import os
 
 from ....common.config import config
 from ....common.datatypes import Dataset, Resource, DataCatalog
@@ -73,6 +73,7 @@ class CKANCatalogScanner(CatalogScanner):
                         description=row.get('notes') or '',
                         publisher=row.get('organization', {}).get('title'),
                         publisher_description=row.get('organization', {}).get('description'),
+                        link=os.path.join(self.catalog.url, 'dataset', row['name']),
                         resources=resources
                     )
                     yield dataset
