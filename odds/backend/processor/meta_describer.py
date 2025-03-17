@@ -51,6 +51,14 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
         "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>",
         "improvement_score": <A number between 0 and 100 indicating how much better the new title and description are compared to the original.>
     }}
+
+    How to calculate the improvement score:
+    0: No improvement, the new title and description are the same as the original.
+    25: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
+    50: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
+    75: Major improvement, the title and description were significantly improved, contain much more information or are much better phrased.
+    100: Perfect improvement, when the old title and description were completely useless and are now replaced by new ones that are perfect.
+
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
     {language}
     Return only the json object, without any additional formatting, explanation or context.
