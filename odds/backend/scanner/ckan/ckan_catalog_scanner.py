@@ -58,8 +58,9 @@ class CKANCatalogScanner(CatalogScanner):
                     for resource in row['resources']:
                         resource_url = resource['url'].replace('datacity.jerusalem.muni.il', 'jerusalem.datacity.org.il')
                         if self.catalog.fetcher_proxy:
+                            filename = resource_url.split('?')[0].split('/')[-1]
                             resource_url = quote(resource_url)
-                            resource_url = f"{self.catalog.fetcher_proxy}/fetch?raw=1&url={resource_url}"
+                            resource_url = f"{self.catalog.fetcher_proxy}/fetch/{filename}?raw=1&url={resource_url}"
                         resources.append(
                             Resource(
                                 resource_url,
