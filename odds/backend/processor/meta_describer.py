@@ -44,7 +44,7 @@ class MetaDescriberQuery(LLMQuery):
 class MetaDescriberQueryDataset(MetaDescriberQuery):
 
     INSTRUCTIONS = '''Following are details on a dataset containing public data.
-    Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
+    Provide a summary of this dataset from "{catalog_name}" ({catalog_description}) in JSON format, including a concise summary and a more detailed description.
     The JSON should look like this:
     {{
         "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
@@ -56,10 +56,10 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     A continuous scale from 0 to 100 is used to measure the improvement of the new title and description compared to the original.
     Use the following guidelines to determine the improvement score - the score can be any number between 0 and 100, not just the ones listed below:
     0: No improvement, the new title and description are the same as the original.
-    25: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
-    50: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
-    75: Major improvement, the title and description were significantly improved, contain much more information or are much better phrased.
-    100: Perfect improvement, when the old title and description were completely useless and are now replaced by new ones that are perfect.
+    0-33: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
+    33-66: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
+    66-100: Major improvement, the old title and description were really bad and the new title and description are a significant improvement, with much more information and much better phrasing.
+    100: Perfect improvement, the old title and description were completely useless and are now replaced by new ones that are perfect.
 
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
     {language}
@@ -87,7 +87,7 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
         language = 'Always match in your response the language of the dataset\'s title and description.'
         if self.catalog.language:
             language = f'Both summary and description MUST be returned in {self.catalog.language}.'
-        instructions = self.INSTRUCTIONS.format(language=language)
+        instructions = self.INSTRUCTIONS.format(language=language, catalog_name=self.catalog.title, catalog_description=self.catalog.description)
 
         return [
             ('system', 'You are an experienced data analyst.'),
