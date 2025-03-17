@@ -1,5 +1,5 @@
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 
 # A FastAPI app that proxies HTTP requests to the internet.
 # Accepts the URL to fetch as a query parameter.
@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException, Request
 app = FastAPI()
 
 @app.get("/fetch")
-async def fetch_url(request: Request, url: str):
+async def fetch_url(request: Request, url: str, raw: bool = False):
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:136.0) Gecko/20100101 Firefox/136.0',
@@ -21,20 +21,25 @@ async def fetch_url(request: Request, url: str):
         }
         timeout = 30.0
         async with httpx.AsyncClient(timeout=timeout) as client:
-            try:
+            if raw:
+                # Return the binary content of the response with the same content-type, as-is and not in a JSON response.
                 response = await client.get(url, headers=headers)
-                return {
-                    "status_code": response.status_code,
-                    "body": response.text,
-                    "url": str(response.url),
-                    "content-type": response.headers.get("content-type"),
-                }
-            except Exception as e:
-                return {
-                    "status_code": 599,
-                    "body": str(e),
-                    "url": url,
-                    "content-type": "text/plain",
-                }
+                return Response(content=response.content, media_type=response.headers.get("content-type"), status_code=response.status_code)
+            else:
+                try:
+                    response = await client.get(url, headers=headers)
+                    return {
+                        "status_code": response.status_code,
+                        "body": response.text,
+                        "url": str(response.url),
+                        "content-type": response.headers.get("content-type"),
+                    }
+                except Exception as e:
+                    return {
+                        "status_code": 599,
+                        "body": str(e),
+                        "url": url,
+                        "content-type": "text/plain",
+                    }
     except httpx.RequestError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

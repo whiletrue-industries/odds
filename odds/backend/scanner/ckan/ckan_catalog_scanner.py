@@ -1,5 +1,6 @@
 from typing import AsyncIterator
 import httpx
+import json
 
 from ....common.config import config
 from ....common.datatypes import Dataset, Resource, DataCatalog
@@ -31,13 +32,20 @@ class CKANCatalogScanner(CatalogScanner):
                 if config.debug:
                     rts.set(self.ctx, f"Getting page {page} of datasets from {self.catalog.url}")
                 try:
-                    r = await Retry()(client, 'get',
-                        f"{self.catalog.url}/api/3/action/package_search", params={"rows": 100, "start": (page - 1) * 100},
-                        headers=headers,
-                        timeout=240
-                    )
-                    r.raise_for_status()
-                    r = r.json()
+                    if self.catalog.fetcher_proxy:
+                        url = f"{self.catalog.url}/api/3/action/package_search?rows=100&start={(page - 1) * 100}"
+                        r = await client.get(f'{self.catalog.fetcher_proxy}/fetch', params=dict(url=url), timeout=30)
+                        r.raise_for_status()
+                        r = r.json()
+                        r = json.loads(r['body'])
+                    else:
+                        r = await Retry()(client, 'get',
+                            f"{self.catalog.url}/api/3/action/package_search", params={"rows": 100, "start": (page - 1) * 100},
+                            headers=headers,
+                            timeout=240
+                        )
+                        r.raise_for_status()
+                        r = r.json()
                 except Exception as e:
                     rts.set(self.ctx, f"Error getting page {page} of datasets from {self.catalog.url}: {e!r}", 'error')
                     raise
