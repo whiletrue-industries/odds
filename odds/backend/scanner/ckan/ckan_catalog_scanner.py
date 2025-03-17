@@ -7,6 +7,7 @@ from ....common.datatypes import Dataset, Resource, DataCatalog
 from ....common.retry import Retry
 from ....common.realtime_status import realtime_status as rts
 from ..catalog_scanner import CatalogScanner
+from urllib.parse import quote
 
 
 class CKANCatalogScanner(CatalogScanner):
@@ -34,18 +35,18 @@ class CKANCatalogScanner(CatalogScanner):
                 try:
                     if self.catalog.fetcher_proxy:
                         url = f"{self.catalog.url}/api/3/action/package_search?rows=100&start={(page - 1) * 100}"
-                        r = await client.get(f'{self.catalog.fetcher_proxy}/fetch', params=dict(url=url), timeout=30)
-                        r.raise_for_status()
-                        r = r.json()
-                        r = json.loads(r['body'])
+                        url = f"{self.catalog.fetcher_proxy}/fetch"
+                        params = dict(raw=1, url=url)
                     else:
-                        r = await Retry()(client, 'get',
-                            f"{self.catalog.url}/api/3/action/package_search", params={"rows": 100, "start": (page - 1) * 100},
-                            headers=headers,
-                            timeout=240
-                        )
-                        r.raise_for_status()
-                        r = r.json()
+                        url = f"{self.catalog.url}/api/3/action/package_search"
+                        params = dict(rows=100, start=(page - 1) * 100)
+                    r = await Retry()(client, 'get',
+                        url, params=params,
+                        headers=headers,
+                        timeout=240
+                    )
+                    r.raise_for_status()
+                    r = r.json()
                 except Exception as e:
                     rts.set(self.ctx, f"Error getting page {page} of datasets from {self.catalog.url}: {e!r}", 'error')
                     raise
@@ -53,14 +54,19 @@ class CKANCatalogScanner(CatalogScanner):
                 if len(rows) == 0:
                     break
                 for row in rows:
-                    resources = [
-                        Resource(
-                            resource['url'].replace('datacity.jerusalem.muni.il', 'jerusalem.datacity.org.il'),
-                            resource['format'],
-                            title=resource['name'],                        
+                    resources = []
+                    for resource in row['resources']:
+                        resource_url = resource['url'].replace('datacity.jerusalem.muni.il', 'jerusalem.datacity.org.il')
+                        if self.catalog.fetcher_proxy:
+                            resource_url = quote(resource_url)
+                            resource_url = f"{self.catalog.fetcher_proxy}/fetch?raw=1&url={resource_url}"
+                        resources.append(
+                            Resource(
+                                resource_url,
+                                resource['format'],
+                                title=resource['name'],
+                            )
                         )
-                        for resource in row['resources']
-                    ]
                     dataset = Dataset(
                         self.catalog.id, row['name'], row['title'], 
                         description=row.get('notes') or '',
