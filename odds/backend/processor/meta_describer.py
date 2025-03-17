@@ -45,10 +45,10 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     INSTRUCTIONS = '''Following are details on a dataset containing public data.
     Provide a summary of this dataset in JSON format, including a concise summary and a more detailed description.
     The JSON should look like this:
-    {
+    {{
         "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
         "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
-    }
+    }}
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
     {language}
     Return only the json object, without any additional formatting, explanation or context.
@@ -88,10 +88,10 @@ class MetaDescriberQueryWebsite(MetaDescriberQuery):
     INSTRUCTIONS = '''Following are the contents of a web page containing information with some interest to the public.
     Provide a summary of this web page in JSON format, including a concise summary and a more detailed description.
     The JSON should look like this:
-    {
+    {{
         "summary": "<What is a good tagline for this web page? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this page.>",
         "description": "<Provide a good description of this webpage in a single paragraph, using simple terms and avoiding jargon.>"
-    }
+    }}
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
     {language}
     Return only the json object, without any additional formatting, explanation or context.
