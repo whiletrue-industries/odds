@@ -29,6 +29,7 @@ class MetaDescriberQuery(LLMQuery):
         try:
             self.dataset.better_title = result['summary']
             self.dataset.better_description = result['description']
+            self.dataset.improvement_score = result.get('improvement_score')
         except Exception as e:
             print(f'{self.ctx}:ERROR', e)
             print(f'{self.ctx}:RESULT', result)
@@ -47,7 +48,8 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     The JSON should look like this:
     {{
         "summary": "<What is a good tagline for this dataset? provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The tagline should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
-        "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
+        "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>",
+        "improvement_score": <A number between 0 and 100 indicating how much better the new title and description are compared to the original.>
     }}
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
     {language}
@@ -131,4 +133,4 @@ class MetaDescriber:
                 query.upgrade()
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer
-            rts.set(ctx, f'DESCRIBED ({catalog.language}) {dataset.title} -> {dataset.better_title}')
+            rts.set(ctx, f'DESCRIBED ({catalog.language}) {dataset.title} --({dataset.improvement_score})--> {dataset.better_title}')

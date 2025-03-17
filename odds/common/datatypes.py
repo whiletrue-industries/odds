@@ -60,6 +60,7 @@ class Dataset:
     better_title: str = None
     better_description: str = None
     status_embedding: bool = False
+    improvement_score: float = None
     status_indexing: bool = False
 
     versions: dict = field(default_factory=dict)
