@@ -20,11 +20,14 @@ async def fetch_url(request: Request, url: str, raw: bool = False):
             'Accept-Language': 'en-US,en;q=0.5'
         }
         timeout = 30.0
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
             if raw:
-                # Return the binary content of the response with the same content-type, as-is and not in a JSON response.
                 response = await client.get(url, headers=headers)
-                return Response(content=response.content, media_type=response.headers.get("content-type"), status_code=response.status_code)
+                return Response(
+                    content=response.content,
+                    media_type=response.headers.get("content-type"),
+                    status_code=response.status_code
+                )
             else:
                 try:
                     response = await client.get(url, headers=headers)
