@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import json
 
-from ...common.datatypes import Dataset
+from ...common.datatypes import DataCatalog, Dataset
 from ...common.llm import llm_runner
 from ...common.llm.llm_query import LLMQuery
 from ...common.store import store
@@ -14,8 +14,8 @@ MAX_STR_LEN = 50000
 
 class MetaDescriberQuery(LLMQuery):
 
-    def __init__(self, dataset: Dataset, ctx: str):
-        super().__init__(dataset, None)
+    def __init__(self, dataset: Dataset, catalog: DataCatalog, ctx: str):
+        super().__init__(dataset, catalog)
         self.upgraded = True
         self.ctx = ctx
 
@@ -50,7 +50,7 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
         "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
     }
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
-    Always match in your response the language of the dataset's title and description.
+    {language}
     Return only the json object, without any additional formatting, explanation or context.
     --------------
     '''
@@ -72,9 +72,14 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
             else:
                 break
 
+        language = 'Always match in your response the language of the page\'s title and description.'
+        if self.catalog.language:
+            language = f'Both summary and description MUST be returned in {self.catalog.language}.'
+        instructions = self.INSTRUCTIONS.format(language=language)
+
         return [
             ('system', 'You are an experienced data analyst.'),
-            ('user', self.INSTRUCTIONS + encoded)
+            ('user', instructions + encoded)
         ]
 
 
@@ -88,15 +93,21 @@ class MetaDescriberQueryWebsite(MetaDescriberQuery):
         "description": "<Provide a good description of this webpage in a single paragraph, using simple terms and avoiding jargon.>"
     }
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
+    {language}
     Return only the json object, without any additional formatting, explanation or context.
     --------------
     '''
     def prompt(self) -> list[tuple[str, str]]:
         content = self.dataset.resources[0].content
 
+        language = 'Always match in your response the language of the page\'s title and description.'
+        if self.catalog.language:
+            language = f'Both summary and description MUST be returned in {self.catalog.language}.'
+        instructions = self.INSTRUCTIONS.format(language=language)
+
         return [
             ('system', 'You are an experienced data analyst.'),
-            ('user', self.INSTRUCTIONS + content)
+            ('user', instructions + content)
         ]
 
 
@@ -105,16 +116,16 @@ class MetaDescriber:
     sem: asyncio.Semaphore = None
     concurrency_limit: int = 3
 
-    async def describe(self, dataset: Dataset, ctx: str) -> None:
+    async def describe(self, catalog: DataCatalog, dataset: Dataset, ctx: str) -> None:
         # rts.set(ctx, f'DESCRIBING {dataset.title} {dataset.catalogId}')
         if not self.sem:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
 
         async with self.sem:
             if dataset.resources[0].kind == 'website':
-                query = MetaDescriberQueryWebsite(dataset, ctx)
+                query = MetaDescriberQueryWebsite(dataset, catalog, ctx)
             else:
-                query = MetaDescriberQueryDataset(dataset, ctx)
+                query = MetaDescriberQueryDataset(dataset, catalog, ctx)
             await llm_runner.run(query, [dataset.id])
             if dataset.better_title is None and not query.upgraded:
                 query.upgrade()

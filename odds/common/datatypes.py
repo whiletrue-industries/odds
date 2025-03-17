@@ -92,6 +92,7 @@ class DataCatalog:
     url: str | List[str]
     title: str
     description: str = None
+    language: str = None
     geo: str = None 
     http_headers: dict = field(default_factory=dict)
     ignore_query: bool = None
