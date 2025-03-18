@@ -14,6 +14,66 @@ from ...embedder import embedder
 from .es_client import ESClient
 
 ES_INDEX = 'datasets'
+MAPPING = {
+    'properties': {
+        'catalogId': {'type': 'keyword'},
+        'id': {'type': 'keyword'},
+        'title': {'type': 'text'},
+        'description': {'type': 'text'},
+        'publisher': {'type': 'text'},
+        'publisher_description': {'type': 'text'},
+        'link': {'type': 'keyword'},
+        'resources': {
+            'type': 'nested',
+            'properties': {
+                'url': {'type': 'keyword'},
+                'file_format': {'type': 'keyword'},
+                'title': {'type': 'text'},
+                'fields': {
+                    'type': 'nested',
+                    'properties': {
+                        'name': {'type': 'keyword'},
+                        'title': {'type': 'text'},
+                        'description': {'type': 'text'},
+                        'data_type': {'type': 'keyword'},
+                        # Don't index these:
+                        'props': {'type': 'text'},
+                    }
+                },
+                'row_count': {'type': 'integer'},
+                'db_schema': {'type': 'keyword', 'index': False},
+                'status_selected': {'type': 'boolean'},
+                'status_loaded': {'type': 'boolean'},
+                'loading_error': {'type': 'text'},
+                'kind': {'type': 'keyword'},
+                'content': {'type': 'text'},
+                'chunks': {
+                    'type': 'nested', 
+                    'properties': {
+                        'embeddings': {
+                            'type': 'dense_vector',
+                            'dims': embedder.vector_size(),
+                            'index': True,
+                            'similarity': 'cosine'
+                        }
+                    }
+                }
+            }
+        },
+        'better_title': {'type': 'text'},
+        'better_description': {'type': 'text'},
+        'summary': {'type': 'text'},
+        'status_embedding': {'type': 'boolean'},
+        'status_indexing': {'type': 'boolean'},
+        'versions': {'type': 'object', 'enabled': False},
+        'embeddings': {
+            'type': 'dense_vector',
+            'dims': embedder.vector_size(),
+            'index': True,
+            'similarity': 'cosine'
+        }
+    }
+}
 
 class ESMetadataStore(MetadataStore):
 
@@ -27,66 +87,11 @@ class ESMetadataStore(MetadataStore):
         assert await client.ping()
         if not await client.indices.exists(index=ES_INDEX):
             await client.indices.create(index=ES_INDEX, body={
-                'mappings': {
-                    'properties': {
-                        'catalogId': {'type': 'keyword'},
-                        'id': {'type': 'keyword'},
-                        'title': {'type': 'text'},
-                        'description': {'type': 'text'},
-                        'publisher': {'type': 'text'},
-                        'publisher_description': {'type': 'text'},
-                        'link': {'type': 'keyword'},
-                        'resources': {
-                            'type': 'nested',
-                            'properties': {
-                                'url': {'type': 'keyword'},
-                                'file_format': {'type': 'keyword'},
-                                'title': {'type': 'text'},
-                                'fields': {
-                                    'type': 'nested',
-                                    'properties': {
-                                        'name': {'type': 'keyword'},
-                                        'title': {'type': 'text'},
-                                        'description': {'type': 'text'},
-                                        'data_type': {'type': 'keyword'},
-                                        # Don't index these:
-                                        'props': {'type': 'text'},
-                                    }
-                                },
-                                'row_count': {'type': 'integer'},
-                                'db_schema': {'type': 'keyword', 'index': False},
-                                'status_selected': {'type': 'boolean'},
-                                'status_loaded': {'type': 'boolean'},
-                                'loading_error': {'type': 'text'},
-                                'kind': {'type': 'keyword'},
-                                'content': {'type': 'text'},
-                                'chunks': {
-                                    'type': 'nested', 
-                                    'properties': {
-                                        'embeddings': {
-                                            'type': 'dense_vector',
-                                            'dims': embedder.vector_size(),
-                                            'index': True,
-                                            'similarity': 'cosine'
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        'better_title': {'type': 'text'},
-                        'better_description': {'type': 'text'},
-                        'status_embedding': {'type': 'boolean'},
-                        'status_indexing': {'type': 'boolean'},
-                        'versions': {'type': 'object', 'enabled': False},
-                        'embeddings': {
-                            'type': 'dense_vector',
-                            'dims': embedder.vector_size(),
-                            'index': True,
-                            'similarity': 'cosine'
-                        }
-                    }
-                }
+                'mappings': MAPPING
             })
+        else:
+            # Update mapping
+            await client.indices.put_mapping(index=ES_INDEX, **MAPPING)
 
     async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
         async with ESClient() as client:

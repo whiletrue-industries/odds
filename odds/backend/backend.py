@@ -8,7 +8,7 @@ from ..common.config import config
 from ..common.metadata_store import metadata_store
 from ..common.filters import CatalogFilter, CatalogFilterById, \
     DatasetFilter, DatasetFilterById, DatasetFilterNew, DatasetFilterForce, DatasetFilterIncomplete
-from ..common.db import db
+# from ..common.db import db
 from ..common.realtime_status import realtime_status as rts
 
 
@@ -27,7 +27,7 @@ class ODDSBackend:
         for catalog_idx, catalog in enumerate(self.catalogs):
             cat_ctx = f'{catalog.id}[{catalog_idx}]'
             if await catalogFilter.include(catalog):
-                await db.storeDataCatalog(catalog, cat_ctx)
+                # await db.storeDataCatalog(catalog, cat_ctx)
                 scanner = self.scanner_factory.create_scanner(catalog, cat_ctx)
                 if scanner:
                     dataset_idx = 0
@@ -40,7 +40,7 @@ class ODDSBackend:
                             dataset = existing
                         if await datasetFilter.consider(dataset):
                             rts.set(cat_ctx, f'CONSIDER DATASET {dataset.id}')
-                            await db.storeDataset(dataset, ctx)
+                            # await db.storeDataset(dataset, ctx)
                             dataset_processor.queue(dataset, catalog, datasetFilter, ctx)
                         else:
                             rts.set(cat_ctx, f'SKIP DATASET {dataset.id}')

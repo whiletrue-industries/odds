@@ -34,6 +34,7 @@ async def search_datasets(query: str, catalog_ids: list[str] | None) -> list[dic
         dict(
             id=encode_id(dataset.storeId()),
             title=dataset.better_title or dataset.title,
+            summary=dataset.summary,
             description=dataset.better_description or dataset.description,
             publisher=dataset.publisher,
             catalog=catalog.title,
@@ -52,6 +53,7 @@ async def fetch_dataset(id):
     if dataset:
         response = dict(
             title=dataset.better_title or dataset.title,
+            summary=dataset.summary,
             description=dataset.better_description or dataset.description,
             publisher=dataset.publisher,
             publisher_description=dataset.publisher_description,

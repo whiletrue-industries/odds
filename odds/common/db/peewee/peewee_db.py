@@ -30,6 +30,7 @@ class PeeweeDBStorage(DBStorage):
         params = dict(
             catalogId=dataset.catalogId,
             title=dataset.title,
+            summary=dataset.summary,
             description=dataset.description,
             publisher=dataset.publisher,
             publisher_description=dataset.publisher_description,

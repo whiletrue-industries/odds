@@ -46,7 +46,7 @@ class DatasetFilterIncomplete(DatasetFilter):
     async def describe(self, dataset: Dataset) -> bool:
         # print('FILTER DESCRIBE', dataset.id, dataset.better_title is None, dataset.better_description is None, dataset.versions.get('meta_describer') != config.feature_versions.meta_describer)
         return (
-            dataset.better_title is None or 
+            dataset.summary is None or
             dataset.better_description is None or
             dataset.versions.get('meta_describer') != config.feature_versions.meta_describer
         )

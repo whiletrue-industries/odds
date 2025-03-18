@@ -57,6 +57,7 @@ class Dataset:
 
     link: str = None
 
+    summary: str = None
     better_title: str = None
     better_description: str = None
     status_embedding: bool = False

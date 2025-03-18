@@ -25,6 +25,7 @@ class Dataset(BaseModel):
     id = CharField(primary_key=True)
     catalogId = ForeignKeyField(Catalog, backref='datasets')
     title = TextField()
+    summary = TextField(null=True)
     description = TextField(null=True)
     publisher = TextField(null=True)
     publisher_description = TextField(null=True)

@@ -40,7 +40,7 @@ def resource_link_formatter(view, context, model, name):
 class DatasetView(ModelView):
         can_view_details = True
         column_exclude_list = ['description', 'better_description', 'catalogId', 'publisher_description', 'versions', 'id']
-        column_searchable_list = ['title', 'better_title']
+        column_searchable_list = ['title', 'better_title', 'summary']
         column_filters = ['status_indexing', 'status_embedding']
         inline_models = (ResourceInlineForm(Resource),)
         column_labels = {

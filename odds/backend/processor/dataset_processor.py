@@ -60,7 +60,7 @@ class DatasetProcessor:
                 if await datasetFilter.index(dataset):
                     await self.indexer.index(dataset, ctx)
             await metadata_store.storeDataset(dataset, ctx)
-            await db.storeDataset(dataset, ctx)
+            # await db.storeDataset(dataset, ctx)
         except Exception as e:
             rts.set(ctx, f'ERROR {e}', 'error')
             # Print exception traceback:
