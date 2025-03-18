@@ -125,7 +125,13 @@ class ResourceProcessor:
 
     def validate_data(self, ctx, filename, stream):
         dp, _ = DF.Flow(
-            DF.load(filename, override_schema={'missingValues': self.MISSING_VALUES}, deduplicate_headers=True, http_timeout=60),
+            DF.load(filename, 
+                    override_schema={'missingValues': self.MISSING_VALUES},
+                    deduplicate_headers=True,
+                    deduplicate_headers_case_sensitive=False,
+                    deduplicate_headers_format='__%s',
+                    http_timeout=60
+            ),
             DF.update_resource(-1, name='data'),
             DF.validate(on_error=DF.schema_validator.clear),
             self.updater(ctx, lambda i: f'LOADED {i} ROWS TO DISK'),

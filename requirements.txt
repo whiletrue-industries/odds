@@ -2,7 +2,7 @@ httpx
 aiofiles
 sqlalchemy
 numpy
-dataflows>=0.5.7
+dataflows>=0.5.8
 kvfile
 awesome-slugify
 aioboto3
