@@ -52,16 +52,16 @@ class ODDSBackend:
         rts.clear(scanner_ctx)
         await dataset_processor.wait()
 
-    def scan_required(self) -> None:
-        asyncio.run(self.scan(CatalogFilter(), DatasetFilterIncomplete()))
+    async def scan_required(self) -> None:
+        await self.scan(CatalogFilter(), DatasetFilterIncomplete())
 
-    def scan_all(self) -> None:
-        asyncio.run(self.scan(CatalogFilter(), DatasetFilterForce()))
+    async def scan_all(self) -> None:
+        await self.scan(CatalogFilter(), DatasetFilterForce())
 
-    def scan_new(self) -> None:
-        asyncio.run(self.scan(CatalogFilter(), DatasetFilterNew()))
+    async def scan_new(self) -> None:
+        await self.scan(CatalogFilter(), DatasetFilterNew())
 
-    def scan_specific(self, catalogId: str = None, datasetId: str = None, force=True) -> None:
+    async def scan_specific(self, catalogId: str = None, datasetId: str = None, force=True) -> None:
         if catalogId:
             catalogFilter = CatalogFilterById(catalogId)
         else:
@@ -73,4 +73,4 @@ class ODDSBackend:
                 datasetFilter = DatasetFilterForce()
             else:
                 datasetFilter = DatasetFilterIncomplete()
-        asyncio.run(self.scan(catalogFilter, datasetFilter))
+        await self.scan(catalogFilter, datasetFilter)

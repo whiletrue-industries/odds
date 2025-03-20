@@ -9,10 +9,16 @@ class LLMCache():
         self.log = None
         self.cache = None
         self.logfile = None
+        self.cache_name = None
         if config.debug:
             self.logfile = (CACHE_DIR / f'{name}_llm_runner.log').open('w')
             self.log = {}
-            self.cache = KVFile(location=str(CACHE_DIR / f'{name}_llm_runner.cache'))
+            self.cache_name = name
+
+    def ensure_cache(self):
+        if self.cache is None and self.cache_name is not None:
+            self.cache = KVFile(location=str(CACHE_DIR / f'{self.cache_name}_llm_runner.cache'))
+        return self.cache
 
     def store_log(self, conversation, prompts):
         if self.log is not None:
@@ -48,14 +54,16 @@ class LLMCache():
         return key
 
     def get_cache(self, request):
-        if self.cache is not None:
+        cache = self.ensure_cache()
+        if cache is not None:
             key = self.cache_key(request)
-            value = self.cache.get(key, default=None)
+            value = cache.get(key, default=None)
             if value is not None:
                 return value
         return None
 
     def set_cache(self, request, content):
-        if self.cache is not None:
+        cache = self.ensure_cache()
+        if cache is not None:
             key = self.cache_key(request)
-            self.cache.set(key, content)
+            cache.set(key, content)
