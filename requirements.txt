@@ -20,3 +20,4 @@ nh3
 beautifulsoup4
 sse_starlette
 arq
+firebase-admin
