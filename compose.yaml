@@ -23,6 +23,7 @@ services:
       - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
       - certs:/docker/certs
+      - creds:/docker/creds
     command: utils/api_server.sh
 
   worker:
@@ -307,3 +308,9 @@ volumes:
       type: none
       o: bind
       device: ${PWD}/docker-data/es/kibanadata
+  creds:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/docker-data/creds

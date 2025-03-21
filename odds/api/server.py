@@ -9,16 +9,11 @@ from sse_starlette.sse import EventSourceResponse
 
 from .answer import answer_question
 from .common_endpoints import search_datasets, fetch_dataset, fetch_resource, query_db
-from odds.common.deployment_repo import deployment_repo
-
-### A FastAPI server that serves the odds API
-# Exposes the following methods:
-# - search_datasets(query: str) -> List[Dict[str, str]]
-# - fetch_dataset(id: str) -> Optional[Dict[str, str]]
-# - fetch_resource(id: str) -> Optional[Dict[str, str]]
-# - query_db(resource_id: str, query: str) -> Optional[Dict[str, Any]]
+from ..common.deployment_repo import deployment_repo
+from .admin import router as admin_router
 
 app = FastAPI(openapi_url=None)
+app.include_router(admin_router)
 
 # Enable CORS:
 app.add_middleware(
@@ -33,7 +28,6 @@ CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
 }
-
 
 @app.get("/datasets")
 async def search_datasets_handler(query: str, deployment_id: str) -> List[Dict[str, Any]]:
