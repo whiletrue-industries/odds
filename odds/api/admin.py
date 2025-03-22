@@ -26,7 +26,7 @@ async def deployment_catalogs(deployment_id: str, user: FireBaseUser):
         raise HTTPException(status_code=403, detail="Not authorized to access this deployment")
     catalogIds = deployment.catalogIds
     catalogs = [
-        await catalog_repo.get_catalog(catalogId)
+        catalog_repo.get_catalog(catalogId)
         for catalogId in catalogIds
     ]
     return catalogs

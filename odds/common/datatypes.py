@@ -1,9 +1,10 @@
 from typing import Any, List, Literal
 from dataclasses import dataclass, field, asdict, fields, is_dataclass
 import numpy as np
+from python_to_typescript_interfaces import Interface
 
 @dataclass
-class Field:
+class Field(Interface):
     name: str
     data_type: str
     title: str = None
@@ -15,7 +16,7 @@ class Field:
 
 
 @dataclass
-class Resource:
+class Resource(Interface):
     url: str
     file_format: str
     title: str = None
@@ -46,7 +47,7 @@ class Embedding(np.ndarray):
 
 
 @dataclass
-class Dataset:
+class Dataset(Interface):
     catalogId: str
     id: str
     title: str
@@ -88,9 +89,9 @@ class Dataset:
                     setattr(self, field_name, updates_value)
 
 @dataclass
-class DataCatalog:
+class DataCatalog(Interface):
     id: str
-    kind: Literal['CKAN', 'Socrata', 'data.json', 'other', 'website', 'arcgis']
+    kind: str # Literal['CKAN', 'Socrata', 'data.json', 'other', 'website', 'arcgis']
     url: str | List[str]
     title: str
     description: str = None
@@ -102,7 +103,7 @@ class DataCatalog:
 
 
 @dataclass
-class Deployment:
+class Deployment(Interface):
     id: str
     owner: str
     catalogIds: List[str]
