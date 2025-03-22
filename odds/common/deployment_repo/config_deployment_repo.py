@@ -16,7 +16,8 @@ class ConfigDeploymentRepo(DeploymentRepo):
         deployments = config.deployments
         ret = [
             Deployment(
-                deployment['id'], 
+                deployment['id'],
+                deployment['owner'],
                 deployment['catalog_ids'], 
                 deployment['agent_org_name'], 
                 deployment['agent_catalog_descriptions'],
@@ -34,3 +35,7 @@ class ConfigDeploymentRepo(DeploymentRepo):
     async def get_deployment(self, deployment_id: str) -> Deployment:
         await self.load_deployments()
         return self.deployments.get(deployment_id)
+
+    async def deployments_for_user(self, user_id: str) -> list[Deployment]:
+        await self.load_deployments()
+        return [d for d in self.deployment_list if d.owner == user_id]

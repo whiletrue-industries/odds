@@ -104,6 +104,7 @@ class DataCatalog:
 @dataclass
 class Deployment:
     id: str
+    owner: str
     catalogIds: List[str]
     agentOrgName: str
     agentCatalogDescriptions: str

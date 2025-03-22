@@ -8,3 +8,6 @@ class DeploymentRepo:
 
     async def get_deployment(self, deployment_id: str) -> Deployment:
         pass
+
+    async def deployments_for_user(self, user_id: str) -> list[Deployment]:
+        pass

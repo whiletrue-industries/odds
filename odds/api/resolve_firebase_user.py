@@ -31,6 +31,7 @@ def get_firebase_user_from_token(
             # by default instead of 401 so we set auto_error to False
             raise ValueError("No token")
         user = verify_id_token(token.credentials)
+        assert user is not None
         return user
     # lots of possible exceptions, see firebase_admin.auth,
     # but most of the time it is a credentials issue
@@ -45,5 +46,5 @@ def get_firebase_user_from_token(
     
 
 FireBaseUser = Annotated[
-    dict | None, Depends(get_firebase_user_from_token)
+    dict, Depends(get_firebase_user_from_token)
 ]

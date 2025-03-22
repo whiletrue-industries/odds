@@ -29,9 +29,7 @@ services:
   worker:
     depends_on:
       - api
-    build:
-      dockerfile: docker/api-server/Dockerfile
-      context: .
+    image: ghcr.io/whiletrue-industries/odds/odds-server:latest
     volumes:
       - ./odds.config.local.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
