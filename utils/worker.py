@@ -2,6 +2,7 @@ from httpx import AsyncClient
 from arq.connections import RedisSettings
 
 from odds.backend import backend
+import logging
 
 REDIS_SETTINGS = RedisSettings(host='redis')
 
@@ -22,3 +23,7 @@ class WorkerSettings:
     on_shutdown = shutdown
     redis_settings = REDIS_SETTINGS
     job_timeout = 86400
+
+
+logger = logging.getLogger('arq.worker')
+logger.setLevel(logging.INFO)
