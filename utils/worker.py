@@ -12,6 +12,8 @@ async def scan_specific(ctx, catalogId, datasetId, force):
 async def startup(ctx):
     ctx['session'] = AsyncClient()
     ctx['backend'] = backend.ODDSBackend()
+    logger = logging.getLogger('arq.worker')
+    logger.setLevel(logging.INFO)
 
 async def shutdown(ctx):
     await ctx['session'].aclose()
@@ -24,6 +26,3 @@ class WorkerSettings:
     redis_settings = REDIS_SETTINGS
     job_timeout = 86400
 
-
-logger = logging.getLogger('arq.worker')
-logger.setLevel(logging.INFO)
