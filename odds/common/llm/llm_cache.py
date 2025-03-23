@@ -1,3 +1,4 @@
+import os
 import json
 import hashlib
 from kvfile.kvfile_leveldb import KVFileLevelDB as KVFile
@@ -11,13 +12,20 @@ class LLMCache():
         self.logfile = None
         self.cache_name = None
         if config.debug:
-            self.logfile = (CACHE_DIR / f'{name}_llm_runner.log').open('w')
+            self.role = os.environ.get('ROLE')
+            cache_dir = CACHE_DIR
+            if self.role is not None:
+                cache_dir = cache_dir / self.role
+            self.logfile = (cache_dir / f'{name}_llm_runner.log').open('w')
             self.log = {}
             self.cache_name = name
 
     def ensure_cache(self):
         if self.cache is None and self.cache_name is not None:
-            self.cache = KVFile(location=str(CACHE_DIR / f'{self.cache_name}_llm_runner.cache'))
+            location = CACHE_DIR
+            if self.role is not None:
+                location = location / self.role
+            self.cache = KVFile(location=str(location / f'{self.cache_name}_llm_runner.cache'))
         return self.cache
 
     def store_log(self, conversation, prompts):

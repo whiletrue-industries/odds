@@ -20,6 +20,8 @@ services:
       # - kibana
     image: ghcr.io/whiletrue-industries/odds/odds-server:latest
     restart: always
+    environment:
+      - ROLE=api
     volumes:
       - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
@@ -32,6 +34,8 @@ services:
       - api
     image: ghcr.io/whiletrue-industries/odds/odds-server:latest
     restart: always
+    environment:
+      - ROLE=worker
     volumes:
       - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
