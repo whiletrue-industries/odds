@@ -3,7 +3,7 @@ from typing import Coroutine, Any
 from httpx import Response
 
 
-class Retry:
+class BaseRetry:
 
     def __init__(self, retries=3) -> None:
         self.retries = retries
@@ -15,18 +15,32 @@ class Retry:
             try:
                 response = None
                 response = await getattr(client, method)(*args, **kwargs)
-                if response.status_code == 400:
-                    print('ERROR', response.status_code, response.text)
-                    return None
-                response.raise_for_status()
+                response = self.test_response(response)
                 return response
             except Exception as e:
-                if response:
-                    print('RETRYING', repr(e), args[0], response.status_code, response.text[:200])
-                else:
-                    print('RETRYING', repr(e), args[0])
+                print('RETRYING', repr(e), args[0])
                 if i == self.retries - 1:
                     print('GIVING UP', repr(e), args[0])
                 await asyncio.sleep(2 ** (i+2))
         return None
+
+    def test_response(self, response: Response) -> None:
+        return response
+
+class Retry(BaseRetry):
+
+    def __init__(self, retries=3) -> None:
+        super().__init__(retries=retries)
+
+    def test_response(self, response: Response) -> None:
+        if response.status_code == 400:
+            print('ERROR', response.status_code, response.text)
+            return None
+        try:
+            response.raise_for_status()
+        except Exception as e:
+            print('RETRYING', repr(e), response.url, response.status_code, response.text[:200])
+            raise
+        return response
+
         

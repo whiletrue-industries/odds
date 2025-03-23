@@ -31,7 +31,7 @@ services:
       - api
     image: ghcr.io/whiletrue-industries/odds/odds-server:latest
     volumes:
-      - ./odds.config.local.yaml:/srv/odds.config.yaml
+      - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
       - certs:/docker/certs
     command: utils/worker.sh

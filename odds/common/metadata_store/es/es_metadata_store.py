@@ -3,6 +3,7 @@ import dataclasses
 
 from elasticsearch import Elasticsearch
 
+from ....common.retry import BaseRetry
 from ....common.datatypes import Embedding
 from ..dataset_factory import dataset_factory
 
@@ -115,9 +116,10 @@ class ESMetadataStore(MetadataStore):
     async def getDataset(self, datasetId: str) -> Dataset:
         async with ESClient() as client:
             await self.single_time_init(client)
-            exists = await client.exists(index=ES_INDEX, id=datasetId)
+
+            exists = await BaseRetry()(client, 'exists', index=ES_INDEX, id=datasetId)
             if exists:
-                data = await client.get(index=ES_INDEX, id=datasetId)
+                data = await BaseRetry()(client, 'get', index=ES_INDEX, id=datasetId)
                 data = data.get('_source')
                 if not data:
                     return None
@@ -133,7 +135,7 @@ class ESMetadataStore(MetadataStore):
         async with ESClient() as client:
             await self.single_time_init(client)
             print('FETCHING DATASET', datasetId)
-            return await client.exists(index=ES_INDEX, id=datasetId)
+            return await BaseRetry()(client, 'exists', index=ES_INDEX, id=datasetId)
 
     # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
     #     return []
