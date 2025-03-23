@@ -44,8 +44,8 @@ services:
       POSTGRES_USER: odds
       POSTGRES_PASSWORD: odds
       POSTGRES_DB: odds
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
     volumes:
       - ./.caches/db/:/var/lib/postgresql/data
 
@@ -126,8 +126,8 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
-    ports:
-      - ${ES_PORT}:9200
+    # ports:
+    #   - ${ES_PORT}:9200
     environment:
       - node.name=es01
       - cluster.name=${CLUSTER_NAME}

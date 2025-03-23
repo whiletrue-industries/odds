@@ -21,3 +21,4 @@ class WorkerSettings:
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = REDIS_SETTINGS
+    job_timeout = 86400
