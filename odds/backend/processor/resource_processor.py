@@ -31,6 +31,10 @@ except:
     pass
 TMP_DIR = str(TMP_DIR)
 
+TIMEOUT_VALIDATE = 600
+TIMEOUT_DOWNLOAD = 600
+TIMEOUT_DB = 600
+
 class MDConverterQuery(LLMQuery):
 
     def __init__(self, resource: WebsiteResource):
@@ -188,18 +192,20 @@ class ResourceProcessor:
                             }
                             headers.update(catalog.http_headers)
                             report = 0
-                            async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
-                                async for chunk in response.aiter_bytes():  
-                                    f.write(chunk)
-                                    total_size += len(chunk)
-                                    while total_size - report > 1000000:
-                                        report += 1000000
-                                        rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
+                            with asyncio.timeout(TIMEOUT_DOWNLOAD):
+                                async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
+                                    async for chunk in response.aiter_bytes():  
+                                        f.write(chunk)
+                                        total_size += len(chunk)
+                                        while total_size - report > 1000000:
+                                            report += 1000000
+                                            rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
                     
                     rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
                 else:
                     filename = usable_url
-                dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
+                with asyncio.timeout(TIMEOUT_VALIDATE):
+                    dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
                 potential_fields = [
                     Field(name=field['name'], data_type=field['type'])
                     for field in 
@@ -253,8 +259,9 @@ class ResourceProcessor:
                 stream.close()
 
                 sqlite_filename = f'{TMP_DIR}/{rand}.sqlite'
-                resource = await asyncio.to_thread(self.write_db, ctx, sqlite_filename, stream.name, data, resource, field_names)
-                deleted = await store.storeDB(resource, dataset, sqlite_filename, ctx)
+                with asyncio.timeout(TIMEOUT_DB):
+                    resource = await asyncio.to_thread(self.write_db, ctx, sqlite_filename, stream.name, data, resource, field_names)
+                    deleted = await store.storeDB(resource, dataset, sqlite_filename, ctx)
                 if not deleted:
                     to_delete.append(sqlite_filename)
 

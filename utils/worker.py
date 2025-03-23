@@ -1,5 +1,6 @@
 from httpx import AsyncClient
 from arq.connections import RedisSettings
+from arq.worker import func
 
 from odds.backend import backend
 import logging
@@ -20,9 +21,13 @@ async def shutdown(ctx):
     del ctx['backend']
 
 class WorkerSettings:
-    functions = [scan_specific]
+    functions = [
+        scan_specific
+        # func()
+    ]
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = REDIS_SETTINGS
     job_timeout = 86400
+    keep_result = 60
 

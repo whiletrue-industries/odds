@@ -19,6 +19,7 @@ services:
       - es03
       # - kibana
     image: ghcr.io/whiletrue-industries/odds/odds-server:latest
+    restart: always
     volumes:
       - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
@@ -30,6 +31,7 @@ services:
     depends_on:
       - api
     image: ghcr.io/whiletrue-industries/odds/odds-server:latest
+    restart: always
     volumes:
       - ./odds.config.yaml:/srv/odds.config.yaml
       - ./.caches/:/srv/.caches/
