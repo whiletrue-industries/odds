@@ -192,7 +192,7 @@ class ResourceProcessor:
                             }
                             headers.update(catalog.http_headers)
                             report = 0
-                            with asyncio.timeout(TIMEOUT_DOWNLOAD):
+                            async with asyncio.timeout(TIMEOUT_DOWNLOAD):
                                 async with client.stream('GET', resource.url, headers=headers, timeout=60, follow_redirects=True) as response:
                                     async for chunk in response.aiter_bytes():  
                                         f.write(chunk)
@@ -204,7 +204,7 @@ class ResourceProcessor:
                     rts.set(ctx, f'DOWNLOADED {total_size} BYTES from {resource.url} to {filename}')
                 else:
                     filename = usable_url
-                with asyncio.timeout(TIMEOUT_VALIDATE):
+                async with asyncio.timeout(TIMEOUT_VALIDATE):
                     dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
                 potential_fields = [
                     Field(name=field['name'], data_type=field['type'])
@@ -259,7 +259,7 @@ class ResourceProcessor:
                 stream.close()
 
                 sqlite_filename = f'{TMP_DIR}/{rand}.sqlite'
-                with asyncio.timeout(TIMEOUT_DB):
+                async with asyncio.timeout(TIMEOUT_DB):
                     resource = await asyncio.to_thread(self.write_db, ctx, sqlite_filename, stream.name, data, resource, field_names)
                     deleted = await store.storeDB(resource, dataset, sqlite_filename, ctx)
                 if not deleted:
