@@ -5,8 +5,9 @@ from httpx import Response
 
 class BaseRetry:
 
-    def __init__(self, retries=3) -> None:
+    def __init__(self, retries=3, timeout=2) -> None:
         self.retries = retries
+        self.timeout = timeout
 
     # operation is an async function that returns a httpx.Response
     async def __call__(self, client, method, *args, **kwargs) -> Response:
@@ -18,10 +19,10 @@ class BaseRetry:
                 response = self.test_response(response)
                 return response
             except Exception as e:
-                print('RETRYING', repr(e), args[0])
+                print('RETRYING', repr(e), repr(client), method, args)
                 if i == self.retries - 1:
-                    print('GIVING UP', repr(e), args[0])
-                await asyncio.sleep(2 ** (i+2))
+                    print('GIVING UP', repr(e), repr(client), method, args)
+                await asyncio.sleep(self.timeout ** (i+2))
         return None
 
     def test_response(self, response: Response) -> None:
