@@ -7,7 +7,7 @@ from ....common.retry import BaseRetry
 from ....common.datatypes import Embedding
 from ..dataset_factory import dataset_factory
 
-from ..metadata_store import MetadataStore
+from ..metadata_store import DatasetResult, MetadataStore
 from ...datatypes import Dataset
 from ...realtime_status import realtime_status as rts
 from ...embedder import embedder
@@ -77,6 +77,8 @@ MAPPING = {
 }
 
 class ESMetadataStore(MetadataStore):
+
+    PAGE_SIZE = 10
 
     def __init__(self):
         self.initialized = False
@@ -156,3 +158,42 @@ class ESMetadataStore(MetadataStore):
 
     async def getEmbedding(self, dataset: Dataset) -> Embedding:
         return await super().getEmbedding(dataset)
+
+    async def getDatasets(self, catalogId: str, page=1, sort=None, query=None, filters=None) -> DatasetResult:
+        async with ESClient() as client:
+            await self.single_time_init(client)
+            body = {
+                'query': {
+                    'bool': {
+                        'must': [
+                            {'match': {'catalogId': catalogId}}
+                        ]
+                    }
+                },
+                'from': (page - 1) * self.PAGE_SIZE,
+                'size': self.PAGE_SIZE,
+                'track_total_hits': True
+            }
+            if query:
+                body['query']['bool']['must'].append({
+                    'multi_match': {
+                        'query': query,
+                        'fields': ['title', 'description', 'better_title', 'better_description', 'publisher', 'publisher_description'],
+                    }
+                })
+            if filters:
+                for k, v in filters.items():
+                    body['query']['bool']['must'].append({'match': {k: v}})
+            ret = await BaseRetry(timeout=30)(client, 'search', index=ES_INDEX, body=body)
+            total = ret['hits']['total']['value']
+            datasets = []
+            for hit in ret['hits']['hits']:
+                data = hit['_source']
+                data = dict(data)
+                try:
+                    datasets.append(dataset_factory(data))
+                except Exception as e:
+                    print('ERROR PARSING DATASET', e)
+                    continue
+            return DatasetResult(datasets, total, total // self.PAGE_SIZE + 1)
+        return DatasetResult([], 0, 0)

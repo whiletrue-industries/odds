@@ -1,4 +1,14 @@
+import dataclasses
+from typing import List
 from ..datatypes import Dataset, Embedding
+
+
+@dataclasses.dataclass
+class DatasetResult:
+    datasets: List[Dataset]
+    total: int
+    pages: int
+
 
 class MetadataStore:
 
@@ -18,6 +28,9 @@ class MetadataStore:
         if dataset and hasattr(dataset, 'embedding'):
             return dataset.embedding
         return None
+    
+    async def getDatasets(self, catalogId: str, page=1, sort=None, query=None, filters=None) -> DatasetResult:
+        return DatasetResult([], 0, 0)
         
     # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
     #     return []
