@@ -33,24 +33,34 @@ async def deployment_catalogs(deployment_id: str, user: FireBaseUser):
     ]
     return catalogs
 
-@router.get("/catalog/{catalog_id}")
-async def get_catalog(catalog_id: str, user: FireBaseUser):
+@router.get("/deployment/{deployment_id}/catalog/{catalog_id}")
+async def get_catalog(deployment_id: str, catalog_id: str, user: FireBaseUser):
     uid = user['uid']
+    deployment = await deployment_repo.get_deployment(deployment_id)
+    if not deployment:
+        raise HTTPException(status_code=404, detail="Deployment not found")
+    if deployment.owner != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to access this deployment")
+    if catalog_id not in deployment.catalogIds:
+        raise HTTPException(status_code=404, detail="Catalog not found in this deployment")
     catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
-    if catalog.owner != uid:
-        raise HTTPException(status_code=403, detail="Not authorized to access this catalog")
     return catalog
 
-@router.get("/catalog/{catalog_id}/datasets")
-async def get_catalog_datasets(catalog_id: str, user: FireBaseUser, page: int = 1):
+@router.get("/deployment/{deployment_id}/catalog/{catalog_id}/datasets")
+async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBaseUser, page: int = 1):
     uid = user['uid']
+    deployment = await deployment_repo.get_deployment(deployment_id)
+    if not deployment:
+        raise HTTPException(status_code=404, detail="Deployment not found")
+    if deployment.owner != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to access this deployment")
+    if catalog_id not in deployment.catalogIds:
+        raise HTTPException(status_code=404, detail="Catalog not found in this deployment")
     catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
-    if catalog.owner != uid:
-        raise HTTPException(status_code=403, detail="Not authorized to access this catalog")
     result = await metadata_store.getDatasets(catalog_id, page=1)
     simple_datasets = []
     for dataset in result.datasets:
