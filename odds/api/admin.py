@@ -36,7 +36,7 @@ async def deployment_catalogs(deployment_id: str, user: FireBaseUser):
 @router.get("/catalog/{catalog_id}")
 async def get_catalog(catalog_id: str, user: FireBaseUser):
     uid = user['uid']
-    catalog = await catalog_repo.get_catalog(catalog_id)
+    catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
     if catalog.owner != uid:
@@ -46,7 +46,7 @@ async def get_catalog(catalog_id: str, user: FireBaseUser):
 @router.get("/catalog/{catalog_id}/datasets")
 async def get_catalog_datasets(catalog_id: str, user: FireBaseUser, page: int = 1):
     uid = user['uid']
-    catalog = await catalog_repo.get_catalog(catalog_id)
+    catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
     if catalog.owner != uid:
