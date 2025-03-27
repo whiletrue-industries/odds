@@ -93,7 +93,8 @@ async def get_catalog_dataset(deployment_id: str, catalog_id: str, dataset_id: s
     catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
-    dataset = await metadata_store.getDataset(dataset_id)
+    store_id = f'{catalog_id}__{dataset_id}'
+    dataset = await metadata_store.getDataset(store_id)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     d = dataclasses.asdict(dataset)
