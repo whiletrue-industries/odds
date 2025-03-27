@@ -49,7 +49,7 @@ async def get_catalog(deployment_id: str, catalog_id: str, user: FireBaseUser):
     return catalog
 
 @router.get("/deployment/{deployment_id}/catalog/{catalog_id}/datasets")
-async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBaseUser, page: int = 1):
+async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBaseUser, page: int = 1, sort: str = None):
     uid = user['uid']
     deployment = await deployment_repo.get_deployment(deployment_id)
     if not deployment:
@@ -61,7 +61,7 @@ async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBa
     catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
-    result = await metadata_store.getDatasets(catalog_id, page=page)
+    result = await metadata_store.getDatasets(catalog_id, page=page, sort=sort)
     simple_datasets = []
     for dataset in result.datasets:
         d = dataclasses.asdict(dataset)
