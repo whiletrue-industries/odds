@@ -68,6 +68,8 @@ class Dataset(Interface):
 
     versions: dict = field(default_factory=dict)
 
+    last_updated: str = None
+
     def storeId(self):
         return f"{self.catalogId}__{self.id}"
     
