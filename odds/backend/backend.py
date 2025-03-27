@@ -62,6 +62,7 @@ class ODDSBackend:
         await self.scan(CatalogFilter(), DatasetFilterNew())
 
     async def scan_specific(self, catalogId: str = None, datasetId: str = None, force=True) -> None:
+        print(f'SCAN SPECIFIC CATALOG: {catalogId}, DATASET: {datasetId}, FORCE? {force}')
         if catalogId:
             catalogFilter = CatalogFilterById(catalogId)
         else:

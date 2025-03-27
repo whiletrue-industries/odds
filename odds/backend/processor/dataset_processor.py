@@ -59,6 +59,9 @@ class DatasetProcessor:
                     await self.embedder.embed(dataset, ctx)
                 if await datasetFilter.index(dataset):
                     await self.indexer.index(dataset, ctx)
+            else:
+                if config.debug:
+                    rts.set(ctx, f'NO RESOURCES, DONE')
             await metadata_store.storeDataset(dataset, ctx)
             # await db.storeDataset(dataset, ctx)
         except Exception as e:
