@@ -85,8 +85,8 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                 {
                     'type': 'file',
                     'file': {
-                        'filename': self.resource.url.split('/')[-1],
-                        'file_id': self.rand,
+                        # 'filename': self.resource.url.split('/')[-1],
+                        # 'file_id': self.rand,
                         'file_data': self.data_b64,
                     }
                 }
@@ -317,8 +317,10 @@ class ResourceProcessor:
     async def process_document(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, to_delete: List[str], ctx: str):
         rand = uuid.uuid4().hex
         filename = await self.download_url(ctx, catalog, resource, to_delete, rand)
+        mimetype = DOCUMENT_MIMETYPES.get(resource.file_format)
         content = open(filename, 'rb').read()
         content = base64.b64encode(content).decode('ascii').replace('\n', '')
+        content = f'data:{mimetype};base64,{content}'
         query = MDConverterQuery(catalog, resource, content)
         await llm_runner.run(query, [dataset.id])
         rts.clear(ctx)
