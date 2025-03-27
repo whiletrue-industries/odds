@@ -61,7 +61,7 @@ async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBa
     catalog = catalog_repo.get_catalog(catalog_id)
     if not catalog:
         raise HTTPException(status_code=404, detail="Catalog not found")
-    result = await metadata_store.getDatasets(catalog_id, page=1)
+    result = await metadata_store.getDatasets(catalog_id, page=page)
     simple_datasets = []
     for dataset in result.datasets:
         d = dataclasses.asdict(dataset)
