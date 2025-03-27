@@ -85,7 +85,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                 {
                     'type': 'file',
                     'file': {
-                        # 'filename': self.resource.url.split('/')[-1],
+                        'filename': self.resource.url.split('/')[-1],
                         # 'file_id': self.rand,
                         'file_data': self.data_b64,
                     }
