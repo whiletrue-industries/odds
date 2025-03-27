@@ -55,10 +55,10 @@ Finally, if it doesn't contain any relevant information (for example, it is only
 Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
 """
 
-    def __init__(self, catalog: DataCatalog, resource: Resource, data_uri: str = None):
+    def __init__(self, catalog: DataCatalog, resource: Resource, data_b64: str = None):
         super().__init__(None, catalog)
         self.resource = resource
-        self.data_uri = data_uri
+        self.data_b64 = data_b64
         self.language = self.catalog.language or 'English'
 
     def model(self) -> str:
@@ -78,7 +78,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
 
 
     def prompt(self) -> list[tuple[str, str]]:
-        if self.data_uri:
+        if self.data_b64:
             prompt = [
                 { "type": "text", "text": self.DATA_URI_PROMPT.format(language=self.language) },
                 {
@@ -86,7 +86,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                     'file': {
                         'filename': self.resource.url.split('/')[-1],
                         'file_id': self.resource.id,
-                        'file_data': self.data_uri.split(',')[1],
+                        'file_data': self.data_b64,
                     }
                 }
             ]
@@ -309,9 +309,9 @@ class ResourceProcessor:
 
         rts.clear(ctx)
 
-    async def process_document(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, mimetype: str, to_delete: List[str], ctx: str):
+    async def process_document(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, to_delete: List[str], ctx: str):
         content = open(resource.url, 'rb').read()
-        content = f'data:{mimetype};base64,' + base64.b64encode(content).decode('ascii').replace('\n', '')
+        content = base64.b64encode(content).decode('ascii').replace('\n', '')
         query = MDConverterQuery(catalog, resource, content)
         await llm_runner.run(query, [dataset.id])
         rts.clear(ctx)
@@ -340,11 +340,11 @@ class ResourceProcessor:
             self.sem = asyncio.Semaphore(self.concurrency_limit)
         try:
             async with self.sem:
+                rts.set(ctx, f'PROCESSING Format {resource.file_format}')
                 if resource.file_format == 'website':
                     await self.process_website(catalog, dataset, resource, to_delete, ctx)
                 elif resource.file_format in DOCUMENT_FORMATS:
-                    mimetype = DOCUMENT_MIMETYPES[resource.file_format]
-                    await self.process_document(catalog, dataset, resource, mimetype, to_delete, ctx)
+                    await self.process_document(catalog, dataset, resource, to_delete, ctx)
                 else:
                     await self.process_tabular(catalog, dataset, resource, to_delete, ctx)
 
