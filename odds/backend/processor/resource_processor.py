@@ -60,6 +60,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
         self.resource = resource
         self.data_b64 = data_b64
         self.language = self.catalog.language or 'English'
+        self.rand = uuid.uuid4().hex
 
     def model(self) -> str:
         return 'cheap'
@@ -85,7 +86,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                     'type': 'file',
                     'file': {
                         'filename': self.resource.url.split('/')[-1],
-                        'file_id': self.resource.id,
+                        'file_id': self.rand,
                         'file_data': self.data_b64,
                     }
                 }
