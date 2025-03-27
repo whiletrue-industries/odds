@@ -70,7 +70,7 @@ async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBa
             r.pop('chunks', None)
             r.pop('fields', None)
         d.pop('embedding', None)
-        d.pop('resources', None)
+        # d.pop('resources', None)
         simple_datasets.append(d)
     ret = dict(
         page=result.page,
@@ -79,3 +79,29 @@ async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBa
         datasets=simple_datasets
     )
     return ret
+
+@router.get("/deployment/{deployment_id}/catalog/{catalog_id}/dataset/{dataset_id}")
+async def get_catalog_dataset(deployment_id: str, catalog_id: str, dataset_id: str, user: FireBaseUser):
+    uid = user['uid']
+    deployment = await deployment_repo.get_deployment(deployment_id)
+    if not deployment:
+        raise HTTPException(status_code=404, detail="Deployment not found")
+    if deployment.owner != uid:
+        raise HTTPException(status_code=403, detail="Not authorized to access this deployment")
+    if catalog_id not in deployment.catalogIds:
+        raise HTTPException(status_code=404, detail="Catalog not found in this deployment")
+    catalog = catalog_repo.get_catalog(catalog_id)
+    if not catalog:
+        raise HTTPException(status_code=404, detail="Catalog not found")
+    dataset = await metadata_store.getDataset(dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    d = dataclasses.asdict(dataset)
+    for r in d['resources']:
+        if r['content']:
+            r['content-length'] = len(r['content'])
+            r['content'] = r['content'][:300]
+        r.pop('chunks', None)
+        r.pop('fields', None)
+    d.pop('embedding', None)
+    return dataset
