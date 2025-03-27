@@ -5,7 +5,7 @@ CONFIG = {
     # 'Store': 'FSStore',
     'MetadataStore': 'ESMetadataStore',
     'Store': 'S3Store',
-    'LLMRunner': 'MistralLLMRunner',
+    'LLMRunner': 'OpenAILLMRunner',
     'Embedder': 'OpenAIEmbedder',
     'Indexer': 'ESIndexer',
     'DBStorage': 'PeeweeDBStorage',

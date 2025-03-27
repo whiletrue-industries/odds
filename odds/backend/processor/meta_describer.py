@@ -30,7 +30,6 @@ class MetaDescriberQuery(LLMQuery):
             self.dataset.better_title = result.get('title')
             self.dataset.summary = result.get('summary')
             self.dataset.better_description = result.get('description')
-            self.dataset.improvement_score = result.get('improvement_score')
         except Exception as e:
             print(f'{self.ctx}:ERROR', e)
             print(f'{self.ctx}:RESULT', result)
@@ -50,18 +49,8 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     {{
         "title": "<What is a good title for this dataset? provide a name, concise but descriptive, using simple terms and avoiding jargon, that would be a good title this dataset.>",
         "summary": "<A one-sentence summary for this dataset. Provide a short snippet, concise and descriptive, using simple terms and avoiding jargon, summarizing the contents of this dataset. The summary should always start with the words 'Data of', 'Information of', 'List of' or similar.>",
-        "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>",
-        "improvement_score": <A number between 0 and 100 indicating how much better the new title and description are compared to the original title and description.>
+        "description": "<Provide a good description of this dataset in a single paragraph, using simple terms and avoiding jargon.>"
     }}
-
-    How to calculate the improvement score:
-    A continuous scale from 0 to 100 is used to measure the improvement of the new title and description compared to the original.
-    Use the following guidelines to determine the improvement score - the score can be any number between 0 and 100, not just the ones listed below:
-    0: No improvement, the new title and description are the same as the original.
-    0-33: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
-    33-66: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
-    66-100: Major improvement, the old title and description were really bad and the new title and description are a significant improvement, with much more information and much better phrasing.
-    100: Perfect improvement, the old title and description were completely useless and are now replaced by new ones that are perfect.
 
     Include in the description and summary information regarding relevant time periods, geographic regions, and other relevant details.
     {language}
@@ -124,6 +113,55 @@ class MetaDescriberQueryWebsite(MetaDescriberQuery):
             ('user', instructions + content)
         ]
 
+class EvaluateDescriptionsQuery(LLMQuery):
+
+    INSTRUCTIONS = '''Following are two titles and descriptions for a dataset.
+    The first one is the original title and description, and the second one is a new title and description.
+    Provide a score from 0 to 100 indicating how much better the new title and description are compared to the original title and description.
+    Use the following guidelines to determine the score - the score can be any number between 0 and 100, not just the ones listed below:
+    0: No improvement, the new title and description are the same as the original.
+    0-33: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
+    33-66: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
+    66-100: Major improvement, the old title and description were really bad and the new title and description are a significant improvement, with much more information and much better phrasing.
+    100: Perfect improvement, the old title and description were completely useless and are now replaced by new ones that are perfect.
+    The first one is the original title and description, and the second one is a new title and description.
+    
+    Your response should be a single number between 0 and 100, indicating how much better the new title and description are compared to the original title and description.
+    Do not include any additional text or formatting in your response - just the number.
+    
+    -----
+    Original title: {original_title}
+    Original description:
+    {original_description}
+    -----
+    New title: {new_title}
+    New description:
+    {new_description}
+    '''
+    def prompt(self) -> list[tuple[str, str]]:    
+        return [
+            ('system', 'You are an experienced data analyst.'),
+            ('user', self.INSTRUCTIONS.format(
+                original_title=self.dataset.title or '<no title>',
+                original_description=self.dataset.description or '<no description>',
+                new_title=self.dataset.better_title or '<no new title>',
+                new_description=self.dataset.better_description or '<no new description>'
+            ))
+        ]
+    
+    def handle_result(self, result: str) -> None:
+        try:
+            result = result.strip()
+            result = int(result)
+            self.dataset.improvement_score = result
+        except Exception as e:
+            print(f'{self.ctx}:ERROR', e)
+            print(f'{self.ctx}:RESULT', result)
+            self.dataset.improvement_score = -1
+
+    def expects_json(self) -> bool:
+        return False
+
 
 class MetaDescriber:
 
@@ -143,6 +181,9 @@ class MetaDescriber:
             await llm_runner.run(query, [dataset.id])
             if dataset.better_title is None and not query.upgraded:
                 query.upgrade()
+                await llm_runner.run(query)
+            if dataset.better_title is not None and dataset.better_description is not None:
+                query = EvaluateDescriptionsQuery(dataset, catalog)
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer
             rts.set(ctx, f'DESCRIBED ({catalog.language}) {dataset.title} --({dataset.improvement_score})--> {dataset.better_title or 'empty'} ({dataset.summary})')

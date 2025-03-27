@@ -23,6 +23,7 @@ class Resource(Interface):
     fields: list[Field] = field(default_factory=list)
     row_count: int = None
     db_schema: str = None
+    status: str = None
     status_selected: bool = False
     status_loaded: bool = False
     loading_error: str = None

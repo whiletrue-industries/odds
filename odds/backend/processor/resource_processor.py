@@ -1,4 +1,5 @@
 import asyncio
+import base64
 from collections import Counter
 from typing import Any, List
 import httpx
@@ -21,7 +22,7 @@ from ...common.config import config, CACHE_DIR
 from ...common.realtime_status import realtime_status as rts
 from ...common.llm import llm_runner
 from ...common.llm.llm_query import LLMQuery
-from ..settings import ALLOWED_FORMATS
+from ..settings import ALLOWED_FORMATS, DOCUMENT_FORMATS, DOCUMENT_MIMETYPES
 
 
 TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
@@ -37,12 +38,31 @@ TIMEOUT_DB = 600
 
 class MDConverterQuery(LLMQuery):
 
-    def __init__(self, resource: WebsiteResource):
-        super().__init__(None, None)
+    WEBSITE_PROMPT = """Please read the contents of the following website (in simplified HTML format) and assess the data.
+If it contains information relevant to users, do your best to extract the textual data contained in the website into markdown format, as accurately as possible.
+If the website contains tables, lists, or other structured data, please try to extract that data into a tabular format.
+It doesn't have to be perfect, but try to capture the essence of the data as best as you can and format it in a way that would be useful, without modifying the text itself.
+Finally, if it doesn't contain any relevant information (for example, it is only a directory page linking to other pages, login page, a search page, a blank page etc.), simply answer with the single word "IRRELEVANT" and nothing more.
+Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
+----------"""
+
+    DATA_URI_PROMPT = """Please read the contents of the following document (attached) and assess the data.
+If it contains information relevant to users, do your best to extract the textual data contained in the document into markdown format, as accurately as possible.
+If the document contains tables, lists, or other structured data, please try to extract that data into a tabular format.
+If the document is very large, you can skip some parts of it, but please try to keep the most relevant information or summarize it in a way that is useful.
+It doesn't have to be perfect, but try to capture the essence of the data as best as you can and format it in a way that would be useful, without modifying the text itself.
+Finally, if it doesn't contain any relevant information (for example, it is only a cover letter describing other documents, a blank page etc.), simply answer with the single word "IRRELEVANT" and nothing more.
+Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
+"""
+
+    def __init__(self, catalog: DataCatalog, resource: Resource, data_uri: str = None):
+        super().__init__(None, catalog)
         self.resource = resource
+        self.data_uri = data_uri
+        self.language = self.catalog.language or 'English'
 
     def model(self) -> str:
-        return 'expensive'
+        return 'cheap'
 
     def temperature(self) -> float:
         return 0
@@ -58,18 +78,24 @@ class MDConverterQuery(LLMQuery):
 
 
     def prompt(self) -> list[tuple[str, str]]:
-        prompt = '''Please read the contents of the following website (in simplified HTML format) and assess the data.
-If it contains information relevant to users, do your best to extract the textual data contained in the website into markdown format, as accurately as possible.
-If the website contains tables, lists, or other structured data, please try to extract that data into a tabular format.
-It doesn't have to be perfect, but try to capture the essence of the data as best as you can and format it in a way that would be useful, without modifying the text itself.
-Finally, if it doesn't contain any relevant information (for example, it is only a directory page linking to other pages, login page, a search page, a blank page etc.), simply answer with the single word "IRRELEVANT" and nothing more.
-Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response.
-----------
-'''
-        content = self.resource.content
-        # content = self.prepare_content(content)
-        prompt += content
-        prompt = prompt[:int(self.max_tokens()*0.75)]
+        if self.data_uri:
+            prompt = [
+                { "type": "text", "text": self.DATA_URI_PROMPT.format(language=self.language) },
+                {
+                    'type': 'file',
+                    'file': {
+                        'filename': self.resource.url.split('/')[-1],
+                        'file_id': self.resource.id,
+                        'file_data': self.data_uri.split(',')[1],
+                    }
+                }
+            ]
+        else:
+            prompt = self.WEBSITE_PROMPT.format(language=self.language)
+            content = self.resource.content
+            # content = self.prepare_content(content)
+            prompt += content
+            prompt = prompt[:int(self.max_tokens()*0.75)]
 
         # print("XXXXX", self.resource.content)
 
@@ -80,9 +106,11 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
 
     def handle_result(self, result: str) -> Any:
         if result.strip().upper() == 'IRRELEVANT' or 'IRRELEVANT' in result:
+            self.resource.status = 'irrelevant'
             self.resource.loading_error = 'IRRELEVANT'
             self.resource.status_loaded = False
         else:
+            self.resource.status = 'loaded'
             self.resource.content = result
             self.resource.status_loaded = True
 
@@ -167,6 +195,7 @@ class ResourceProcessor:
             resource.row_count = conn.execute(text('SELECT COUNT(*) FROM data')).fetchone()[0]
             # get the table's CREATE TABLE text:
             resource.db_schema = conn.execute(text('SELECT sql FROM sqlite_master WHERE type="table" AND name="data"')).fetchone()[0]
+            resource.status = 'loaded'
             resource.status_loaded = True
         rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS')
         return resource
@@ -267,6 +296,7 @@ class ResourceProcessor:
 
             except Exception as e:
                 rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
+                resource.status = 'failed'
                 resource.loading_error = str(e)
                 return
             finally:
@@ -274,7 +304,15 @@ class ResourceProcessor:
 
     async def process_website(self, catalog: DataCatalog, dataset: Dataset, resource: WebsiteResource, to_delete: List[str], ctx: str):
         resource.content = open(resource.url, 'r').read()
-        query = MDConverterQuery(resource)
+        query = MDConverterQuery(catalog, resource)
+        await llm_runner.run(query, [dataset.id])
+
+        rts.clear(ctx)
+
+    async def process_document(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, mimetype: str, to_delete: List[str], ctx: str):
+        content = open(resource.url, 'rb').read()
+        content = f'data:{mimetype};base64,' + base64.b64encode(content).decode('ascii').replace('\n', '')
+        query = MDConverterQuery(catalog, resource, content)
         await llm_runner.run(query, [dataset.id])
         rts.clear(ctx)
 
@@ -285,6 +323,7 @@ class ResourceProcessor:
             return None
         dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
         if resource.status_loaded and not resource.loading_error:
+            resource.status = 'loaded'
             resource.loading_error = None
             return None
         if resource.loading_error:
@@ -303,6 +342,9 @@ class ResourceProcessor:
             async with self.sem:
                 if resource.file_format == 'website':
                     await self.process_website(catalog, dataset, resource, to_delete, ctx)
+                elif resource.file_format in DOCUMENT_FORMATS:
+                    mimetype = DOCUMENT_MIMETYPES[resource.file_format]
+                    await self.process_document(catalog, dataset, resource, mimetype, to_delete, ctx)
                 else:
                     await self.process_tabular(catalog, dataset, resource, to_delete, ctx)
 

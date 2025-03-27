@@ -1,3 +1,4 @@
+import datetime
 import json
 import dataclasses
 
@@ -24,6 +25,7 @@ MAPPING = {
         'publisher': {'type': 'text'},
         'publisher_description': {'type': 'text'},
         'link': {'type': 'keyword'},
+        'last_updated': {'type': 'date'},
         'resources': {
             'type': 'nested',
             'properties': {
@@ -43,6 +45,7 @@ MAPPING = {
                 },
                 'row_count': {'type': 'integer'},
                 'db_schema': {'type': 'keyword', 'index': False},
+                'status': {'type': 'keyword'},
                 'status_selected': {'type': 'boolean'},
                 'status_loaded': {'type': 'boolean'},
                 'loading_error': {'type': 'text'},
@@ -102,6 +105,7 @@ class ESMetadataStore(MetadataStore):
             id = dataset.storeId()
             rts.set(ctx, f'STORING DATASET {dataset.title} -> {id}')
             body = dataclasses.asdict(dataset)
+            body['last_updated'] = datetime.datetime.now().isoformat()
             for resource in body['resources']:
                 for field in resource['fields']:
                     props = dict()
@@ -160,7 +164,7 @@ class ESMetadataStore(MetadataStore):
         return await super().getEmbedding(dataset)
 
     async def getDatasets(self, catalogId: str, page=1, sort=None, query=None, filters=None) -> DatasetResult:
-        sort = sort or '+title'
+        sort = sort or '-last_updated'
         async with ESClient() as client:
             await self.single_time_init(client)
             body = {

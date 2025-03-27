@@ -14,7 +14,7 @@ class LLMQuery():
     def temperature(self) -> float:
         return 0
 
-    def prompt(self) -> list[tuple[str, str]]:
+    def prompt(self) -> list[tuple[str, str | list]]:
         pass
 
     def handle_result(self, result: dict | str) -> Any:
@@ -39,7 +39,7 @@ class CustomLLMQuery(LLMQuery):
     def model(self) -> str:
         return self._model
 
-    def prompt(self) -> list[tuple[str, str]]:
+    def prompt(self) -> list[tuple[str, str | list]]:
         return self._prompt
     
     def temperature(self) -> float:

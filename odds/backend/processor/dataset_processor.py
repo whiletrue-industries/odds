@@ -71,6 +71,8 @@ class DatasetProcessor:
 
     def prune_resources(self, dataset: Dataset, ctx: str):
         resources = dataset.resources
+        for resource in resources:
+            resource.status = 'bad_format'
         resources = [resource for resource in resources if ResourceProcessor.check_format(resource)]
         resource_names = {}
         for resource in resources:
@@ -80,5 +82,9 @@ class DatasetProcessor:
                 resource_names[resource.title] = format_idx
         if config.debug:
             rts.set(ctx, f'RESOURCE NAMES {dataset.title} {resource_names}')
+        for resource in resources:
+            resource.status = 'duplicate'
         resources = [resource for resource in resources if ResourceProcessor.format_idx(resource) == resource_names[resource.title]]
+        for resource in resources:
+            resource.status = 'failed_to_load'
         return resources
