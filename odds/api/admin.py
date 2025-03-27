@@ -73,6 +73,7 @@ async def get_catalog_datasets(deployment_id: str, catalog_id: str, user: FireBa
         d.pop('resources', None)
         simple_datasets.append(d)
     ret = dict(
+        page=result.page,
         total=result.total,
         pages=result.pages,
         datasets=simple_datasets
