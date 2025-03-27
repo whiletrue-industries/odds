@@ -131,9 +131,11 @@ class ResourceProcessor:
 
     @staticmethod
     def check_format(resource: Resource):
-        if resource.file_format.lower() not in ALLOWED_FORMATS:
-            return None
-        return resource
+        if resource.file_format is not None:
+            resource.file_format = resource.file_format.lower()
+            if resource.file_format not in ALLOWED_FORMATS:
+                return None
+            return resource
     
     @staticmethod
     def format_idx(resource: Resource):
