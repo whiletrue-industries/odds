@@ -195,5 +195,5 @@ class ESMetadataStore(MetadataStore):
                 except Exception as e:
                     print('ERROR PARSING DATASET', e)
                     continue
-            return DatasetResult(datasets, total, total // self.PAGE_SIZE + 1)
-        return DatasetResult([], 0, 0)
+            return DatasetResult(datasets, total, total // self.PAGE_SIZE + 1, page)
+        return DatasetResult([], 0, 0, 0)

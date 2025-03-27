@@ -8,6 +8,7 @@ class DatasetResult:
     datasets: List[Dataset]
     total: int
     pages: int
+    page: int
 
 
 class MetadataStore:
@@ -30,7 +31,7 @@ class MetadataStore:
         return None
     
     async def getDatasets(self, catalogId: str, page=1, sort=None, query=None, filters=None) -> DatasetResult:
-        return DatasetResult([], 0, 0)
+        return DatasetResult([], 0, 0, page)
         
     # async def findDatasets(self, embedding: Embedding) -> list[Dataset]:
     #     return []
