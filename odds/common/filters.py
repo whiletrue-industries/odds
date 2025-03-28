@@ -20,6 +20,9 @@ class DatasetFilter:
     async def index(self, dataset: Dataset) -> bool:
         return True
     
+    async def force_resources(self, dataset: Dataset) -> bool:
+        return False
+    
 
 class DatasetFilterIncomplete(DatasetFilter):
 
@@ -74,6 +77,8 @@ class DatasetFilterForce(DatasetFilter):
     async def consider(self, dataset: Dataset) -> bool:
         return True
 
+    async def force_resources(self, dataset: Dataset) -> bool:
+        return True
 
 class DatasetFilterById(DatasetFilter):
     def __init__(self, datasetId: str):
@@ -83,6 +88,8 @@ class DatasetFilterById(DatasetFilter):
     async def consider(self, dataset: Dataset) -> bool:
         return dataset.id == self.datasetId
 
+    async def force_resources(self, dataset: Dataset) -> bool:
+        return True
 
 class CatalogFilter:
 

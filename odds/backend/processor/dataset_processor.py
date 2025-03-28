@@ -25,23 +25,23 @@ class DatasetProcessor:
     def set_concurrency(self, limit: int):
         self.resource_processor.set_concurrency_limit(limit)
 
-    def queue(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str):
+    def queue(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str, force_resources=False):
         rts.set(ctx, f'QUEUE DATASET {dataset.title}')
-        self.tasks.append(asyncio.create_task(self.process(dataset, catalog, datasetFilter, ctx)))
+        self.tasks.append(asyncio.create_task(self.process(dataset, catalog, datasetFilter, ctx, force_resources)))
 
     async def wait(self):
         await asyncio.gather(*self.tasks)
 
-    async def process(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str):
+    async def process(self, dataset: Dataset, catalog: DataCatalog, datasetFilter: DatasetFilter, ctx: str, force_resources: bool):
         if config.debug:
-            rts.set(ctx, f'PROCESS DATASET {dataset.versions.get('resource_analyzer')} {dataset.title}')
+            rts.set(ctx, f'PROCESS DATASET {dataset.versions.get('resource_analyzer')} {dataset.title} (FORCE: {force_resources})')
         try:
             resources = self.prune_resources(dataset, ctx)
             if await datasetFilter.analyze(dataset):
                 if len(resources) > 0:
                     await asyncio.gather(
                         *[
-                            self.resource_processor.process(resource, dataset, catalog, ctx + f'/RES.{resource.file_format}[{i}]')
+                            self.resource_processor.process(resource, dataset, catalog, ctx + f'/RES.{resource.file_format}[{i}]', force=force_resources)
                             for i, resource in enumerate(resources)
                         ]
                     )

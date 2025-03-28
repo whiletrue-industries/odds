@@ -350,15 +350,18 @@ class ResourceProcessor:
         await llm_runner.run(query, [dataset.id])
         rts.clear(ctx)
 
-    async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str):
+    async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str, force=False):
         if not ResourceProcessor.check_format(resource):
+            rts.set(ctx, f'INVALID FORMAT {resource.file_format}')
             return None
         if not resource.url:
+            rts.set(ctx, f'NO URL')
             return None
         dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
-        if resource.status_loaded and not resource.loading_error:
+        if resource.status_loaded and not resource.loading_error and not force:
             resource.status = 'loaded'
             resource.loading_error = None
+            rts.set(ctx, f'ALREADY LOADED {resource.url}')
             return None
         if resource.loading_error:
             if resource.loading_error.startswith('TOO MANY FIELDS'):

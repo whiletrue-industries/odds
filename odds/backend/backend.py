@@ -41,7 +41,7 @@ class ODDSBackend:
                         if await datasetFilter.consider(dataset):
                             rts.set(cat_ctx, f'CONSIDER DATASET {dataset.id}')
                             # await db.storeDataset(dataset, ctx)
-                            dataset_processor.queue(dataset, catalog, datasetFilter, ctx)
+                            dataset_processor.queue(dataset, catalog, datasetFilter, ctx, await datasetFilter.force_resources(dataset))
                         else:
                             rts.set(cat_ctx, f'SKIP DATASET {dataset.id}')
                         dataset_idx += 1
