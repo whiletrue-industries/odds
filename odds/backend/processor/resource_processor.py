@@ -113,12 +113,16 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                 self.resource.loading_error = 'IRRELEVANT'
                 self.resource.status_loaded = False
             else:
+                if result.startswith('```markdown'):
+                    result = result[13:]
+                if result.endswith('```'):
+                    result = result[:-3]
                 self.resource.status = 'loaded'
                 self.resource.content = result
                 self.resource.status_loaded = True
         else:
             self.resource.status = 'failed'
-            self.resource.loading_error = 'FAILED TO EXCTRACT'
+            self.resource.loading_error = 'FAILED TO EXTRACT'
             self.resource.status_loaded = False
 
     def expects_json(self) -> bool:
