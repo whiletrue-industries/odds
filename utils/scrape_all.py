@@ -16,6 +16,7 @@ async def main():
     redis = await create_pool(REDIS_SETTINGS)
     catalog_id = args.catalog_id or None
     dataset_id = args.dataset_id or None
+    print(f'SCAN SPECIFIC CATALOG: {catalog_id}, DATASET: {dataset_id}, FORCE? {args.force}')
     await redis.enqueue_job('scan_specific', catalog_id, dataset_id, args.force, _job_id='scraper_temp')
 
 if __name__ == '__main__':
