@@ -20,7 +20,12 @@ MAPPING = {
     'properties': {
         'catalogId': {'type': 'keyword'},
         'id': {'type': 'keyword'},
-        'title': {'type': 'text'},
+        'title': {
+            'type': 'text',
+            'fields': {
+                'keyword': {'type': 'keyword'}
+            }
+        },
         'description': {'type': 'text'},
         'publisher': {
             'type': 'text',
