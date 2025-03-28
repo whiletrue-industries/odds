@@ -48,7 +48,7 @@ class DatasetProcessor:
             else:
                 if config.debug:
                     rts.set(ctx, f'SKIP ANALYZE')
-            resources = [resource for resource in resources if resource.status_loaded]
+            # resources = [resource for resource in resources if resource.status_loaded]
             if len(resources) > 0:
                 if await datasetFilter.describe(dataset):
                     await self.meta_describer.describe(catalog, dataset, ctx)

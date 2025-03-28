@@ -59,8 +59,9 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     '''
     def prompt(self) -> list[tuple[str, str]]:
         data = dataclasses.asdict(self.dataset)
+        failed_resources = [f"{r['title']} ({r['file_format']})" for r in data['resources'] if not r.get('status_loaded') and r.get['title']]
         data['resources'] = [
-            {k: v for k, v in r.items() if k in ('title', 'fields', 'row_count')}
+            {k: v for k, v in r.items() if k in ('title', 'fields', 'row_count', 'content')}
             for r in data['resources']
             if r.get('status_loaded')]
         data = {k: v for k, v in data.items() if k in ('id', 'title', 'description', 'publisher', 'publisher_description', 'resources')}
@@ -72,8 +73,12 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
             if len(encoded) > MAX_STR_LEN:
                 resource.pop('fields')
                 resource['title'] = resource['title'][:128]
+                resource['content'] = resource['content'][:1000]
             else:
                 break
+        if len(failed_resources) > 0:
+            data['other_available_resources'] = failed_resources
+        encoded = json.dumps(data, indent=2, ensure_ascii=False)
 
         language = 'Always match in your response the language of the dataset\'s title, summary and description.'
         if self.catalog.language:
