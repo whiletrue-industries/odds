@@ -58,13 +58,14 @@ Finally, if it doesn't contain any relevant information whatsoever (for example,
 Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT"/"UNDECIPHERABLE"  as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
 """
 
-    def __init__(self, catalog: DataCatalog, resource: Resource, data_b64: str = None, filename: str = None):
+    def __init__(self, ctx: str, catalog: DataCatalog, resource: Resource, data_b64: str = None, filename: str = None):
         super().__init__(None, catalog)
         self.resource = resource
         self.data_b64 = data_b64
         self.filename = filename
         self.language = self.catalog.language or 'English'
         self.rand = uuid.uuid4().hex
+        self.ctx = ctx
 
     def model(self) -> str:
         return 'cheap'
@@ -110,15 +111,18 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
         ]
 
     def handle_result(self, result: str) -> Any:
+        self.resource.content = None
         if result:
             if result.strip().upper() == 'IRRELEVANT' or 'IRRELEVANT' in result:
                 self.resource.status = 'irrelevant'
                 self.resource.loading_error = 'IRRELEVANT'
                 self.resource.status_loaded = False
+                rts.set(self.ctx, f'IRRELEVANT {self.resource.url}')
             elif result.strip().upper() == 'UNDECIPHERABLE' or 'UNDECIPHERABLE' in result:
                 self.resource.status = 'error'
                 self.resource.loading_error = 'UNDECIPHERABLE'
                 self.resource.status_loaded = False
+                rts.set(self.ctx, f'UNDECIPHERABLE {self.resource.url}')
             else:
                 if result.startswith('```markdown'):
                     result = result[13:]
@@ -127,10 +131,13 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                 self.resource.status = 'loaded'
                 self.resource.content = result
                 self.resource.status_loaded = True
+                self.resource.loading_error = None
+                rts.set(self.ctx, f'LOADED {result[:100]}...')
         else:
             self.resource.status = 'failed'
             self.resource.loading_error = 'FAILED TO EXTRACT'
             self.resource.status_loaded = False
+            rts.set(self.ctx, f'FAILED TO EXTRACT {self.resource.url}')
 
     def expects_json(self) -> bool:
         return False
@@ -326,7 +333,7 @@ class ResourceProcessor:
 
     async def process_website(self, catalog: DataCatalog, dataset: Dataset, resource: WebsiteResource, to_delete: List[str], ctx: str):
         resource.content = open(resource.url, 'r').read()
-        query = MDConverterQuery(catalog, resource)
+        query = MDConverterQuery(ctx, catalog, resource)
         await llm_runner.run(query, [dataset.id])
 
         rts.clear(ctx)
@@ -339,7 +346,7 @@ class ResourceProcessor:
         content = base64.b64encode(content).decode('ascii').replace('\n', '')
         content = f'data:{mimetype};base64,{content}'
         print('CONVERTING', filename, content[:100])
-        query = MDConverterQuery(catalog, resource, content, filename=filename.split('/')[-1])
+        query = MDConverterQuery(ctx, catalog, resource, content, filename=filename.split('/')[-1])
         await llm_runner.run(query, [dataset.id])
         rts.clear(ctx)
 
