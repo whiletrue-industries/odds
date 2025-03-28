@@ -22,7 +22,12 @@ MAPPING = {
         'id': {'type': 'keyword'},
         'title': {'type': 'text'},
         'description': {'type': 'text'},
-        'publisher': {'type': 'text'},
+        'publisher': {
+            'type': 'text',
+            'fields': {
+                'keyword': {'type': 'keyword'}
+            }
+        },
         'publisher_description': {'type': 'text'},
         'link': {'type': 'keyword'},
         'last_updated': {'type': 'date'},
