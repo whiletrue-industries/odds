@@ -59,7 +59,7 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
     '''
     def prompt(self) -> list[tuple[str, str]]:
         data = dataclasses.asdict(self.dataset)
-        failed_resources = [f"{r['title']} ({r['file_format']})" for r in data['resources'] if not r.get('status_loaded') and r.get['title']]
+        failed_resources = [f"{r['title']} ({r['file_format']})" for r in data['resources'] if not r.get('status_loaded') and r.get('title')]
         data['resources'] = [
             {k: v for k, v in r.items() if k in ('title', 'fields', 'row_count', 'content')}
             for r in data['resources']
