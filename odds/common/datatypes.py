@@ -87,6 +87,7 @@ class Dataset(Interface):
                         new_resources.append(update_r)
                     else:
                         new_resources.append(self_urls[update_r.url].merge(update_r))
+                self.resources = new_resources
             else:
                 if bool(updates_value):
                     setattr(self, field_name, updates_value)
