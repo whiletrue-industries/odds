@@ -51,6 +51,7 @@ If it contains information relevant to users, do your best to extract the textua
 If the document contains tables, lists, or other structured data, please try to extract that data into a tabular format.
 If the document is very large, you can skip some parts of it, but please try to keep the most relevant information or summarize it in a way that is useful.
 It doesn't have to be perfect, but try to capture the essence of the data as best as you can and format it in a way that would be useful, without modifying the text itself.
+Either way, NEVER make up any data. Anything you write must be directly derived from the document's contents. If you are not sure about what's in the document, please say so. If you understand the document but you can't extract any exact text, describe what's inside (only if relevant).
 Finally, if it doesn't contain any relevant information (for example, it is only a cover letter describing other documents, a blank page etc.), simply answer with the single word "IRRELEVANT" and nothing more.
 Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
 """
