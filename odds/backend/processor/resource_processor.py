@@ -55,10 +55,11 @@ Finally, if it doesn't contain any relevant information (for example, it is only
 Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
 """
 
-    def __init__(self, catalog: DataCatalog, resource: Resource, data_b64: str = None):
+    def __init__(self, catalog: DataCatalog, resource: Resource, data_b64: str = None, filename: str = None):
         super().__init__(None, catalog)
         self.resource = resource
         self.data_b64 = data_b64
+        self.filename = filename
         self.language = self.catalog.language or 'English'
         self.rand = uuid.uuid4().hex
 
@@ -85,7 +86,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
                 {
                     'type': 'file',
                     'file': {
-                        'filename': self.resource.url.split('/')[-1],
+                        'filename': self.filename or self.resource.url.split('/')[-1],
                         # 'file_id': self.rand,
                         'file_data': self.data_b64,
                     }
@@ -106,14 +107,19 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
         ]
 
     def handle_result(self, result: str) -> Any:
-        if result.strip().upper() == 'IRRELEVANT' or 'IRRELEVANT' in result:
-            self.resource.status = 'irrelevant'
-            self.resource.loading_error = 'IRRELEVANT'
-            self.resource.status_loaded = False
+        if result:
+            if result.strip().upper() == 'IRRELEVANT' or 'IRRELEVANT' in result:
+                self.resource.status = 'irrelevant'
+                self.resource.loading_error = 'IRRELEVANT'
+                self.resource.status_loaded = False
+            else:
+                self.resource.status = 'loaded'
+                self.resource.content = result
+                self.resource.status_loaded = True
         else:
-            self.resource.status = 'loaded'
-            self.resource.content = result
-            self.resource.status_loaded = True
+            self.resource.status = 'failed'
+            self.resource.loading_error = 'FAILED TO EXCTRACT'
+            self.resource.status_loaded = False
 
     def expects_json(self) -> bool:
         return False
@@ -321,7 +327,8 @@ class ResourceProcessor:
         content = open(filename, 'rb').read()
         content = base64.b64encode(content).decode('ascii').replace('\n', '')
         content = f'data:{mimetype};base64,{content}'
-        query = MDConverterQuery(catalog, resource, content)
+        print('CONVERTING', filename, content[:100])
+        query = MDConverterQuery(catalog, resource, content, filename=filename.split('/')[-1])
         await llm_runner.run(query, [dataset.id])
         rts.clear(ctx)
 
