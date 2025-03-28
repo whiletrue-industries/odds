@@ -51,9 +51,11 @@ If it contains information relevant to users, do your best to extract the textua
 If the document contains tables, lists, or other structured data, please try to extract that data into a tabular format.
 If the document is very large, you can skip some parts of it, but please try to keep the most relevant information or summarize it in a way that is useful.
 It doesn't have to be perfect, but try to capture the essence of the data as best as you can and format it in a way that would be useful, without modifying the text itself.
-Either way, NEVER make up any data. Anything you write must be directly derived from the document's contents. If you are not sure about what's in the document, please say so. If you understand the document but you can't extract any exact text, describe what's inside (only if relevant).
-Finally, if it doesn't contain any relevant information (for example, it is a blank page etc.), simply answer with the single word "IRRELEVANT" and nothing more.
-Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT" as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
+Either way, NEVER make up any data. Anything you write must be directly derived from the document's contents.
+If you understand the document's overall premise but you can't extract any exact text, describe that instead.
+If you are not sure about what's in the document, simply answer with the single word "UNDECIPHERABLE".
+Finally, if it doesn't contain any relevant information whatsoever (for example, it is a blank page), simply answer with the single word "IRRELEVANT" and nothing more.
+Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "IRRELEVANT"/"UNDECIPHERABLE"  as the final result. Do not include any other preamble or postamble text in your response. Reply in {language}.
 """
 
     def __init__(self, catalog: DataCatalog, resource: Resource, data_b64: str = None, filename: str = None):
@@ -112,6 +114,10 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
             if result.strip().upper() == 'IRRELEVANT' or 'IRRELEVANT' in result:
                 self.resource.status = 'irrelevant'
                 self.resource.loading_error = 'IRRELEVANT'
+                self.resource.status_loaded = False
+            elif result.strip().upper() == 'UNDECIPHERABLE' or 'UNDECIPHERABLE' in result:
+                self.resource.status = 'error'
+                self.resource.loading_error = 'UNDECIPHERABLE'
                 self.resource.status_loaded = False
             else:
                 if result.startswith('```markdown'):

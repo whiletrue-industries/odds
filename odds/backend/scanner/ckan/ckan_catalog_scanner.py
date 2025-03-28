@@ -45,6 +45,7 @@ class CKANCatalogScanner(CatalogScanner):
                         headers=headers,
                         timeout=240
                     )
+                    assert r is not None
                     r.raise_for_status()
                     r = r.json()
                 except Exception as e:
