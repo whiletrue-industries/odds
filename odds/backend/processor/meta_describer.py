@@ -162,6 +162,8 @@ class EvaluateDescriptionsQuery(LLMQuery):
     def expects_json(self) -> bool:
         return False
 
+    def model(self) -> str:
+        return 'cheap'
 
 class MetaDescriber:
 
