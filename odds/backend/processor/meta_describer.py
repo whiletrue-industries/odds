@@ -73,7 +73,8 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
             if len(encoded) > MAX_STR_LEN:
                 resource.pop('fields')
                 resource['title'] = resource['title'][:128]
-                resource['content'] = resource['content'][:1000]
+                if resource['content']:
+                    resource['content'] = resource['content'][:1000]
             else:
                 break
         if len(failed_resources) > 0:
