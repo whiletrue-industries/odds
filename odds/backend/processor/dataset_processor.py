@@ -1,9 +1,11 @@
 import asyncio
 
+
 from .resource_processor import ResourceProcessor
 from .meta_describer import MetaDescriber
 from .dataset_embedder import DatasetEmbedder
 from .dataset_indexer import DatasetIndexer
+from .quality_evaluator import evaluate_quality
 from ...common.datatypes import Dataset, DataCatalog
 from ...common.metadata_store import metadata_store
 from ...common.db import db
@@ -62,7 +64,7 @@ class DatasetProcessor:
             else:
                 if config.debug:
                     rts.set(ctx, f'NO RESOURCES, DONE')
-            self.calculate_quality(dataset)
+            evaluate_quality(dataset)
             await metadata_store.storeDataset(dataset, ctx)
             # await db.storeDataset(dataset, ctx)
         except Exception as e:

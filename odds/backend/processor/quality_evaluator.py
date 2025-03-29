@@ -3,7 +3,7 @@ from ...backend.settings import ALLOWED_FORMATS, TABULAR_FORMATS, UNPROCESSABLE_
 from ...common.datatypes import Dataset
 
 
-def assess_quality(dataset: Dataset):
+def evaluate_quality(dataset: Dataset):
     # Plan for Quality score:
     # - Penalize resources that are not in ALLOWED_FORMATS or UNPROCESSABLE_DOCUMENT_FORMATS
     # - Of the rest, penalize resources that are not loaded
