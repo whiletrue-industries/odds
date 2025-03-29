@@ -98,15 +98,16 @@ num_resources: {num_resources}
     explanation += f'final score: {dataset.quality_score}\n'
     # Normalize the score to be between 0 and 100
     dataset.quality_score = max(0, min(dataset.quality_score, 100))
-    dataset.quality_issues = (
-        irrelevant_resource_issues +
-        corrupt_resource_issues +
-        low_number_of_rows_issues +
-        metadata_can_be_improved_issue
-    )
     dataset_quality_issues = [
         {
             'issue': 'dataset_quality',
             'description': explanation
         }
     ]
+    dataset.quality_issues = (
+        irrelevant_resource_issues +
+        corrupt_resource_issues +
+        low_number_of_rows_issues +
+        metadata_can_be_improved_issue +
+        dataset_quality_issues
+    )
