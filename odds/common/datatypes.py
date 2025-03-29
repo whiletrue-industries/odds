@@ -38,6 +38,7 @@ class Resource(Interface):
 
             if bool(updates_value):
                 setattr(self, field_name, updates_value)
+        return self
 
     async def get_openable_url(self, ctx: str) -> str:
         return self.url
