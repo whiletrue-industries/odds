@@ -71,8 +71,9 @@ class MetaDescriberQueryDataset(MetaDescriberQuery):
         for resource in data['resources'][::-1]:
             encoded = json.dumps(data, indent=2, ensure_ascii=False)
             if len(encoded) > MAX_STR_LEN:
-                resource.pop('fields')
-                resource['title'] = resource['title'][:128]
+                resource.pop('fields', None)
+                if resource['title']:
+                    resource['title'] = resource['title'][:128]
                 if resource['content']:
                     resource['content'] = resource['content'][:1000]
             else:
