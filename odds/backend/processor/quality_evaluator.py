@@ -68,10 +68,18 @@ def evaluate_quality(dataset: Dataset):
         corrupt_resource_penalty +
         low_number_of_rows_penalty
     )
+    explanation = f'''irrelevant_resource_penalty: {irrelevant_resource_penalty}
+corrupt_resource_penalty: {corrupt_resource_penalty}
+low_number_of_rows_penalty: {low_number_of_rows_penalty}
+num_resources: {num_resources}
+'''
+    
     if num_resources > 0:
         total_penalty /= num_resources
     else:
         total_penalty = 0
+
+    explanation += f'resources penalty: {total_penalty}\n'
 
     # Add penalty if improvement_score > 0
     total_penalty += improvement_score / 100.0
@@ -82,10 +90,12 @@ def evaluate_quality(dataset: Dataset):
                 'description': f'Title & Description could be improved'
             }
         ]
+        explanation += f'metadata_can_be_improved: {improvement_score} -> {total_penalty}\n'
     else:
         metadata_can_be_improved_issue = []
-    
+
     dataset.quality_score = int((2-total_penalty) * 50.0)
+    explanation += f'final score: {dataset.quality_score}\n'
     # Normalize the score to be between 0 and 100
     dataset.quality_score = max(0, min(dataset.quality_score, 100))
     dataset.quality_issues = (
@@ -94,3 +104,9 @@ def evaluate_quality(dataset: Dataset):
         low_number_of_rows_issues +
         metadata_can_be_improved_issue
     )
+    dataset_quality_issues = [
+        {
+            'issue': 'dataset_quality',
+            'description': explanation
+        }
+    ]

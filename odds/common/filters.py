@@ -43,8 +43,8 @@ class DatasetFilterIncomplete(DatasetFilter):
         # print('FILTER ANALYZE', dataset.id, len(dataset.resources), all([not r.status_selected for r in dataset.resources]), dataset.versions.get('resource_analyzer') != config.feature_versions.resource_analyzer)
         return (
             len(dataset.resources) and 
-            any([(r.status_selected and not r.status_loaded) for r in dataset.resources])
-        ) or dataset.versions.get('resource_analyzer') != config.feature_versions.resource_analyzer
+            any([(r.status_selected and r.status != 'loaded') for r in dataset.resources])
+        ) or dataset.versions.get('resource_analyzer') != config.feature_versions.resource_analyzer or dataset.quality_score is None
 
     async def describe(self, dataset: Dataset) -> bool:
         # print('FILTER DESCRIBE', dataset.id, dataset.better_title is None, dataset.better_description is None, dataset.versions.get('meta_describer') != config.feature_versions.meta_describer)
