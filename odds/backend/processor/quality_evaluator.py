@@ -28,7 +28,7 @@ def evaluate_quality(dataset: Dataset):
         r for r in tabular_resources if r.row_count and r.row_count > 10
     ]
 
-    num_resources = len(relevant_resources)
+    num_resources = len(dataset.resources)
     num_possible_resources = len(possible_resources)
     num_relevant_resources = len(relevant_resources)
     num_tabular_resources = len(tabular_resources)
