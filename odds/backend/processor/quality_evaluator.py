@@ -25,7 +25,7 @@ def evaluate_quality(dataset: Dataset):
         r for r in relevant_resources if r.status == 'loaded'
     ]
     good_number_of_rows = [
-        r for r in loaded_resources if r.row_count > 10
+        r for r in loaded_resources if r.row_count and r.row_count > 10
     ]
 
     num_resources = len(relevant_resources)
@@ -70,12 +70,12 @@ def evaluate_quality(dataset: Dataset):
     )
     if num_resources > 0:
         total_penalty /= num_resources
-        total_penalty *= math.log(1 + num_resources)
+        # total_penalty *= math.log(1 + num_resources)
     else:
         total_penalty = 0
 
     # Add penalty if improvement_score > 0
-    total_penalty += improvement_score / 20
+    total_penalty += improvement_score / 100
     if improvement_score > 0:
         metadata_can_be_improved_issue = [
             {
@@ -86,7 +86,9 @@ def evaluate_quality(dataset: Dataset):
     else:
         metadata_can_be_improved_issue = []
     
-    dataset.quality_score = math.exp(-total_penalty) * 100
+    dataset.quality_score = int((2-total_penalty) * 50)
+    # Normalize the score to be between 0 and 100
+    dataset.quality_score = max(0, min(dataset.quality_score, 100))
     dataset.quality_issues = (
         irrelevant_resource_issues +
         loaded_resource_issues +
