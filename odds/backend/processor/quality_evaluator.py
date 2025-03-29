@@ -18,14 +18,14 @@ def evaluate_quality(dataset: Dataset):
     relevant_resources = [
         r for r in possible_resources if r.file_format in ALLOWED_FORMATS
     ]
-    tabular_resources = [
-        r for r in relevant_resources if r.file_format in TABULAR_FORMATS
-    ]
     loaded_resources = [
         r for r in relevant_resources if r.status == 'loaded'
     ]
+    tabular_resources = [
+        r for r in loaded_resources if r.file_format in TABULAR_FORMATS
+    ]
     good_number_of_rows = [
-        r for r in loaded_resources if r.row_count and r.row_count > 10
+        r for r in tabular_resources if r.row_count and r.row_count > 10
     ]
 
     num_resources = len(relevant_resources)
@@ -44,8 +44,8 @@ def evaluate_quality(dataset: Dataset):
         for r in dataset.resources
         if r not in possible_resources
     ]
-    loaded_resource_penalty = num_relevant_resources - num_loaded_resources
-    loaded_resource_issues = [
+    corrupt_resource_penalty = num_relevant_resources - num_loaded_resources
+    corrupt_resource_issues = [
         {
             'issue': 'corrupt_resource',
             'description': f'Resource failed to load: {r.title} ({r.loading_error})'
@@ -53,8 +53,8 @@ def evaluate_quality(dataset: Dataset):
         for r in relevant_resources
         if r not in loaded_resources
     ]
-    good_number_of_rows_penalty = num_tabular_resources - num_good_number_of_rows
-    good_number_of_rows_issues = [
+    low_number_of_rows_penalty = num_tabular_resources - num_good_number_of_rows
+    low_number_of_rows_issues = [
         {
             'issue': 'low_number_of_rows',
             'description': f'Resource has very few rows: {r.title} ({r.row_count} rows)'
@@ -65,17 +65,16 @@ def evaluate_quality(dataset: Dataset):
 
     total_penalty = (
         irrelevant_resource_penalty +
-        loaded_resource_penalty +
-        good_number_of_rows_penalty
+        corrupt_resource_penalty +
+        low_number_of_rows_penalty
     )
     if num_resources > 0:
         total_penalty /= num_resources
-        # total_penalty *= math.log(1 + num_resources)
     else:
         total_penalty = 0
 
     # Add penalty if improvement_score > 0
-    total_penalty += improvement_score / 100
+    total_penalty += improvement_score / 100.0
     if improvement_score > 0:
         metadata_can_be_improved_issue = [
             {
@@ -86,12 +85,12 @@ def evaluate_quality(dataset: Dataset):
     else:
         metadata_can_be_improved_issue = []
     
-    dataset.quality_score = int((2-total_penalty) * 50)
+    dataset.quality_score = int((2-total_penalty) * 50.0)
     # Normalize the score to be between 0 and 100
     dataset.quality_score = max(0, min(dataset.quality_score, 100))
     dataset.quality_issues = (
         irrelevant_resource_issues +
-        loaded_resource_issues +
-        good_number_of_rows_issues +
+        corrupt_resource_issues +
+        low_number_of_rows_issues +
         metadata_can_be_improved_issue
     )
