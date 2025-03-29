@@ -62,6 +62,7 @@ class DatasetProcessor:
             else:
                 if config.debug:
                     rts.set(ctx, f'NO RESOURCES, DONE')
+            self.calculate_quality(dataset)
             await metadata_store.storeDataset(dataset, ctx)
             # await db.storeDataset(dataset, ctx)
         except Exception as e:

@@ -188,9 +188,9 @@ class MetaDescriber:
             else:
                 query = MetaDescriberQueryDataset(dataset, catalog, ctx)
             await llm_runner.run(query, [dataset.id])
-            if dataset.better_title is None and not query.upgraded:
-                query.upgrade()
-                await llm_runner.run(query)
+            # if dataset.better_title is None and not query.upgraded:
+            #     query.upgrade()
+            #     await llm_runner.run(query)
             if dataset.better_title is not None and dataset.better_description is not None:
                 query = EvaluateDescriptionsQuery(dataset, catalog)
                 await llm_runner.run(query)

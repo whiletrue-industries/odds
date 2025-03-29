@@ -79,6 +79,15 @@ MAPPING = {
         'summary': {'type': 'text'},
         'status_embedding': {'type': 'boolean'},
         'status_indexing': {'type': 'boolean'},
+        'improvement_score': {'type': 'long'},
+        'quality_score': {'type': 'integer'},
+        'quality_issues': {
+            'type': 'nested',
+            'properties': {
+                'issue': {'type': 'keyword'},
+                'description': {'type': 'text'}
+            }
+        },
         'versions': {'type': 'object', 'enabled': False},
         'embeddings': {
             'type': 'dense_vector',

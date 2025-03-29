@@ -1,4 +1,4 @@
-from typing import Any, List, Literal
+from typing import Any, Dict, List, Literal
 from dataclasses import dataclass, field, asdict, fields, is_dataclass
 import numpy as np
 from python_to_typescript_interfaces import Interface
@@ -64,8 +64,11 @@ class Dataset(Interface):
     better_title: str = None
     better_description: str = None
     status_embedding: bool = False
-    improvement_score: float = None
     status_indexing: bool = False
+
+    improvement_score: float = None
+    quality_score: int = None
+    quality_issues: list[Dict[str, str]] = field(default_factory=list)
 
     versions: dict = field(default_factory=dict)
 
