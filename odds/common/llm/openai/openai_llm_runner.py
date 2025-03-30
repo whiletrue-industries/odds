@@ -37,7 +37,7 @@ class OpenAILLMRunner(LLMRunner):
             'Content-Type': 'application/json'
         }
         async with httpx.AsyncClient() as client:
-            response = await Retry()(client, 'post',
+            response = await Retry(timeout=30)(client, 'post',
                 'https://api.openai.com/v1/chat/completions',
                 json=request,
                 headers=headers,

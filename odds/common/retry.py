@@ -30,8 +30,8 @@ class BaseRetry:
 
 class Retry(BaseRetry):
 
-    def __init__(self, retries=3) -> None:
-        super().__init__(retries=retries)
+    def __init__(self, retries=3, timeout=2) -> None:
+        super().__init__(retries=retries, timeout=timeout)
 
     def test_response(self, response: Response) -> None:
         if response.status_code == 400:
