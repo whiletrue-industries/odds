@@ -61,6 +61,14 @@ MAPPING = {
                 'loading_error': {'type': 'text'},
                 'kind': {'type': 'keyword'},
                 'content': {'type': 'text'},
+                'quality_issues': {
+                    'type': 'nested',
+                    'properties': {
+                        'id': {'type': 'keyword'},
+                        'issue': {'type': 'keyword'},
+                        'description': {'type': 'text'}
+                    }
+                },
                 'chunks': {
                     'type': 'nested', 
                     'properties': {
@@ -84,6 +92,7 @@ MAPPING = {
         'quality_issues': {
             'type': 'nested',
             'properties': {
+                'id': {'type': 'keyword'},
                 'issue': {'type': 'keyword'},
                 'description': {'type': 'text'}
             }

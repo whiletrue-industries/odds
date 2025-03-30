@@ -1,4 +1,4 @@
-import math
+from uuid import uuid4
 from ...backend.settings import ALLOWED_FORMATS, TABULAR_FORMATS, UNPROCESSABLE_DOCUMENT_FORMATS
 from ...common.datatypes import Dataset
 
@@ -36,33 +36,39 @@ def evaluate_quality(dataset: Dataset):
     num_good_number_of_rows = len(good_number_of_rows)
 
     irrelevant_resource_penalty = num_resources - num_possible_resources
-    irrelevant_resource_issues = [
-        {
-            'issue': 'irrelevant_resource',
-            'description': f'Possibly unusable resource: {r.title} ({r.file_format})'
-        }
-        for r in dataset.resources
-        if r not in possible_resources
-    ]
+    irrelevant_resource_issues = []
+    for r in dataset.resources:
+        r.quality_issues = []
+        if r not in possible_resources:
+            issue = {
+                'id': str(uuid4()),
+                'issue': 'irrelevant_resource',
+                'description': f'Possibly unusable resource: {r.title} ({r.file_format})'
+            }
+            irrelevant_resource_issues.append(issue)
+            r.quality_issues.append(issue)
     corrupt_resource_penalty = num_relevant_resources - num_loaded_resources
-    corrupt_resource_issues = [
-        {
-            'issue': 'corrupt_resource',
-            'description': f'Resource failed to load: {r.title} ({r.loading_error})'
-        }
-        for r in relevant_resources
-        if r not in loaded_resources
-    ]
+    corrupt_resource_issues = []
+    for r in relevant_resources:
+        if r not in loaded_resources:
+            issue = {
+                'id': str(uuid4()),
+                'issue': 'corrupt_resource',
+                'description': f'Resource failed to load: {r.title} ({r.loading_error})'
+            }
+            corrupt_resource_issues.append(issue)
+            r.quality_issues.append(issue)
     low_number_of_rows_penalty = num_tabular_resources - num_good_number_of_rows
-    low_number_of_rows_issues = [
-        {
-            'issue': 'low_number_of_rows',
-            'description': f'Resource has very few rows: {r.title} ({r.row_count} rows)'
-        }
-        for r in loaded_resources
-        if r not in good_number_of_rows
-    ]
-
+    low_number_of_rows_issues = []
+    for r in tabular_resources:
+        if r not in good_number_of_rows:
+            issue = {
+                'id': str(uuid4()),
+                'issue': 'low_number_of_rows',
+                'description': f'Resource has very few rows: {r.title} ({r.row_count} rows)'
+            }
+            low_number_of_rows_issues.append(issue)
+            r.quality_issues.append(issue)
     total_penalty = (
         irrelevant_resource_penalty +
         corrupt_resource_penalty +

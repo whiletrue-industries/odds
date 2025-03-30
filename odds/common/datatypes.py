@@ -30,6 +30,7 @@ class Resource(Interface):
     kind: str = 'base'
     content: str = None
     chunks: list[dict] = None
+    quality_issues: list[Dict[str, str]] = field(default_factory=list)
 
     def merge(self, updates: 'Resource'):
         for field in fields(self):
