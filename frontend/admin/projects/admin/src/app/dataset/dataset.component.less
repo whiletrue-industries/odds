@@ -1,0 +1,76 @@
+@import '../../common.less';
+
+:host {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    .datacatalog {
+        .standard-header-layout;
+    }
+
+    .dataset {
+        .standard-layout;
+        .title-header {
+            .row {
+                display: flex;
+                flex-flow: row;
+                align-items: baseline;
+                gap: 32px;
+                font-size: 20px;
+    
+                h1, h2 {
+                    flex: 1 1 auto;
+                    margin: 0;
+                }
+                h2 {
+                    font-weight: 400;
+                }
+                span {
+                    font-weight: 300;
+                }
+    
+                &.description {
+                    padding-top: 16px;
+                    flex: 1 1 auto;
+                    font-size: 18px;
+                    line-height: 125%;
+                    font-weight: 300;
+                }
+                .dataset-link {
+                    flex: 0 0 auto;
+                    margin-inline-start: auto;
+                }    
+            }
+        }
+        mat-tab-group {
+            .tab-header {
+                display: flex;
+                flex-flow: row;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .tab-content {
+                .standard-layout;
+
+                &.quality {
+                    h3 {
+                        margin: 0;
+                        font-size: 18px;
+                        font-weight: 400;
+                    }
+
+                    .title {
+    
+    
+                        display: flex;
+                        flex-flow: row;
+                        align-items: center;
+                        gap: 16px;
+                    }
+                }
+            }
+        }
+    }
+}

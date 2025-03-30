@@ -1,0 +1,167 @@
+@let dataset = state.dataset();
+@if (dataset) {
+    <div class='dataset'>
+        <div class='back'>
+            <a mat-button [routerLink]="['/deployment', state.deploymentId(), 'catalog', state.catalogId(), 'dataset', state.datasetId()]">
+                <mat-icon>arrow_back</mat-icon>
+                <span>Back to Dataset "{{ dataset.title }}"</span>
+            </a>
+        </div>
+    </div>
+    @let r = resource();
+    @if (r) {
+        <div class='resource'>
+            <div class='title-header'>
+                <div class='row'>
+                    <span>Resource File in <strong>{{ dataset?.title }}</strong></span>
+                    <div class='resource-link'>
+                        <a mat-button [href]="r.url" target="_blank">
+                            <mat-icon>open_in_new</mat-icon>
+                            <span>Download Resource File</span>
+                        </a>
+                    </div>        
+                </div>
+                <div class='row'>
+                    <h1 rtlize>{{ r.title }}</h1>
+                </div>
+                <div class='row status'>
+                    <app-file-format-chip [formats]='[r.file_format]'></app-file-format-chip>
+                    <app-resource-status-chip [status]='r.status'></app-resource-status-chip>
+                    @if (r.row_count > 0) {
+                        <div>
+                            with {{ r.row_count.toLocaleString() }} records.
+                        </div>
+                    }
+                </div>
+            </div>
+
+
+            <mat-tab-group>
+                @let c = content();
+                @if (c) {
+                    <mat-tab>
+                        <ng-template mat-tab-label>
+                            <div class='tab-header'>
+                                <mat-icon class="tab-icon">article</mat-icon>
+                                <span>Extracted Content</span>                                
+                            </div>
+                        </ng-template>
+                        <div class='dataset-content'>
+                            <div [innerHTML]='marked(c)' rtlize></div>
+                        </div>        
+                    </mat-tab>
+                }
+            
+                @let f = r.fields;        
+                @if (f && f.length > 0) {
+                    <mat-tab>
+                        <ng-template mat-tab-label>
+                            <div class='tab-header'>
+                                <mat-icon class="tab-icon">toc</mat-icon>
+                                <span>Field Dictionary</span>
+                            </div>
+                        </ng-template>      
+                        <div class='tab-content resources'>
+                            <table mat-table [dataSource]="f">
+                                <ng-container matColumnDef="name">
+                                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                                    <td mat-cell *matCellDef="let element" class='name'>
+                                        <strong>{{ element.name }}</strong>
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="data_type">
+                                    <th mat-header-cell *matHeaderCellDef> Data Type </th>
+                                    <td mat-cell *matCellDef="let element" class='data_type'>
+                                        {{ element.data_type }}
+                                    </td>
+                                </ng-container>
+                                                
+                                <ng-container matColumnDef="sample_values">
+                                    <th mat-header-cell *matHeaderCellDef> Sample Values </th>
+                                    <td mat-cell *matCellDef="let element" class='sample_values'>
+                                        @if (element.sample_values && element.sample_values.length > 0) {
+                                            <ul rtlize>
+                                                @for (value of element.sample_values; track value) {
+                                                    <li>{{ value }}</li>
+                                                }
+                                            </ul>
+                                        } @else {
+                                            <span>N/A</span>
+                                        }
+                                    </td>
+                                </ng-container>
+                    
+                                <ng-container matColumnDef="missing_values_percent">
+                                    <th mat-header-cell *matHeaderCellDef> Missing Values Percent </th>
+                                    <td mat-cell *matCellDef="let element" class='missing_values_percent'>
+                                        @if (element.missing_values_percent !== null) {
+                                            <span class='missing-values'>
+                                                {{ element.missing_values_percent }}%
+                                            </span>
+                                        } @else {
+                                            <span>N/A</span>
+                                        }
+                                    </td>
+                                </ng-container>
+
+                                <ng-container matColumnDef="max_value">
+                                    <th mat-header-cell *matHeaderCellDef> Max Value </th>
+                                    <td mat-cell *matCellDef="let element" class='max_value'>
+                                        @if (element.max_value) {
+                                            <span class='max-value'>
+                                                {{ element.max_value }}
+                                            </span>
+                                        } @else {
+                                            <span>N/A</span>
+                                        }
+                                    </td>
+                                </ng-container>
+                                <ng-container matColumnDef="min_value">
+                                    <th mat-header-cell *matHeaderCellDef> Min Value </th>
+                                    <td mat-cell *matCellDef="let element" class='min_value'>
+                                        @if (element.min_value) {
+                                            <span class='min-value'>
+                                                {{ element.min_value }}
+                                            </span>
+                                        } @else {
+                                            <span>N/A</span>
+                                        }
+                                    </td>
+                                </ng-container>
+                        
+                                <tr mat-header-row *matHeaderRowDef="fieldColumns"></tr>
+                                <tr mat-row *matRowDef="let row; columns: fieldColumns;"></tr>
+                            </table>
+                        </div>
+                    </mat-tab>        
+                }
+
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <div class='tab-header'>
+                            <mat-icon class="tab-icon">bug_report</mat-icon>
+                            <span>Quality Issues</span>
+                        </div>
+                    </ng-template>
+                    <div class='tab-content quality'>
+                        @if (!!r?.quality_issues?.length) {
+                            <div class='quality-issues'>
+                                <h3>Quality Issues:</h3>
+                                <ul class='quality-issue'>
+                                    @for (item of r.quality_issues || []; track item) {
+                                        <!-- <h4>{{ item.issue }}</h4> -->
+                                    }
+                                </ul>    
+                            </div>
+                        } @else {
+                            <div class='quality-issues'>
+                                <h3>No Quality Issues Found</h3>
+                            </div>
+                        }
+                    </div>
+                </mat-tab>
+
+            </mat-tab-group>
+        </div>
+    }
+}

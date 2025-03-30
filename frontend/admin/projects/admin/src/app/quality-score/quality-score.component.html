@@ -1,0 +1,9 @@
+<div class='score'>
+    @for (i of [1, 2, 3, 4, 5]; track i) {
+        @if (i <= score()) {
+            <mat-icon class='full' [style.font-size.px]='size' [style.width.px]='size'>star</mat-icon>
+        } @else {
+            <mat-icon class='empty' [style.font-size.px]='size' [style.width.px]='size'>star_border</mat-icon>
+        }
+    }
+</div>

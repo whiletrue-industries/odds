@@ -1,0 +1,5 @@
+<mat-chip-listbox aria-label="Resource formats" [selectable]='false'>
+    @for (format of formats; track format) {
+        <mat-chip>{{ format }}</mat-chip>
+    }
+</mat-chip-listbox>

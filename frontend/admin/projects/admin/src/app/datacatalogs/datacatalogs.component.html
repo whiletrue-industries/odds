@@ -1,0 +1,30 @@
+@for (catalog of api.catalogs(); track catalog.id) {
+
+    <mat-card class='catalog-card' [routerLink]="['/deployment', catalog.deployment.id, 'catalog', catalog.id, 'datasets']">
+        <mat-card-header class='header'>
+            <mat-card-title-group>
+                <mat-card-title>{{ catalog.title }}</mat-card-title>
+                <mat-card-subtitle>{{ catalog.description }}</mat-card-subtitle>    
+            </mat-card-title-group>
+        </mat-card-header>
+        <mat-card-content>
+            <p>
+                @let catalogCount = api.catalogDatasetCount()[catalog.id];
+                @if (catalogCount >= 0) {
+                    {{ catalogCount.toLocaleString() }} datasets.
+                } @else {
+                    <mat-spinner diameter="20" mode="indeterminate"></mat-spinner>
+                }    
+            </p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+            <button mat-button>View Datasets &gt;</button>
+        </mat-card-actions>
+    </mat-card>
+
+
+    <!-- <a class="catalog-card" [routerLink]="['/deployment', catalog.deployment.id, 'catalog', catalog.id, 'datasets']">
+        <h2>{{ catalog.title }}</h2>
+        <p>{{ catalog.description }}</p>
+    </a> -->
+}

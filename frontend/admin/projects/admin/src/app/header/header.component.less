@@ -1,0 +1,45 @@
+.header {
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 16px;
+    height: 60px;
+    gap: 64px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
+    // overflow: visible;
+    position: sticky;
+    top: 0;
+
+    .title {
+        display: flex;
+        flex-flow: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 16px;
+        .logo {
+            width: fit-content;
+            height: 48px;
+            
+            img {
+                width: auto;
+                height: 100%;
+                object-fit: contain;
+            }
+        }    
+    }
+
+    .deployment {
+        flex: 0 1 400px;
+        margin-top: 4px;
+        margin-inline-start: auto;
+        // width: fit-content;
+    }
+
+    .menu-button {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+}

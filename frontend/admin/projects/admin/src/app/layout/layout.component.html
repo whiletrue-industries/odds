@@ -1,0 +1,14 @@
+<div class="container">
+    <app-header [user]='user'></app-header>
+    <mat-sidenav-container class='content'>
+        @if (user()) {
+            <mat-sidenav mode="side" opened disableClose>
+                <app-nav></app-nav>
+            </mat-sidenav>
+        }
+        <mat-sidenav-content>
+            <router-outlet></router-outlet>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>
+  

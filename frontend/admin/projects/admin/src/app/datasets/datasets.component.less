@@ -1,0 +1,81 @@
+@import '../../common.less';
+
+:host {
+
+    .datacatalog {
+        .standard-header-layout;
+    }
+    .datasets {
+        display: flex;
+        flex-flow: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        .standard-layout;
+        .title-header {
+            .row {
+                display: flex;
+                flex-flow: row;
+                align-items: baseline;
+                gap: 32px;
+                font-size: 20px;
+    
+                h1 {
+                    margin: 0;
+                }
+                span {
+                    font-weight: 300;
+                }
+    
+                mat-paginator {
+                    flex: 0 0 auto;
+                    margin-inline-start: auto;
+                }    
+            }
+        }
+        table {
+            tr {
+                height: fit-content;
+                td {
+                    a {
+                        color: inherit;
+                        text-decoration: none;
+                        mat-icon {
+                            font-size: 16px;
+                            vertical-align: middle;
+                        }
+                        &:hover {
+                            text-decoration: underline;
+                            cursor: pointer;
+                        }
+                    }
+                    &.publisher {
+                        white-space: nowrap;
+                    }
+                    &.title {
+                        width: max-content;
+                        a {
+                            font-weight: 700;
+                        }
+                    }
+                    &.description {
+                        vertical-align: top;
+                    }
+                }
+                &.first-row {
+                    td {
+                        border-bottom: none;
+                        padding: 4px 16px;
+                        padding-bottom: 2px;
+                    }
+                }
+                &.last-row {
+                    td {
+                        border-top: none;
+                        padding: 4px 16px;
+                        padding-top: 2px;
+                    }
+                }
+            }
+        }
+    }
+}

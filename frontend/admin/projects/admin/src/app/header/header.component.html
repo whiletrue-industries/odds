@@ -1,0 +1,47 @@
+<mat-toolbar class='header'>
+    <div class='title'>
+        <div class='logo'>
+            <img src='/logo.png' />
+        </div>
+        <h1>Deep Data Search</h1>
+    </div>
+    <mat-form-field class='deployment' subscriptSizing='dynamic'>
+        <mat-select [(ngModel)]="api.currentDeployment" (selectionChange)="changeDeployment($event.value)">
+            @for (deployment of api.deployments(); track deployment.id) {
+                <mat-option [value]="deployment">{{deployment.agentOrgName}}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    @if (user()?.providerData?.[0]?.photoURL) {
+        <button class='menu-button' mat-icon-button [matMenuTriggerFor]="menu"
+            aria-label="Settings menu" [style.background-image]="'url(' + user()?.providerData?.[0]?.photoURL + ')'">
+            <!-- <div class='profile' >
+            </div>     -->
+        </button>
+        <mat-menu #menu="matMenu" overlapTrigger='true' class='header-menu'>
+            <div class='profile'>
+                <div class='profile-inner'>
+                    <div class='profile-pic' [style.background-image]="'url(' + user()?.providerData?.[0]?.photoURL + ')'"></div>
+                    <div class='profile-name'>
+                        <div class='user-name'>{{user()?.providerData?.[0]?.displayName}}</div>
+                        <div class='profile-email'>
+                            {{user()?.providerData?.[0]?.email}}
+                        </div>
+                    </div>
+                </div>    
+            </div>
+            <button mat-menu-item (click)="auth.logout()">
+                <mat-icon>logout</mat-icon>
+                <span>Sign out</span>
+            </button>
+            <!-- <button mat-menu-item disabled>
+                <mat-icon>voicemail</mat-icon>
+                <span>Check voice mail</span>
+            </button>
+            <button mat-menu-item>
+                <mat-icon>notifications_off</mat-icon>
+                <span>Disable alerts</span>
+            </button> -->
+        </mat-menu>
+    }
+</mat-toolbar>

@@ -1,0 +1,19 @@
+@import '../../common.less';
+
+.score {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    .material-icons {
+        height: auto !important;
+
+        &.full {
+            color: gold;
+        }
+        &.empty {
+            color: @color-gray-4;
+        }
+    }
+    // gap: 8px;
+}

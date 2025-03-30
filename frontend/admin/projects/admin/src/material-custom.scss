@@ -1,0 +1,127 @@
+@use '@angular/material' as mat;
+@use './styles/theme-colors' as theme; // location of generated file
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+:root {
+  @include mat.menu-overrides((
+    container-color: white,
+    divider-color: white
+  ));
+  // @include mat.select-overrides((
+  //   panel-background-color: orange,
+  //   enabled-trigger-text-color: white,
+  // ));
+}
+
+html {
+  color-scheme: light dark;
+  @include mat.theme((
+    color: (
+      primary: theme.$primary-palette,
+      tertiary: theme.$tertiary-palette,
+    ),
+    typography: 'Noto Sans Hebrew',
+    density: 0
+  ));
+
+  .header-menu {
+    .profile {
+      padding: 0 16px;
+      .profile-inner {
+        display: flex;
+        align-items: center;
+        flex-flow: row;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--mat-sys-outline);
+  
+        .profile-pic {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: var(--mat-sys-primary-container);
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;   
+        }
+  
+        .profile-name {
+          display: flex;
+          flex-flow: column;
+          align-items: flex-start;
+          justify-content: flex-end;
+          // gap: 4px;
+  
+          .user-name {
+              font: var(--mat-sys-title-medium);
+          }
+          .profile-email {
+            font: var(--mat-sys-body-small);
+            color: var(--mat-sys-on-background);
+          }
+        }
+  
+      }
+    }
+  }
+
+  app-header {
+    @include mat.toolbar-overrides((
+      container-background-color: var(--mat-sys-primary),
+      container-text-color: var(--mat-sys-on-primary),
+    ));
+    @include mat.select-overrides((
+      // enabled-trigger-text-color: white,
+      // panel-background-color: var(--mat-sys-secondary-container),
+      // panel-background-color: var(--mat-sys-primary-container),
+      // container-text-color: var(--mat-sys-on-primary),
+      // container-shape: 0,
+    ));
+    @include mat.form-field-overrides((
+      filled-container-color: var(--mat-sys-secondary-container),
+      container-height: 30px,
+      container-vertical-padding: 20,
+      // container-text-color: var(--mat-sys-on-secondary-container),
+      // container-shape: 0,
+    ));
+  }
+
+  app-layout {
+    @include mat.sidenav-overrides((
+      container-background-color: var(--mat-sys-primary-container),
+      container-text-color: var(--mat-sys-on-primary-container),
+      container-shape: 0,
+      container-width: 250px,
+    ));
+    .mat-drawer {
+      box-shadow: var(--mat-sys-level4);
+    }
+  }
+
+  app-nav {
+    @include mat.list-overrides((
+      active-indicator-color: var(--mat-sys-secondary-container),
+      active-indicator-shape: 0,
+      list-item-container-shape: 0,    
+    ));
+
+    mat-list-item.active, mat-list-item.active:hover {
+      background-color: var(--mat-sys-primary) !important;
+      span {
+        color: var(--mat-sys-on-primary) !important;
+        font-weight: 700;  
+      }
+      mat-icon {
+        color: var(--mat-sys-on-primary) !important;
+      }
+    }
+  }
+
+  app-datasets {
+    @include mat.chips-overrides((
+      container-height: 20px,
+      label-text-size: 12px,
+      container-shape-radius: 4px,
+    ));
+  }
+}
