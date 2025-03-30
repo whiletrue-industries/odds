@@ -19,10 +19,10 @@ class BaseRetry:
                 response = self.test_response(response)
                 return response
             except Exception as e:
-                print('RETRYING', repr(e), repr(client), method, args)
+                print('RETRYING', repr(e), repr(client), method, args, kwargs)
                 if i == self.retries - 1:
-                    print('GIVING UP', repr(e), repr(client), method, args)
-                await asyncio.sleep(self.timeout ** (i+2))
+                    print('GIVING UP', repr(e), repr(client), method, args, kwargs)
+                await asyncio.sleep(self.timeout * (2 ** (i+2)))
         return None
 
     def test_response(self, response: Response) -> None:
