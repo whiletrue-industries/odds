@@ -129,9 +129,12 @@ class EvaluateDescriptionsQuery(LLMQuery):
     0: No improvement, the new title and description are the same as the original.
     0-33: Minor improvement, the new title and description are slightly better than the original, contain a bit more information or are better phrased.
     33-66: Moderate improvement, the new title and description are significantly better than the original, contain more information or are better phrased.
-    66-100: Major improvement, the old title and description were really bad and the new title and description are a significant improvement, with much more information and much better phrasing.
+    66-100: Major improvement, the old title and description were very bad and the new title and description are a significant improvement, with much more information and much better phrasing.
     100: Perfect improvement, the old title and description were completely useless and are now replaced by new ones that are perfect.
     The first one is the original title and description, and the second one is a new title and description.
+
+    Consider separately the title and description, and how much better they are compared to the original title and description.
+    The title and description should be evaluated separately, and the score should reflect the overall improvement of both, giving the same weight to both.
     
     Your response should be a single number between 0 and 100, indicating how much better the new title and description are compared to the original title and description.
     Do not include any additional text or formatting in your response - just the number.

@@ -1,5 +1,11 @@
 DOCUMENT_FORMATS = ['pdf']
-UNPROCESSABLE_DOCUMENT_FORMATS = ['doc', 'docx', 'pptx']
+UNPROCESSABLE_DOCUMENT_FORMATS = [
+    'doc', 'docx', 'pptx'
+]
+UNPROCESSABLE_OTHER_FORMATS = [
+    'geojson', 'json', 'xml', 'shp', 'kml'
+]
+UNPROCESSABLE_GOOD_FORMATS = UNPROCESSABLE_DOCUMENT_FORMATS + UNPROCESSABLE_OTHER_FORMATS
 DOCUMENT_MIMETYPES = {
     'pdf': 'application/pdf',
     'doc': 'application/msword',

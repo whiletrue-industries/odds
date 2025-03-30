@@ -1,11 +1,11 @@
 from uuid import uuid4
-from ...backend.settings import ALLOWED_FORMATS, TABULAR_FORMATS, UNPROCESSABLE_DOCUMENT_FORMATS
+from ...backend.settings import ALLOWED_FORMATS, TABULAR_FORMATS, UNPROCESSABLE_GOOD_FORMATS
 from ...common.datatypes import Dataset
 
 
 def evaluate_quality(dataset: Dataset):
     # Plan for Quality score:
-    # - Penalize resources that are not in ALLOWED_FORMATS or UNPROCESSABLE_DOCUMENT_FORMATS
+    # - Penalize resources that are not in ALLOWED_FORMATS or UNPROCESSABLE_GOOD_FORMATS
     # - Of the rest, penalize resources that are not loaded
     # - Of the rest, penalize resources that have few rows
     # - Normalize the to (#resources / log(1 + #resources))
@@ -13,7 +13,7 @@ def evaluate_quality(dataset: Dataset):
 
     improvement_score = dataset.improvement_score or 100
     possible_resources = [
-        r for r in dataset.resources if r.file_format in ALLOWED_FORMATS + UNPROCESSABLE_DOCUMENT_FORMATS
+        r for r in dataset.resources if r.file_format in ALLOWED_FORMATS + UNPROCESSABLE_GOOD_FORMATS
     ]
     relevant_resources = [
         r for r in possible_resources if r.file_format in ALLOWED_FORMATS

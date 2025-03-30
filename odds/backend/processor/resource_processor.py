@@ -22,7 +22,7 @@ from ...common.config import config, CACHE_DIR
 from ...common.realtime_status import realtime_status as rts
 from ...common.llm import llm_runner
 from ...common.llm.llm_query import LLMQuery
-from ..settings import ALLOWED_FORMATS, DOCUMENT_FORMATS, DOCUMENT_MIMETYPES
+from ..settings import ALLOWED_FORMATS, DOCUMENT_FORMATS, DOCUMENT_MIMETYPES, UNPROCESSABLE_GOOD_FORMATS
 
 
 TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
@@ -159,6 +159,9 @@ class ResourceProcessor:
         if resource.file_format is not None:
             resource.file_format = resource.file_format.lower()
             if resource.file_format not in ALLOWED_FORMATS:
+                if resource.file_format in UNPROCESSABLE_GOOD_FORMATS:
+                    resource.status = 'unusable'
+                    return None
                 return None
             return resource
     
