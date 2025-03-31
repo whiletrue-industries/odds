@@ -44,4 +44,10 @@ export const routes: Routes = [
         component: MainComponent,
         canActivate: [AuthGuard],
     },
+    {
+        path: '',
+        component: MainComponent,
+        canActivate: [AuthGuard],
+    },
+
 ];

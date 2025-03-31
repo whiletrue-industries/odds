@@ -86,7 +86,7 @@ export class ApiService {
         this.dataCatalogs.set([]);
         return;
       }
-      this.dataCatalogsForDeployment(currentDeployment).pipe(
+      this.dataCatalogsForDeployment(currentDeployment.id).pipe(
         map((catalogs: DataCatalog[]) => {
           catalogs.forEach((catalog) => {
             catalog.deployment = currentDeployment;
@@ -139,8 +139,8 @@ export class ApiService {
     }
   }
 
-  dataCatalogsForDeployment(deployment: Deployment): Observable<DataCatalog[]> {
-    return this.callApi(`deployment/${deployment.id}/catalogs`).pipe(
+  dataCatalogsForDeployment(deploymentId: string): Observable<DataCatalog[]> {
+    return this.callApi(`deployment/${deploymentId}/catalogs`).pipe(
       map((response: any) => {
         return (response as DataCatalog[]) || [];
       })
