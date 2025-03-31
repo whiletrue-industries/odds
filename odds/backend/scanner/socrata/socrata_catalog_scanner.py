@@ -77,7 +77,7 @@ class SocrataCatalogScanner(CatalogScanner):
                         )
                     ]
                     # print(resource)
-                    if resource['description'] and '<br' in resource['description'] or '<b' in resource['description'] or '<a' in resource['description']:
+                    if resource['description'] and ('<br' in resource['description'] or '<b' in resource['description'] or '<a' in resource['description']):
                         resource['description'] = md(resource['description'])
                     dataset = Dataset(
                         self.catalog.id, resource['id'], resource['name'],
