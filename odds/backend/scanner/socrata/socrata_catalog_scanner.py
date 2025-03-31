@@ -1,8 +1,7 @@
 from typing import AsyncIterator
 import httpx
 
-from markdownify import markdownify as md
-
+from ....common.text_utils import html_to_markdown
 from ....common.config import config
 from ....common.datatypes import Dataset, DataCatalog, Field
 from ....common.datatypes_socrata import SocrataResource
@@ -77,8 +76,7 @@ class SocrataCatalogScanner(CatalogScanner):
                         )
                     ]
                     # print(resource)
-                    if resource['description'] and ('<br' in resource['description'] or '<b' in resource['description'] or '<a' in resource['description']):
-                        resource['description'] = md(resource['description'])
+                    resource['description'] = html_to_markdown(resource['description'])
                     dataset = Dataset(
                         self.catalog.id, resource['id'], resource['name'],
                         description=resource['description'],

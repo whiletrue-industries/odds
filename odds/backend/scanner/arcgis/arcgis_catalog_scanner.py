@@ -1,6 +1,7 @@
 from typing import AsyncIterator
 import httpx
 
+from ....common.text_utils import html_to_markdown
 from ....common.config import config
 from ....common.datatypes import Dataset, DataCatalog, Resource
 from ....common.retry import Retry
@@ -58,6 +59,8 @@ class ArcGISCatalogScanner(CatalogScanner):
                     data_url = f'https://www.arcgis.com/sharing/rest/content/items/{id}/data'
                     title = row['properties']['title']
                     description = row['properties']['description']
+                    description = html_to_markdown(description)
+
                     filename = properties['name']
                     file_format = filename.split('.')[-1].lower()
                     publisher = properties['source']
