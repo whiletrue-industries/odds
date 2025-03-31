@@ -1,5 +1,5 @@
 export const environment = {
-    endpoint: '/api/answer',
-    endpointStreaming: '/api/answer-streaming',
-    configEndpoint: '/api/deployment',
+    endpoint: 'https://api.datadeepsearch.io/answer',
+    endpointStreaming: 'https://api.datadeepsearch.io/answer-streaming',
+    configEndpoint: 'https://api.datadeepsearch.io/deployment',
 };

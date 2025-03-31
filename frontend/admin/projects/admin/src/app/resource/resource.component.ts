@@ -30,7 +30,6 @@ import { QualityScoreComponent } from "../quality-score/quality-score.component"
 export class ResourceComponent {
 
   JSON= JSON;
-  marked = marked;
   resource = computed<Resource | null>(() => {
     const dataset = this.state.dataset();
     const resourceIdx = this.state.resourceIndex();
@@ -45,7 +44,7 @@ export class ResourceComponent {
       let content = resource.content;
       content = content.replace(/```markdown/gi, '');
       content = content.replace(/```/gi, '');
-      return content;
+      return marked(content);
     }
     return null;
   });

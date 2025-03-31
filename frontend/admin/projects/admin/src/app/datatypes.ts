@@ -66,7 +66,6 @@ export interface DataCatalog {
 
 export interface Deployment {
     id: string;
-    owner: string;
     catalogIds: Array<string>;
     agentOrgName: string;
     agentCatalogDescriptions: string;

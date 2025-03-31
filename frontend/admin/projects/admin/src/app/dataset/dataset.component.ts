@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StateService } from '../state.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { QualityScoreComponent } from "../quality-score/quality-score.component";
 import { FileFormatChipComponent } from "../file-format-chip/file-format-chip.component";
 import { ResourceStatusChipComponent } from "../resource-status-chip/resource-status-chip.component";
+import { marked } from 'marked';
 
 @Component({
   selector: 'app-dataset',
@@ -33,6 +34,17 @@ export class DatasetComponent {
 
   columnsToDisplay = ['title', 'file_format', 'row_count', 'status', 'link'];
   ellipsizeText = ellipsizeText;
+
+  description = computed<string | null>(() => {
+    const dataset = this.state.dataset();
+    if (dataset && dataset.description) {
+      let description = dataset.description;
+      description = description.replace(/```markdown/gi, '');
+      description = description.replace(/```/gi, '');
+      return marked(description);
+    }
+    return null;
+  }); 
 
   constructor(private route: ActivatedRoute, public state: StateService) {
     this.state.updateFromRoute(this.route.snapshot)

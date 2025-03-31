@@ -28,8 +28,8 @@
                 <h2 rtlize>{{ dataset.publisher }}</h2>
             </div>
             @if (dataset.description) {
-                <div class='row description' rtlize>
-                    {{ dataset.description || 'N/A' }}
+                <div class='row' rtlize>
+                    <div class='description'  [innerHTML]="description() || 'N/A'"></div>
                 </div>
             }
         </div>

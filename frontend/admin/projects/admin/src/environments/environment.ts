@@ -1,3 +1,3 @@
 export const environment = {
-    adminEndpoint: '/api/admin/',
+    adminEndpoint: 'https://api.datadeepsearch.io/admin/',
 };
