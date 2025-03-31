@@ -44,6 +44,7 @@ export class ApiService {
         if (!user) {
           console.log('User is not logged in');
           this.token.set(null);
+          router.navigate(['/login']);
         }
       }),
       filter(user => !!user),
@@ -55,9 +56,9 @@ export class ApiService {
       this.token.set(token);
     });
 
-    effect(() => {
-      const dep = this.currentDeployment();
-    });
+    // effect(() => {
+    //   const dep = this.currentDeployment();
+    // });
 
     effect(() => {
       if (this.token()) {
