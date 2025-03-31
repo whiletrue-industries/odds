@@ -6,6 +6,7 @@ services:
     depends_on:
       - api
       - ui
+      - admin-ui
     image: ghcr.io/whiletrue-industries/odds/odds-proxy:latest
     ports:
       - "80:80"
@@ -44,6 +45,12 @@ services:
 
   ui:
     image: ghcr.io/whiletrue-industries/odds/odds-ui:latest
+    restart: always
+
+  admin-ui:
+    image: ghcr.io/whiletrue-industries/odds/odds-admin-ui:latest
+    restart: always
+
   db:
     image: docker.io/library/postgres:16
     environment:

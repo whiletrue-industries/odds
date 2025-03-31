@@ -17,7 +17,7 @@ class ConfigDeploymentRepo(DeploymentRepo):
         ret = [
             Deployment(
                 deployment['id'],
-                deployment['owner'],
+                deployment['owners'],
                 deployment['catalog_ids'], 
                 deployment['agent_org_name'], 
                 deployment['agent_catalog_descriptions'],
