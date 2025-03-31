@@ -38,4 +38,4 @@ class ConfigDeploymentRepo(DeploymentRepo):
 
     async def deployments_for_user(self, user_id: str) -> list[Deployment]:
         await self.load_deployments()
-        return [d for d in self.deployment_list if d.owner == user_id]
+        return [d for d in self.deployment_list if user_id in d.owners]

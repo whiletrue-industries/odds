@@ -114,7 +114,7 @@ class DataCatalog(Interface):
 @dataclass
 class Deployment(Interface):
     id: str
-    owner: str
+    owners: List[str]
     catalogIds: List[str]
     agentOrgName: str
     agentCatalogDescriptions: str
