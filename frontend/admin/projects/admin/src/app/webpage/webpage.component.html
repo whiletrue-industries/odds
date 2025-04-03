@@ -27,7 +27,7 @@
         </div>
 
         <mat-tab-group>
-            @if (dataset.better_title || dataset.better_description) {
+            @if (dataset.better_title || dataset.better_description || dataset.summary) {
                 <mat-tab>
                     <ng-template mat-tab-label>
                         <div class='tab-header'>
@@ -40,6 +40,12 @@
                             <div class='dataset-better-title'>
                                 <h4>AI Generated Title:</h4>
                                 <div rtlize>{{ dataset.better_title }}</div>
+                            </div>
+                        }
+                        @if (dataset.summary) {
+                            <div class='dataset-better-title'>
+                                <h4>AI Generated Summary:</h4>
+                                <div rtlize>{{ dataset.summary }}</div>
                             </div>
                         }
                         @if (dataset.better_description) {

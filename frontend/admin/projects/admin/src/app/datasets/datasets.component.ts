@@ -1,4 +1,4 @@
-import { Component, effect, signal } from '@angular/core';
+import { AfterViewInit, Component, effect, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DataCatalog, Dataset } from '../datatypes';
 import { ApiService } from '../api.service';
@@ -6,13 +6,15 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { StateService } from '../state.service';
 import { ellipsizeText } from '../textUtils';
 import { RtlizeDirective } from '../rtlize.directive';
 import { QualityScoreComponent } from "../quality-score/quality-score.component";
 import { MatButtonModule } from '@angular/material/button';
 import { FileFormatChipComponent } from "../file-format-chip/file-format-chip.component";
+import { TextFilterComponent } from '../text-filter/text-filter.component';
+import { timer } from 'rxjs';
 
 @Component({
   selector: 'app-datasets',
@@ -27,12 +29,13 @@ import { FileFormatChipComponent } from "../file-format-chip/file-format-chip.co
     MatSortModule,
     RtlizeDirective,
     QualityScoreComponent,
-    FileFormatChipComponent
+    FileFormatChipComponent,
+    TextFilterComponent
 ],
   templateUrl: './datasets.component.html',
   styleUrl: './datasets.component.less'
 })
-export class DatasetsComponent {
+export class DatasetsComponent implements AfterViewInit {
 
   totalDatasets = signal<number | null>(null);
   datasets = signal<Dataset[]>([]);
@@ -47,6 +50,7 @@ export class DatasetsComponent {
     publisher: 'publisher.keyword',
     quality_score: 'quality_score',
   };
+  @ViewChild(MatSort) matSort: MatSort;
 
   constructor(private route: ActivatedRoute, private api: ApiService, public state: StateService) {
 
@@ -66,9 +70,10 @@ export class DatasetsComponent {
       const catalogId = this.state.catalogId();
       const page = this.state.currentPage();
       const sort = this.state.currentSortDirective();
+      const textFilter = this.state.textFilter();
       console.log('Page/sort changed:', deploymentId, catalogId, page, 'Sort:', sort);
       if (catalogId && deploymentId && page) {
-        this.api.getDatasets(deploymentId, catalogId, page, sort).subscribe((result) => {
+        this.api.getDatasets(deploymentId, catalogId, page, sort, textFilter).subscribe((result) => {
           this.datasets.set(result.datasets);
           this.totalDatasets.set(result.total);
         });
@@ -78,6 +83,19 @@ export class DatasetsComponent {
     });
   }
 
+    ngAfterViewInit(): void {
+      const sort = this.state.currentSort();
+      timer(0).subscribe(() => {
+        if (sort) {
+          this.matSort.sort({
+            id: sort.active,
+            start: sort.direction,
+            disableClear: false
+          });
+        };
+      });
+    }
+  
   onPageChange(event: PageEvent): void {
     this.state.currentPage.set(event.pageIndex + 1);
   }
@@ -95,7 +113,7 @@ export class DatasetsComponent {
     console.log('Sorting:', sort);
     if (sort.direction === '') {
       // Reset sort
-      this.state.currentSortDirective.set(this.state.defaultSort);
+      this.state.currentSortDirective.set(null);
     } else if (sort.active) {
       const dir = sort.direction === 'asc' ? '+' : '-';
       const field = this.FIELD_TO_SORT[sort.active];

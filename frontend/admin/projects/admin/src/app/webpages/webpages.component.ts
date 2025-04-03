@@ -1,4 +1,4 @@
-import { Component, effect, signal } from '@angular/core';
+import { AfterViewInit, Component, effect, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DataCatalog, Dataset } from '../datatypes';
 import { ApiService } from '../api.service';
@@ -6,11 +6,13 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { StateService } from '../state.service';
 import { ellipsizeText } from '../textUtils';
 import { RtlizeDirective } from '../rtlize.directive';
 import { MatButtonModule } from '@angular/material/button';
+import { TextFilterComponent } from "../text-filter/text-filter.component";
+import { timer } from 'rxjs';
 
 @Component({
   selector: 'app-webpages',
@@ -24,11 +26,12 @@ import { MatButtonModule } from '@angular/material/button';
     MatChipsModule,
     MatSortModule,
     RtlizeDirective,
+    TextFilterComponent
 ],
   templateUrl: './webpages.component.html',
   styleUrl: './webpages.component.less'
 })
-export class WebpagesComponent {
+export class WebpagesComponent implements AfterViewInit {
 
   totalDatasets = signal<number | null>(null);
   datasets = signal<Dataset[]>([]);
@@ -43,6 +46,7 @@ export class WebpagesComponent {
     publisher: 'publisher.keyword',
     quality_score: 'quality_score',
   };
+  @ViewChild(MatSort) matSort: MatSort;
 
   constructor(private route: ActivatedRoute, private api: ApiService, public state: StateService) {
 
@@ -62,15 +66,29 @@ export class WebpagesComponent {
       const catalogId = this.state.catalogId();
       const page = this.state.currentPage();
       const sort = this.state.currentSortDirective();
+      const textFilter = this.state.textFilter();
       console.log('Page/sort changed:', deploymentId, catalogId, page, 'Sort:', sort);
       if (catalogId && deploymentId && page) {
-        this.api.getDatasets(deploymentId, catalogId, page, sort).subscribe((result) => {
+        this.api.getDatasets(deploymentId, catalogId, page, sort, textFilter).subscribe((result) => {
           this.datasets.set(result.datasets);
           this.totalDatasets.set(result.total);
         });
       } else {
         this.datasets.set([]);
       }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    const sort = this.state.currentSort();
+    timer(0).subscribe(() => {
+      if (sort) {
+        this.matSort.sort({
+          id: sort.active,
+          start: sort.direction,
+          disableClear: false
+        });
+      };
     });
   }
 
@@ -89,14 +107,14 @@ export class WebpagesComponent {
   onSort(sort: Sort): void {
     // Handle sorting here
     console.log('Sorting:', sort);
+    this.state.currentSort.set(sort);
     if (sort.direction === '') {
       // Reset sort
-      this.state.currentSortDirective.set(this.state.defaultSort);
+      this.state.currentSortDirective.set(null);
     } else if (sort.active) {
       const dir = sort.direction === 'asc' ? '+' : '-';
       const field = this.FIELD_TO_SORT[sort.active];
       this.state.currentSortDirective.set(`${dir}${field}`);
     }
-    this.state.currentSort.set(sort);
   }
 }

@@ -155,11 +155,18 @@ export class ApiService {
     );  
   }
 
-  getDatasets(deploymentId: string, catalogId: string, page?: number, sort?: string): Observable<DatasetResult> {
-    const params = {
+  getDatasets(deploymentId: string, catalogId: string, page?: number, sort?: string | null, query?: string | null): Observable<DatasetResult> {
+    const params: any = {
       page: page || 1,
-      sort: sort || '-last_updated',
     };
+    if (query) {
+      params['query'] = query;
+    } else {
+      sort = sort || '-last_updated';
+    }
+    if (sort) {
+      params['sort'] = sort;
+    }
     return this.callApi(`deployment/${deploymentId}/catalog/${catalogId}/datasets`, params).pipe(
       map((response: any) => {
         const datasets = response.datasets as Dataset[];

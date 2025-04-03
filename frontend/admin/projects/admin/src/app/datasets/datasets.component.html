@@ -17,6 +17,7 @@
     <div class='title-header'>
         <div class='row'>
             <span>All Datasets</span>
+            <app-text-filter kind='Datasets'></app-text-filter>
         </div>
         <div class='row'>
             <h1>{{ state.catalog()?.title }}</h1>
@@ -31,7 +32,6 @@
     </div>
     <table mat-table [dataSource]="datasets()" multiTemplateDataRows matSort 
             (matSortChange)="onSort($event)" 
-            [matSortStart]="state.currentSort()?.direction || 'desc'" [matSortActive]="state.currentSort()?.active || 'last_updated'"
             class='dataset-resource'>
         
         <!-- Title Column -->

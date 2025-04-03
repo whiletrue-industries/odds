@@ -18,9 +18,10 @@ export class StateService {
   dataset = signal<Dataset | null>(null);
   currentPage = signal<number>(1);
 
-  defaultSort = '-last_updated';
   currentSort = signal<Sort | null>(null);
-  currentSortDirective = signal<string>(this.defaultSort);
+  currentSortDirective = signal<string | null>(null);
+
+  textFilter = signal<string | null>(null);
 
   constructor(private api: ApiService) {
     effect(() => {
