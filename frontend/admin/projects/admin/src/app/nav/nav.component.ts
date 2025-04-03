@@ -50,6 +50,11 @@ export class NavComponent {
         route: `/deployment/${deploymentId}/catalogs`
       });
     }
+    ret.push({
+      title: 'Questions',
+      icon: 'contact_support',
+      route: `/deployment/${deploymentId}/questions`
+    });
     return ret;
   });
 

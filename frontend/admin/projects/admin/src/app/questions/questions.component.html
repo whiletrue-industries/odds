@@ -1,0 +1,91 @@
+<!-- <div class='datacatalog'>
+    <div class='back'>
+        <a mat-button [routerLink]="['/deployment', state.deploymentId(), 'websites']">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Back to All Websites</span>    
+        </a>
+    </div>
+</div> -->
+<div class='datasets'>
+    <div class='title-header'>
+        <div class='row'>
+            <span>All User Questions</span>
+            <app-text-filter kind='User Questions'></app-text-filter>
+        </div>
+        <div class='row'>
+            <h1>{{ state.catalog()?.title }}</h1>
+            <mat-paginator [length]='totalQuestions()'
+                [pageSize]='20'
+                [hidePageSize]='true'
+                [pageIndex]="state.currentPage() - 1"
+                (page)='onPageChange($event)'
+                aria-label="Select page">
+            </mat-paginator>    
+        </div>
+    </div>
+    <table mat-table [dataSource]="questions()" multiTemplateDataRows matSort 
+            (matSortChange)="onSort($event)" 
+            [matSortDisableClear]="false"
+            class='dataset-resource'>
+
+        <!-- Title Column -->
+        <ng-container matColumnDef="link">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let element" class='link'>
+                <a [href]="'https://ask.datadeepsearch.io/' + state.deploymentId() + '/a/' + element.id" target="_blank">
+                    <mat-icon>open_in_new</mat-icon>
+                </a>    
+            </td>
+        </ng-container>
+    
+        <!-- Title Column -->
+        <ng-container matColumnDef="question">
+        <!-- <th mat-header-cell *matHeaderCellDef mat-sort-header>Question</th> -->
+        <td mat-cell *matCellDef="let element" class='question' rtlize colspan="4">
+            <a [routerLink]="['/deployment', state.deploymentId(), 'question', element.id]">
+                {{element.question}}
+            </a>
+        </td>
+        </ng-container>
+    
+        <!-- Description Column -->
+        <ng-container matColumnDef="answer">
+        <!-- <th mat-header-cell *matHeaderCellDef> Description </th> -->
+        <td mat-cell *matCellDef="let element" class='answer' colspan='4' rtlize>
+            <div class='inner' [innerHTML]='marked(element.answer)'></div>
+        </td>
+        </ng-container>
+    
+
+        <!-- Link to source Column -->
+        <ng-container matColumnDef="timestamp">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header><mat-icon>schedule</mat-icon></th>
+        <td mat-cell *matCellDef="let element" class='timestamp'>        
+            <span>{{formatDate(element.last_updated)}}</span>
+        </td>
+        </ng-container>
+
+        <ng-container matColumnDef="success">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Success?</th>
+        <td mat-cell *matCellDef="let element" class='success'>        
+            @if (element.success) {
+                <mat-icon class='success'>thumb_up</mat-icon>
+            } @else {
+                <mat-icon class='error'>thumb_down</mat-icon>
+            }
+        </td>
+        </ng-container>
+        
+        <ng-container matColumnDef="score">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Score</th>
+        <td mat-cell *matCellDef="let element" class='score'>        
+            <app-quality-score [qualityScore]="element.score * 10"></app-quality-score>
+        </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="firstRowColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: firstRowColumns;" class='first-row'></tr>
+        <tr mat-row *matRowDef="let row; columns: middleRowColumns;" class='middle-row'></tr>
+        <tr mat-row *matRowDef="let row; columns: lastRowColumns;" class='last-row'></tr>
+    </table>
+</div>

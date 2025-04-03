@@ -3,11 +3,18 @@ import { AuthService } from './auth.service';
 import { filter, forkJoin, from, map, Observable, switchMap, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment.development';
-import { DataCatalog, Dataset, Deployment } from './datatypes';
+import { DataCatalog, Dataset, Deployment, QA } from './datatypes';
 import { Router } from '@angular/router';
 
 export type DatasetResult = {
   datasets: Dataset[],
+  total: number,
+  pages: number,
+  page: number
+}
+
+export type QuestionResult = {
+  questions: QA[],
   total: number,
   pages: number,
   page: number
@@ -181,6 +188,28 @@ export class ApiService {
     return this.callApi(`deployment/${deploymentId}/catalog/${catalogId}/dataset/${datasetId}`).pipe(
       map((response: any) => {
         return (response as Dataset) || null;
+      })
+    );
+  }
+
+  getQuestions(deploymentId: string, page?: number, sort?: string | null, query?: string | null): Observable<QuestionResult> {
+    const params: any = {
+      page: page || 1,
+    };
+    if (query) {
+      params['query'] = query;
+    } else {
+      sort = sort || '-last_updated';
+    }
+    if (sort) {
+      params['sort'] = sort;
+    }
+    return this.callApi(`deployment/${deploymentId}/questions`, params).pipe(
+      map((response: any) => {
+        const questions = response.questions as QA[];
+        const total = response.total as number;
+        const pages = response.pages as number;
+        return { questions, total, pages, page: page || 1 };
       })
     );
   }

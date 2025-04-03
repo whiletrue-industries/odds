@@ -73,3 +73,13 @@ export interface Deployment {
     uiDisplayHtml: string;
     examples: Array<string>;
 }
+
+export interface QA {
+    id: string;
+    question: string;
+    answer: string;
+    success: boolean;
+    score: number;
+    deployment_id: string;
+    last_updated: string | null;
+}

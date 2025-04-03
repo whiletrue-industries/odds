@@ -10,6 +10,7 @@ import { DatasetComponent } from './dataset/dataset.component';
 import { ResourceComponent } from './resource/resource.component';
 import { WebpagesComponent } from './webpages/webpages.component';
 import { WebpageComponent } from './webpage/webpage.component';
+import { QuestionsComponent } from './questions/questions.component';
 
 export const routes: Routes = [
     {
@@ -49,6 +50,11 @@ export const routes: Routes = [
     {
         path: 'deployment/:deploymentId/catalogs',
         component: DatacatalogsComponent,
+        canActivate: [AuthGuard],
+    },
+    {
+        path: 'deployment/:deploymentId/questions',
+        component: QuestionsComponent,
         canActivate: [AuthGuard],
     },
     {

@@ -1,7 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { LayoutComponent } from "./layout/layout.component";
 import { marked } from 'marked';
+import utcPlugin from 'dayjs/plugin/utc';
+import dayjs from 'dayjs';
 
+dayjs.extend(utcPlugin);
 @Component({
   selector: 'app-root',
   imports: [LayoutComponent],
