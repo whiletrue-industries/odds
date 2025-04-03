@@ -8,11 +8,23 @@ import { WebsitesComponent } from './websites/websites.component';
 import { DatacatalogsComponent } from './datacatalogs/datacatalogs.component';
 import { DatasetComponent } from './dataset/dataset.component';
 import { ResourceComponent } from './resource/resource.component';
+import { WebpagesComponent } from './webpages/webpages.component';
+import { WebpageComponent } from './webpage/webpage.component';
 
 export const routes: Routes = [
     {
         path: 'login',
         component: LoginComponent,        
+    },
+    {
+        path: 'deployment/:deploymentId/website/:catalogId/page/:datasetId',
+        component: WebpageComponent,
+        canActivate: [AuthGuard],
+    },
+    {
+        path: 'deployment/:deploymentId/website/:catalogId/pages',
+        component: WebpagesComponent,
+        canActivate: [AuthGuard],
     },
     {
         path: 'deployment/:deploymentId/websites',

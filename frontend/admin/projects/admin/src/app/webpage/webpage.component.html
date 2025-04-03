@@ -1,0 +1,83 @@
+
+<div class='datacatalog'>
+    <div class='back'>
+        <a mat-button [routerLink]="['/deployment', state.deploymentId(), 'website', state.catalogId(), 'pages']">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Back to all {{ state.catalog()?.title }} Web Pages</span>
+        </a>
+    </div>
+</div>
+@let dataset = state.dataset();
+@if (dataset) {
+    <div class='dataset'>
+
+        <div class='title-header'>
+            <div class='row'>
+                <span>Web Page</span>
+                <div class='dataset-link'>
+                    <a mat-button [href]="dataset.link" target="_blank">
+                        <mat-icon>open_in_new</mat-icon>
+                        <span>Open in new tab</span>
+                    </a>
+                </div>        
+            </div>
+            <div class='row'>
+                <h1 rtlize>{{ dataset.title }}</h1>
+            </div>
+        </div>
+
+        <mat-tab-group>
+            @if (dataset.better_title || dataset.better_description) {
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <div class='tab-header'>
+                            <mat-icon class="tab-icon">auto_awesome</mat-icon>
+                            <span>AI Generated Metadata</span>                                
+                        </div>
+                    </ng-template>
+                    <div class='tab-content'>
+                        @if (dataset.better_title) {
+                            <div class='dataset-better-title'>
+                                <h4>AI Generated Title:</h4>
+                                <div rtlize>{{ dataset.better_title }}</div>
+                            </div>
+                        }
+                        @if (dataset.better_description) {
+                            <div class='dataset-better-description'>
+                                <h4>AI Generated Description</h4>
+                                <div rtlize>{{ dataset.better_description }}</div>
+                            </div>
+                        }
+                    </div>
+                </mat-tab>
+            }
+          
+            @let c = content();
+            @if (c) {
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <div class='tab-header'>
+                            <mat-icon class="tab-icon">article</mat-icon>
+                            <span>Extracted Content</span>
+                        </div>
+                    </ng-template>
+                    <div class='tab-content'>
+                        <div [innerHTML]='c' rtlize></div>
+                    </div>                
+                </mat-tab>
+                <mat-tab>
+                    <ng-template mat-tab-label>                        
+                        <div class='tab-header'>
+                            <mat-icon class="tab-icon">public</mat-icon>
+                            <span>Actual content</span>
+                        </div>
+                    </ng-template>
+                    <div class='tab-content actual-content'>
+                        <iframe [src]="sourceLink()" frameborder="0"></iframe>
+                    </div>
+                </mat-tab>
+            }
+        </mat-tab-group>
+    </div>
+
+}

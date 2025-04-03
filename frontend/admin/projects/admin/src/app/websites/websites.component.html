@@ -1,6 +1,24 @@
 @for (website of api.websites(); track website.id) {
-  <div class="website-card">
-    <h2>{{ website.title }}</h2>
-    <p>{{ website.description }}</p>
-  </div>
+
+  <mat-card class='website-card' [routerLink]="['/deployment', website.deployment.id, 'website', website.id, 'pages']">
+      <mat-card-header class='header'>
+          <mat-card-title-group>
+              <mat-card-title>{{ website.title }}</mat-card-title>
+              <mat-card-subtitle>{{ website.description }}</mat-card-subtitle>    
+          </mat-card-title-group>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Base URLs:</p>
+        <ul>
+          @for (url of website.url; track url) {
+            <li>
+              <a [href]="url" target="_blank">{{ url }}</a>
+            </li>
+          }
+        </ul>
+      </mat-card-content>
+      <mat-card-actions align="end">
+          <button mat-button>View Pages &gt;</button>
+      </mat-card-actions>
+  </mat-card>
 }
