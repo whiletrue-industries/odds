@@ -216,6 +216,8 @@ class ESMetadataStore(MetadataStore):
                     'multi_match': {
                         'query': query,
                         'fields': ['title^10', 'description', 'summary', 'better_title', 'better_description', 'publisher^3', 'publisher_description', 'resources.title', 'resources.content'],
+                        'type': 'cross_fields',
+                        'operator': 'and',
                     }
                 })
             if filters:
