@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, List
 from hashlib import sha256
 
@@ -70,7 +71,8 @@ class ESQARepo(QARepo):
                 success=success,
                 score=score,
                 deployment_id=deployment_id,
-                embeddings=(await embedder.embed(question)).tolist()
+                embeddings=(await embedder.embed(question)).tolist(),
+                last_updated=datetime.datetime.now(datetime.timezone.utc).isoformat()
             )
             try:
                 await client.create(index=ES_INDEX, id=id, body=body)

@@ -133,7 +133,7 @@ class ESMetadataStore(MetadataStore):
             id = dataset.storeId()
             rts.set(ctx, f'STORING DATASET {dataset.title} -> {id}')
             body = dataclasses.asdict(dataset)
-            body['last_updated'] = datetime.datetime.now().isoformat()
+            body['last_updated'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
             for resource in body['resources']:
                 for field in resource['fields']:
                     props = dict()
