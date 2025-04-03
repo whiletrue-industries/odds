@@ -14,7 +14,7 @@ from ...embedder import embedder
 
 from ...metadata_store.es.es_client import ESClient
 
-ES_INDEX = 'qa'
+ES_INDEX = 'qna'
 MAPPING = {
     'properties': {
         'id': {'type': 'keyword'},
@@ -48,6 +48,10 @@ class ESQARepo(QARepo):
             await client.indices.create(index=ES_INDEX, body={
                 'mappings': MAPPING
             })
+            print('RERERERER', await client.reindex(
+                source={"index": 'qa'},
+                dest={"index": ES_INDEX}
+            ))
         else:
             # Update mapping
             await client.indices.put_mapping(index=ES_INDEX, **MAPPING)
