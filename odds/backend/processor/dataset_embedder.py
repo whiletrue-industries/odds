@@ -17,7 +17,7 @@ class DatasetEmbedder:
 
     async def embed(self, dataset: Dataset, ctx: str) -> None:
         rts.set(ctx, f'EMBEDDING {dataset.better_title}')
-        embedding: Embedding = await embedder.embed(dataset.better_title)
+        embedding: Embedding = await embedder.embed(dataset.better_title) if dataset.better_title else None
         for resource in dataset.resources:
             if resource.content:
                 chunks = self.chunks(resource.content)
