@@ -17,6 +17,8 @@ ES_INDEX = 'qa'
 
 class ESQARepo(QARepo):
 
+    PAGE_SIZE = 20
+
     def __init__(self):
         self.initialized = False
 
