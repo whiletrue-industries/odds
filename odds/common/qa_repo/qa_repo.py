@@ -1,6 +1,6 @@
 import dataclasses
 from typing import List, Optional
-from ..datatypes import Dataset, Embedding
+
 
 @dataclasses.dataclass
 class QA:
@@ -10,6 +10,15 @@ class QA:
     success: bool
     score: int
     deployment_id: str
+    last_updated: str = None
+
+
+@dataclasses.dataclass
+class QAResult:
+    questions: List[QA]
+    total: int
+    pages: int
+    page: int
 
 
 class QARepo:
@@ -23,3 +32,5 @@ class QARepo:
     async def findRelated(self, question: str, own_id: str, deployment_id: str=None) -> List[QA]:
         return []
         
+    async def getQuestions(self, deploymentId: str, page=1, sort=None, query=None) -> QAResult:
+        return QAResult([], 0, 0, page)

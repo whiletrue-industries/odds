@@ -4,6 +4,7 @@ from .resolve_firebase_user import FireBaseUser
 from ..common.deployment_repo import deployment_repo
 from ..common.catalog_repo import catalog_repo
 from ..common.metadata_store import metadata_store
+from ..common.qa_repo import qa_repo
 from ..common.config import config
 
 router = APIRouter(
@@ -110,3 +111,21 @@ async def get_catalog_dataset(deployment_id: str, catalog_id: str, dataset_id: s
         r.pop('fields', None)
     d.pop('embedding', None)
     return dataset
+
+
+@router.get("/deployment/{deployment_id}/questions")
+async def get_deployment_questions(deployment_id: str, user: FireBaseUser, page: int = 1, sort: str = None, query: str = None):
+    email = user['email']
+    deployment = await deployment_repo.get_deployment(deployment_id)
+    if not deployment:
+        raise HTTPException(status_code=404, detail="Deployment not found")
+    if not (email in deployment.owners or user['superadmin']):
+        raise HTTPException(status_code=403, detail="Not authorized to access this deployment")
+    result = await qa_repo.getQuestions(deployment_id, page=page, sort=sort, query=query)
+    ret = dict(
+        page=result.page,
+        total=result.total,
+        pages=result.pages,
+        questions=result.questions
+    )
+    return ret

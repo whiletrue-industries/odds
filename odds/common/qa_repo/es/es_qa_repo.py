@@ -4,7 +4,9 @@ from hashlib import sha256
 from elasticsearch import Elasticsearch
 import elasticsearch
 
-from ..qa_repo import QARepo, QA
+from odds.common.retry import BaseRetry
+
+from ..qa_repo import QARepo, QA, QAResult
 from ...datatypes import Embedding
 from ...realtime_status import realtime_status as rts
 from ...embedder import embedder
@@ -168,4 +170,49 @@ class ESQARepo(QARepo):
     async def getEmbedding(self, question: str) -> Embedding:
         return await embedder.embed(question)
 
+    async def getQuestions(self, deploymentId: str, page=1, sort=None, query=None) -> QAResult:
+        async with ESClient() as client:
+            await self.single_time_init(client)
+            body = {
+                'query': {
+                    'bool': {
+                        'must': [
+                            {'match': {'deployment_id': deploymentId}}
+                        ]   
+                    }
+                },
+                'from': (page - 1) * self.PAGE_SIZE,
+                'size': self.PAGE_SIZE,
+                'track_total_hits': True
+            }
+            # Apply sort parameter if provided
+            if query:
+                body['query']['bool']['must'].append({
+                    'multi_match': {
+                        'query': query,
+                        'fields': ['question^10', 'answer'],
+                        'type': 'cross_fields',
+                        'operator': 'and',
+                    }
+                })
+            else:
+                sort = sort or '-last_updated'
+            if sort:
+                order = "asc" if sort[0] == '+' else "desc"
+                field = sort[1:]
+                body["sort"] = [{field: {"order": order}}]
+            body['fields'] = ['id', 'question', 'answer', 'success', 'score', 'deployment_id']
+            ret = await BaseRetry(timeout=30)(client, 'search', index=ES_INDEX, body=body)
+            total = ret['hits']['total']['value']
+            results = []
+            for hit in ret['hits']['hits']:
+                data = hit['_source']
+                data = dict(data)
+                try:
+                    results.append(data)
+                except Exception as e:
+                    print('ERROR PARSING DATASET', e)
+                    continue
+            return QAResult(results, total, total // self.PAGE_SIZE + 1, page)
+        return QAResult([], 0, 0, 0)
 
