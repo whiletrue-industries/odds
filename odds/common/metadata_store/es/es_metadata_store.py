@@ -215,7 +215,7 @@ class ESMetadataStore(MetadataStore):
                 body['query']['bool']['must'].append({
                     'multi_match': {
                         'query': query,
-                        'fields': ['title^10', 'description', 'summary', 'better_title', 'better_description', 'publisher^3', 'publisher_description', 'resources.title', 'resources.content'],
+                        'fields': ['title^20', 'description^10', 'summary^5', 'better_title^10', 'better_description', 'publisher^10', 'publisher_description', 'resources.title', 'resources.content'],
                         'type': 'cross_fields',
                         'operator': 'and',
                     }
