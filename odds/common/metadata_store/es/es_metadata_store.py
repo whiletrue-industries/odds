@@ -192,7 +192,6 @@ class ESMetadataStore(MetadataStore):
         return await super().getEmbedding(dataset)
 
     async def getDatasets(self, catalogId: str, page=1, sort=None, query=None, filters=None) -> DatasetResult:
-        sort = sort or '-last_updated'
         async with ESClient() as client:
             await self.single_time_init(client)
             body = {
@@ -208,9 +207,6 @@ class ESMetadataStore(MetadataStore):
                 'track_total_hits': True
             }
             # Apply sort parameter if provided
-            order = "asc" if sort[0] == '+' else "desc"
-            field = sort[1:]
-            body["sort"] = [{field: {"order": order}}]
             if query:
                 body['query']['bool']['must'].append({
                     'multi_match': {
@@ -220,6 +216,12 @@ class ESMetadataStore(MetadataStore):
                         'operator': 'and',
                     }
                 })
+            else:
+                sort = sort or '-last_updated'
+            if sort:
+                order = "asc" if sort[0] == '+' else "desc"
+                field = sort[1:]
+                body["sort"] = [{field: {"order": order}}]
             if filters:
                 for k, v in filters.items():
                     body['query']['bool']['must'].append({'match': {k: v}})
