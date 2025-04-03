@@ -37,6 +37,7 @@ class ESQARepo(QARepo):
                         'success': {'type': 'boolean'},
                         'score': {'type': 'integer'},
                         'deployment_id': {'type': 'keyword'},
+                        'last_updated': {'type': 'date'},
                         'embeddings': {
                             'type': 'dense_vector',
                             'dims': embedder.vector_size(),
