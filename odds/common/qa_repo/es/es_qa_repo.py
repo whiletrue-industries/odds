@@ -15,7 +15,23 @@ from ...embedder import embedder
 from ...metadata_store.es.es_client import ESClient
 
 ES_INDEX = 'qa'
-
+MAPPING = {
+    'properties': {
+        'id': {'type': 'keyword'},
+        'question': {'type': 'text'},
+        'answer': {'type': 'text'},
+        'success': {'type': 'boolean'},
+        'score': {'type': 'integer'},
+        'deployment_id': {'type': 'keyword'},
+        'last_updated': {'type': 'date'},
+        'embeddings': {
+            'type': 'dense_vector',
+            'dims': embedder.vector_size(),
+            'index': True,
+            'similarity': 'cosine'
+        }
+    }
+}
 class ESQARepo(QARepo):
 
     PAGE_SIZE = 20
@@ -30,24 +46,11 @@ class ESQARepo(QARepo):
         assert await client.ping()
         if not await client.indices.exists(index=ES_INDEX):
             await client.indices.create(index=ES_INDEX, body={
-                'mappings': {
-                    'properties': {
-                        'id': {'type': 'keyword'},
-                        'question': {'type': 'text'},
-                        'answer': {'type': 'text'},
-                        'success': {'type': 'boolean'},
-                        'score': {'type': 'integer'},
-                        'deployment_id': {'type': 'keyword'},
-                        'last_updated': {'type': 'date'},
-                        'embeddings': {
-                            'type': 'dense_vector',
-                            'dims': embedder.vector_size(),
-                            'index': True,
-                            'similarity': 'cosine'
-                        }
-                    }
-                }
+                'mappings': MAPPING
             })
+        else:
+            # Update mapping
+            await client.indices.put_mapping(index=ES_INDEX, **MAPPING)
 
     def toQa(self, data):
         data = dict(data)
