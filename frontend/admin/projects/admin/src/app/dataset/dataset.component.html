@@ -51,10 +51,15 @@
                                 <div rtlize>{{ dataset.better_title }}</div>
                             </div>
                         }
-                        @if (dataset.better_description) {
+                        @if (dataset.better_description || dataset.summary) {
                             <div class='dataset-better-description'>
                                 <h4>AI Generated Description</h4>
-                                <div rtlize>{{ dataset.better_description }}</div>
+                                @if (dataset.summary && dataset.better_title !== dataset.summary) {
+                                    <div rtlize><strong>{{ dataset.summary }}</strong></div><br/>
+                                }
+                                @if (dataset.better_description) {
+                                    <div rtlize>{{ dataset.better_description }}</div>
+                                }
                             </div>
                         }
                     </div>

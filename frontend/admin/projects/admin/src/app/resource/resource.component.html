@@ -149,8 +149,11 @@
                                 <h3>Quality Issues:</h3>
                                 <ul class='quality-issue'>
                                     @for (item of r.quality_issues || []; track item) {
-                                        <!-- <h4>{{ item.issue }}</h4> -->
-                                    }
+                                        @if (item.issue !== 'dataset_quality') {
+                                            <!-- <h4>{{ item.issue }}</h4> -->
+                                            <li>{{ item.description }}</li>
+                                        }
+                                }
                                 </ul>    
                             </div>
                         } @else {

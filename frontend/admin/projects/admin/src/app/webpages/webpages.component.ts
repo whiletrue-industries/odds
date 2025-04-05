@@ -64,9 +64,9 @@ export class WebpagesComponent implements AfterViewInit {
     effect(() => {
       const deploymentId = this.state.deploymentId();
       const catalogId = this.state.catalogId();
-      const page = this.state.currentPage();
-      const sort = this.state.currentSortDirective();
-      const textFilter = this.state.textFilter();
+      const page = this.state.webpagesPage.currentPage();
+      const sort = this.state.webpagesPage.currentSortDirective();
+      const textFilter = this.state.webpagesPage.textFilter();
       console.log('Page/sort changed:', deploymentId, catalogId, page, 'Sort:', sort);
       if (catalogId && deploymentId && page) {
         this.api.getDatasets(deploymentId, catalogId, page, sort, textFilter).subscribe((result) => {
@@ -80,7 +80,7 @@ export class WebpagesComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const sort = this.state.currentSort();
+    const sort = this.state.webpagesPage.currentSort();
     timer(0).subscribe(() => {
       if (sort) {
         this.matSort.sort({
@@ -93,7 +93,7 @@ export class WebpagesComponent implements AfterViewInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.state.currentPage.set(event.pageIndex + 1);
+    this.state.webpagesPage.currentPage.set(event.pageIndex + 1);
   }
 
   resourceFormats(dataset: Dataset): string[] {
@@ -107,14 +107,14 @@ export class WebpagesComponent implements AfterViewInit {
   onSort(sort: Sort): void {
     // Handle sorting here
     console.log('Sorting:', sort);
-    this.state.currentSort.set(sort);
+    this.state.webpagesPage.currentSort.set(sort);
     if (sort.direction === '') {
       // Reset sort
-      this.state.currentSortDirective.set(null);
+      this.state.webpagesPage.currentSortDirective.set(null);
     } else if (sort.active) {
       const dir = sort.direction === 'asc' ? '+' : '-';
       const field = this.FIELD_TO_SORT[sort.active];
-      this.state.currentSortDirective.set(`${dir}${field}`);
+      this.state.webpagesPage.currentSortDirective.set(`${dir}${field}`);
     }
   }
 }

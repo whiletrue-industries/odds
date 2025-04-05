@@ -10,14 +10,14 @@
     <div class='title-header'>
         <div class='row'>
             <span>All User Questions</span>
-            <app-text-filter kind='User Questions'></app-text-filter>
+            <app-text-filter kind='User Questions' [pageState]='state.questionsPage'></app-text-filter>
         </div>
         <div class='row'>
             <h1>{{ state.catalog()?.title }}</h1>
             <mat-paginator [length]='totalQuestions()'
                 [pageSize]='20'
                 [hidePageSize]='true'
-                [pageIndex]="state.currentPage() - 1"
+                [pageIndex]="state.questionsPage.currentPage() - 1"
                 (page)='onPageChange($event)'
                 aria-label="Select page">
             </mat-paginator>    

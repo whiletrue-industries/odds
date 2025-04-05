@@ -17,14 +17,14 @@
     <div class='title-header'>
         <div class='row'>
             <span>All Datasets</span>
-            <app-text-filter kind='Datasets'></app-text-filter>
+            <app-text-filter kind='Datasets' [pageState]='state.datasetsPage'></app-text-filter>
         </div>
         <div class='row'>
             <h1>{{ state.catalog()?.title }}</h1>
             <mat-paginator [length]='totalDatasets()'
                 [pageSize]='10'
                 [hidePageSize]='true'
-                [pageIndex]="state.currentPage() - 1"
+                [pageIndex]="state.datasetsPage.currentPage() - 1"
                 (page)='onPageChange($event)'
                 aria-label="Select page">
             </mat-paginator>    

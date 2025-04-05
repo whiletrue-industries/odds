@@ -5,6 +5,13 @@ import { DataCatalog, Dataset } from './datatypes';
 import { ApiService } from './api.service';
 import { Sort } from '@angular/material/sort';
 
+export class PageState {
+  currentPage = signal<number>(1);
+  currentSort = signal<Sort | null>(null);
+  currentSortDirective = signal<string | null>(null);
+  textFilter = signal<string | null>(null);
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,12 +23,11 @@ export class StateService {
   resourceIndex = signal<number | null>(null);
   catalog = signal<DataCatalog | null>(null);
   dataset = signal<Dataset | null>(null);
-  currentPage = signal<number>(1);
 
-  currentSort = signal<Sort | null>(null);
-  currentSortDirective = signal<string | null>(null);
-
-  textFilter = signal<string | null>(null);
+  datasetsPage = new PageState();
+  questionsPage = new PageState();
+  webpagesPage = new PageState();
+  pages = [this.datasetsPage, this.questionsPage, this.webpagesPage];
 
   constructor(private api: ApiService) {
     effect(() => {
@@ -31,7 +37,9 @@ export class StateService {
         this.api.getDatacatalog(deploymentId, catalogId).subscribe((catalog) => {
           this.catalog.set(catalog);
         });
-        this.currentPage.set(1);
+        this.pages.forEach((page) => {
+          page.currentPage.set(1);
+        });
       } else {
         this.catalog.set(null);
       }

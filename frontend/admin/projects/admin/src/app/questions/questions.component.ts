@@ -69,9 +69,9 @@ export class QuestionsComponent implements AfterViewInit {
 
     effect(() => {
       const deploymentId = this.state.deploymentId();
-      const page = this.state.currentPage();
-      const sort = this.state.currentSortDirective();
-      const textFilter = this.state.textFilter();
+      const page = this.state.questionsPage.currentPage();
+      const sort = this.state.questionsPage.currentSortDirective();
+      const textFilter = this.state.questionsPage.textFilter();
       console.log('Page/sort changed:', deploymentId, page, 'Sort:', sort);
       if (deploymentId && page) {
         this.api.getQuestions(deploymentId, page, sort, textFilter).subscribe((result) => {
@@ -85,7 +85,7 @@ export class QuestionsComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    const sort = this.state.currentSort();
+    const sort = this.state.questionsPage.currentSort();
     timer(0).subscribe(() => {
       if (sort) {
         this.matSort.sort({
@@ -98,7 +98,7 @@ export class QuestionsComponent implements AfterViewInit {
   }
 
   onPageChange(event: PageEvent): void {
-    this.state.currentPage.set(event.pageIndex + 1);
+    this.state.questionsPage.currentPage.set(event.pageIndex + 1);
   }
 
   resourceFormats(dataset: Dataset): string[] {
@@ -112,14 +112,15 @@ export class QuestionsComponent implements AfterViewInit {
   onSort(sort: Sort): void {
     // Handle sorting here
     console.log('Sorting:', sort);
-    this.state.currentSort.set(sort);
+    this.state.questionsPage.currentSort.set(sort);
     if (sort.direction === '') {
       // Reset sort
-      this.state.currentSortDirective.set(null);
+      this.state.questionsPage.currentSortDirective.set(null);
     } else if (sort.active) {
       const dir = sort.direction === 'asc' ? '+' : '-';
       const field = this.FIELD_TO_SORT[sort.active];
-      this.state.currentSortDirective.set(`${dir}${field}`);
+      console.log('Sorting2:', `${dir}${field}`);
+      this.state.questionsPage.currentSortDirective.set(`${dir}${field}`);
     }
   }
 

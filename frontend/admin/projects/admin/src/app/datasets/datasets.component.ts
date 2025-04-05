@@ -68,9 +68,9 @@ export class DatasetsComponent implements AfterViewInit {
     effect(() => {
       const deploymentId = this.state.deploymentId();
       const catalogId = this.state.catalogId();
-      const page = this.state.currentPage();
-      const sort = this.state.currentSortDirective();
-      const textFilter = this.state.textFilter();
+      const page = this.state.datasetsPage.currentPage();
+      const sort = this.state.datasetsPage.currentSortDirective();
+      const textFilter = this.state.datasetsPage.textFilter();
       console.log('Page/sort changed:', deploymentId, catalogId, page, 'Sort:', sort);
       if (catalogId && deploymentId && page) {
         this.api.getDatasets(deploymentId, catalogId, page, sort, textFilter).subscribe((result) => {
@@ -84,7 +84,7 @@ export class DatasetsComponent implements AfterViewInit {
   }
 
     ngAfterViewInit(): void {
-      const sort = this.state.currentSort();
+      const sort = this.state.datasetsPage.currentSort();
       timer(0).subscribe(() => {
         if (sort) {
           this.matSort.sort({
@@ -97,7 +97,7 @@ export class DatasetsComponent implements AfterViewInit {
     }
   
   onPageChange(event: PageEvent): void {
-    this.state.currentPage.set(event.pageIndex + 1);
+    this.state.datasetsPage.currentPage.set(event.pageIndex + 1);
   }
 
   resourceFormats(dataset: Dataset): string[] {
@@ -113,12 +113,12 @@ export class DatasetsComponent implements AfterViewInit {
     console.log('Sorting:', sort);
     if (sort.direction === '') {
       // Reset sort
-      this.state.currentSortDirective.set(null);
+      this.state.datasetsPage.currentSortDirective.set(null);
     } else if (sort.active) {
       const dir = sort.direction === 'asc' ? '+' : '-';
       const field = this.FIELD_TO_SORT[sort.active];
-      this.state.currentSortDirective.set(`${dir}${field}`);
+      this.state.datasetsPage.currentSortDirective.set(`${dir}${field}`);
     }
-    this.state.currentSort.set(sort);
+    this.state.datasetsPage.currentSort.set(sort);
   }
 }

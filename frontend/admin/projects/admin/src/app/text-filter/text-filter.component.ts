@@ -3,7 +3,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { debounceTime, distinctUntilChanged, startWith, Subject } from 'rxjs';
-import { StateService } from '../state.service';
+import { PageState, StateService } from '../state.service';
 
 @Component({
   selector: 'app-text-filter',
@@ -19,6 +19,7 @@ import { StateService } from '../state.service';
 export class TextFilterComponent {
 
   @Input() kind: string = 'text';
+  @Input() pageState: PageState;
 
   searchText = signal<string | null>(null);
   searchSubject = new Subject<string | null>();
@@ -40,7 +41,7 @@ export class TextFilterComponent {
       distinctUntilChanged(),
       startWith(null)
     ).subscribe((searchText) => {
-      state.textFilter.set(searchText)
+      this.pageState.textFilter.set(searchText)
     });
   }
 }
