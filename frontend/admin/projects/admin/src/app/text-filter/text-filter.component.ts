@@ -1,4 +1,5 @@
-import { Component, computed, effect, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, Input, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,7 +17,7 @@ import { PageState, StateService } from '../state.service';
   templateUrl: './text-filter.component.html',
   styleUrl: './text-filter.component.less'
 })
-export class TextFilterComponent {
+export class TextFilterComponent implements OnInit {
 
   @Input() kind: string = 'text';
   @Input() pageState: PageState;
@@ -32,11 +33,15 @@ export class TextFilterComponent {
     }
   });
 
-  constructor(private state: StateService) {
+  constructor(private state: StateService, private destroyRef: DestroyRef) {
     effect(() => {
       this.searchSubject.next(this.searchText());
     });
+  }
+  
+  ngOnInit() {
     this.searchSubject.pipe(
+      takeUntilDestroyed(this.destroyRef),
       debounceTime(300),
       distinctUntilChanged(),
       startWith(null)
