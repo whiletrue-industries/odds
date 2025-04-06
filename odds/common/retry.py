@@ -3,6 +3,9 @@ from typing import Coroutine, Any
 from httpx import Response
 
 
+def _(x):
+    return repr(x)[:300]
+
 class BaseRetry:
 
     def __init__(self, retries=3, timeout=2) -> None:
@@ -19,9 +22,9 @@ class BaseRetry:
                 response = self.test_response(response)
                 return response
             except Exception as e:
-                print('RETRYING', repr(e), repr(client), method, args, kwargs)
+                print('RETRYING', _(e), _(client), method, _(args), _(kwargs))
                 if i == self.retries - 1:
-                    print('GIVING UP', repr(e), repr(client), method, args, kwargs)
+                    print('GIVING UP', _(e), _(client), method, _(args), _(kwargs))
                 await asyncio.sleep(self.timeout * (2 ** (i+2)))
         return None
 
