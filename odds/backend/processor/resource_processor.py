@@ -230,7 +230,7 @@ class ResourceProcessor:
         rts.set(ctx, f'SQLITE DATA {resource.url} HAS {resource.row_count} ROWS')
         return resource
     
-    async def download_url(self, ctx, catalog, resource, to_delete, rand):
+    async def download_url(self, ctx, catalog, resource, to_delete, rand, limit=None):
         rts.set(ctx, f'LOADING FROM URL {resource.url}')
         usable_url = await resource.get_openable_url(ctx)
         if usable_url.startswith('http'):
@@ -255,6 +255,7 @@ class ResourceProcessor:
                                 while total_size - report > 1000000:
                                     report += 1000000
                                     rts.set(ctx, f'DOWNLOADED {report} BYTES from {resource.url} to {filename}')
+                                assert limit is None or total_size < limit, f'File too big > {limit}'
             return filename
         else:
             return usable_url
@@ -264,7 +265,7 @@ class ResourceProcessor:
         with open(f'{TMP_DIR}/{rand}.ndjson', 'w') as stream:
             to_delete.append(f'{TMP_DIR}/{rand}.ndjson')
             try:
-                filename = await self.download_url(ctx, catalog, resource, to_delete, rand)
+                filename = await self.download_url(ctx, catalog, resource, to_delete, rand, limit=self.BIG_FILE_SIZE)
                 async with asyncio.timeout(TIMEOUT_VALIDATE):
                     dp = await asyncio.to_thread(self.validate_data, ctx, filename, stream)
                 potential_fields = [
@@ -343,15 +344,22 @@ class ResourceProcessor:
 
     async def process_document(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, to_delete: List[str], ctx: str):
         rand = uuid.uuid4().hex
-        filename = await self.download_url(ctx, catalog, resource, to_delete, rand)
-        mimetype = DOCUMENT_MIMETYPES.get(resource.file_format)
-        content = open(filename, 'rb').read()
-        content = base64.b64encode(content).decode('ascii').replace('\n', '')
-        content = f'data:{mimetype};base64,{content}'
-        print('CONVERTING', filename, content[:100])
-        query = MDConverterQuery(ctx, catalog, resource, content, filename=filename.split('/')[-1])
-        await llm_runner.run(query, [dataset.id])
-        rts.clear(ctx)
+        try:
+            filename = await self.download_url(ctx, catalog, resource, to_delete, rand, limit=self.BIG_FILE_SIZE)
+            mimetype = DOCUMENT_MIMETYPES.get(resource.file_format)
+            content = open(filename, 'rb').read()
+            content = base64.b64encode(content).decode('ascii').replace('\n', '')
+            content = f'data:{mimetype};base64,{content}'
+            print('CONVERTING', filename, content[:100])
+            query = MDConverterQuery(ctx, catalog, resource, content, filename=filename.split('/')[-1])
+            await llm_runner.run(query, [dataset.id])
+        except Exception as e:
+            rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
+            resource.status = 'failed'
+            resource.loading_error = str(e)
+            return
+        finally:
+            rts.clear(ctx)
 
     async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str, force=False):
         if not ResourceProcessor.check_format(resource):
