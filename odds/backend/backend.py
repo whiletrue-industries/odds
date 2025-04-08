@@ -20,7 +20,8 @@ class ODDSBackend:
         self.scanner_factory = ScannerFactory()
         self.catalogs = catalog_repo.load_catalogs()
 
-    async def scan(self, catalogFilter: CatalogFilter, datasetFilter: DatasetFilter, *datasetFilterArgs) -> None:
+
+    async def scan(self, catalogFilter: CatalogFilter, datasetFilter: DatasetFilter, *datasetFilterArgs, use_pool=None) -> None:
         dataset_processor.set_concurrency(config.dataset_processor_concurrency_limit or 3)
         rts.clearAll()
         scanner_ctx = ''
@@ -40,8 +41,16 @@ class ODDSBackend:
                             dataset = existing
                         if await datasetFilter.consider(dataset):
                             rts.set(cat_ctx, f'CONSIDER DATASET {dataset.id}')
-                            # await db.storeDataset(dataset, ctx)
-                            dataset_processor.queue(dataset, catalog, datasetFilter, ctx, await datasetFilter.force_resources(dataset))
+                            if use_pool:
+                                job_id = dataset.storeId()
+                                await use_pool.enqueue_job(
+                                    'dataset_processor_queue',
+                                    dataset, catalog, datasetFilter, ctx,
+                                    await datasetFilter.force_resources(dataset),
+                                    _job_id=job_id
+                                )
+                            else:
+                                dataset_processor.queue(dataset, catalog, datasetFilter, ctx, await datasetFilter.force_resources(dataset))
                         else:
                             rts.set(cat_ctx, f'SKIP DATASET {dataset.id}')
                         dataset_idx += 1

@@ -17,7 +17,9 @@ async def main():
     catalog_id = args.catalog_id or None
     dataset_id = args.dataset_id or None
     print(f'SCAN SPECIFIC CATALOG: {catalog_id}, DATASET: {dataset_id}, FORCE? {args.force}')
-    await redis.enqueue_job('scan_specific', catalog_id, dataset_id, args.force, _job_id='scraper_temp')
+    job_id = f'scrape_all_{catalog_id}_{dataset_id}'
+    await redis.enqueue_job('scan_specific', catalog_id, dataset_id, args.force, _job_id=job_id)
+    print(f'Job {job_id} enqueued.')
 
 if __name__ == '__main__':
     asyncio.run(main())

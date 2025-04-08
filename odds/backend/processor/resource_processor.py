@@ -332,15 +332,11 @@ class ResourceProcessor:
                 resource.status = 'failed'
                 resource.loading_error = str(e)
                 return
-            finally:
-                rts.clear(ctx)
 
     async def process_website(self, catalog: DataCatalog, dataset: Dataset, resource: WebsiteResource, to_delete: List[str], ctx: str):
         resource.content = open(resource.url, 'r').read()
         query = MDConverterQuery(ctx, catalog, resource)
         await llm_runner.run(query, [dataset.id])
-
-        rts.clear(ctx)
 
     async def process_document(self, catalog: DataCatalog, dataset: Dataset, resource: Resource, to_delete: List[str], ctx: str):
         rand = uuid.uuid4().hex
@@ -358,50 +354,52 @@ class ResourceProcessor:
             resource.status = 'failed'
             resource.loading_error = str(e)
             return
+
+    async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str, force=False):
+        try:
+            if not ResourceProcessor.check_format(resource):
+                rts.set(ctx, f'INVALID FORMAT {resource.file_format}', 'error')
+                return None
+            if not resource.url:
+                rts.set(ctx, f'NO URL', 'error')
+                return None
+            dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
+            if resource.status_loaded and not resource.loading_error and not force:
+                resource.status = 'loaded'
+                resource.loading_error = None
+                rts.set(ctx, f'ALREADY LOADED {resource.url}')
+                return None
+            if resource.loading_error:
+                if resource.loading_error.startswith('TOO MANY FIELDS'):
+                    past_num_fields = resource.loading_error.split('-')[-1]
+                    past_num_fields = int(past_num_fields)
+                    if past_num_fields > self.MAX_FIELDS:
+                        return None
+            resource.status_selected = True
+            resource.loading_error = None
+            resource.status_loaded = False
+            to_delete = []
+            if not self.sem:
+                self.sem = asyncio.Semaphore(self.concurrency_limit)
+            try:
+                async with self.sem:
+                    rts.set(ctx, f'PROCESSING Format {resource.file_format}')
+                    if resource.file_format == 'website':
+                        await self.process_website(catalog, dataset, resource, to_delete, ctx)
+                    elif resource.file_format in DOCUMENT_FORMATS:
+                        await self.process_document(catalog, dataset, resource, to_delete, ctx)
+                    else:
+                        await self.process_tabular(catalog, dataset, resource, to_delete, ctx)
+
+            finally:
+                for filename in to_delete:
+                    try:
+                        os.unlink(filename)
+                    except Exception as e:
+                        rts.set(ctx, f'FAILED TO DELETE {filename}: {e}', 'error')
         finally:
             rts.clear(ctx)
 
-    async def process(self, resource: Resource, dataset: Dataset, catalog: DataCatalog, ctx: str, force=False):
-        if not ResourceProcessor.check_format(resource):
-            rts.set(ctx, f'INVALID FORMAT {resource.file_format}')
-            return None
-        if not resource.url:
-            rts.set(ctx, f'NO URL')
-            return None
-        dataset.versions['resource_analyzer'] = config.feature_versions.resource_analyzer
-        if resource.status_loaded and not resource.loading_error and not force:
-            resource.status = 'loaded'
-            resource.loading_error = None
-            rts.set(ctx, f'ALREADY LOADED {resource.url}')
-            return None
-        if resource.loading_error:
-            if resource.loading_error.startswith('TOO MANY FIELDS'):
-                past_num_fields = resource.loading_error.split('-')[-1]
-                past_num_fields = int(past_num_fields)
-                if past_num_fields > self.MAX_FIELDS:
-                    return None
-        resource.status_selected = True
-        resource.loading_error = None
-        resource.status_loaded = False
-        to_delete = []
-        if not self.sem:
-            self.sem = asyncio.Semaphore(self.concurrency_limit)
-        try:
-            async with self.sem:
-                rts.set(ctx, f'PROCESSING Format {resource.file_format}')
-                if resource.file_format == 'website':
-                    await self.process_website(catalog, dataset, resource, to_delete, ctx)
-                elif resource.file_format in DOCUMENT_FORMATS:
-                    await self.process_document(catalog, dataset, resource, to_delete, ctx)
-                else:
-                    await self.process_tabular(catalog, dataset, resource, to_delete, ctx)
-
-        finally:
-            for filename in to_delete:
-                try:
-                    os.unlink(filename)
-                except Exception as e:
-                    rts.set(ctx, f'FAILED TO DELETE {filename}: {e}', 'error')
 
     def set_concurrency_limit(self, concurrency_limit):
         self.concurrency_limit = concurrency_limit
