@@ -44,7 +44,7 @@ class ODDSBackend:
                             if use_pool:
                                 job_id = dataset.storeId()
                                 await use_pool.enqueue_job(
-                                    'dataset_processor_queue',
+                                    'dataset_processor_process',
                                     dataset, catalog, datasetFilter, ctx,
                                     await datasetFilter.force_resources(dataset),
                                     _job_id=job_id
