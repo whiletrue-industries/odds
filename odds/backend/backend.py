@@ -21,7 +21,7 @@ class ODDSBackend:
         self.catalogs = catalog_repo.load_catalogs()
 
 
-    async def scan(self, catalogFilter: CatalogFilter, datasetFilter: DatasetFilter, *datasetFilterArgs, use_pool=None) -> None:
+    async def scan(self, catalogFilter: CatalogFilter, datasetFilter: DatasetFilter, use_pool=None) -> None:
         dataset_processor.set_concurrency(config.dataset_processor_concurrency_limit or 3)
         rts.clearAll()
         scanner_ctx = ''
@@ -70,7 +70,7 @@ class ODDSBackend:
     async def scan_new(self) -> None:
         await self.scan(CatalogFilter(), DatasetFilterNew())
 
-    async def scan_specific(self, catalogId: str = None, datasetId: str = None, force=True) -> None:
+    async def scan_specific(self, catalogId: str = None, datasetId: str = None, force=True, use_pool=None) -> None:
         print(f'SCAN SPECIFIC CATALOG: {catalogId}, DATASET: {datasetId}, FORCE? {force}')
         if catalogId:
             catalogFilter = CatalogFilterById(catalogId)
@@ -83,4 +83,4 @@ class ODDSBackend:
                 datasetFilter = DatasetFilterForce()
             else:
                 datasetFilter = DatasetFilterIncomplete()
-        await self.scan(catalogFilter, datasetFilter)
+        await self.scan(catalogFilter, datasetFilter, use_pool=use_pool)
