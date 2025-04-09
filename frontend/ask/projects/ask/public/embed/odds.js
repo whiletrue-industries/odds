@@ -4,7 +4,7 @@ var odds___html = `
         <span>חיפוש מידע</span>
         <span>בעזרת AI</span>
     </div>
-    <div class='popup closed'><iframe src='http://localhost:4200/m/odata'></iframe></div> 
+    <div class='popup closed'><iframe src='https://ask.datadeepsearch.io/m/odata'></iframe></div> 
 </div>
 `;
 
@@ -29,7 +29,7 @@ let odds___css = `
     align-items: center;
     font-size: 16px;
     line-height: 100%;
-    background-image: url('/odds-trigger.svg');
+    background-image: url('https://ask.datadeepsearch.io/embed/odds-trigger.svg');
     background-size: 98px 98px;
     background-repeat: no-repeat;
     background-position: center;
