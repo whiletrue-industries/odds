@@ -17,7 +17,7 @@
             <div class='question'>{{ question }}</div>
         }
         @if (!answer) {
-            <button class='send' (click)='ask()' [disabled]='!!loading' [class.visible]='question'></button>
+            <button class='send' (click)='searcher.ask()' [disabled]='!!loading' [class.visible]='question'></button>
         }
     </div>
     
@@ -28,7 +28,7 @@
                 <div class='example-list'>
                     @for (example of deployment?.examples ; track example) {                        
                         <div class='example'>- &nbsp;"
-                            <a (click)='ask(example)'>{{ example }}</a>
+                            <a (click)='searcher.ask(example)'>{{ example }}</a>
                         "</div>
                     }
                 </div>
