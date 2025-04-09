@@ -1,0 +1,55 @@
+<div class='container rtl'>
+    <div class='input' [class.answer]='!!searcher.answer'>
+        @if (!searcher.fullAnswer) {
+            <input #input placeholder='חפשו תשובות במאגר המידע שלנו' [(ngModel)]='searcher.question' [disabled]='!!searcher.loading || !!searcher.answer' (keydown)='keydown($event)'>
+        } @else {
+            <div class='question'>{{ searcher.question }}</div>
+        }
+        @if (!searcher.answer) {
+            <button class='send' (click)='searcher.ask()' [disabled]='!!searcher.loading' [class.visible]='searcher.question'></button>
+        }
+    </div>
+    
+    @if (!searcher.answer && !searcher.steps.length) {
+        @if (searcher.deployment?.examples) {
+            <div class='examples'>
+                <h3>מה למשל אפשר לחפש פה?</h3>
+                <div class='example-list'>
+                    @for (example of searcher.deployment?.examples ; track example) {                        
+                        <div class='example'>- &nbsp;"
+                            <a (click)='searcher.ask(example)'>{{ example }}</a>
+                        "</div>
+                    }
+                </div>
+            </div>
+        }
+    } @else if (!searcher.answer) {
+        <div class='steps'>
+            @for (step of searcher.steps; track $index) {
+                <div class='step' [attr.data-kind]='step.kind' [class.last]='$index === searcher.steps.length - 1'>
+                    <div class='step-icon'></div>
+                    <div class='step-text'>{{step.message}}</div>
+                </div>
+            }
+        </div>
+    } @else {
+        <div class='answer' [innerHTML]='searcher.answer'></div>            
+    }
+    @if (searcher.fullAnswer) {    
+        <div class='related'>
+            <div class='related-list'>
+                <a class='ask-again' [routerLink]='["/m/" + searcher.deployment_id]'>חפשו מידע נוסף</a>
+            </div>
+        </div>
+        <div class='related'>
+            <h3 [class.loading]='searcher.relatedQuestions === null'>תשובות קשורות</h3>
+            <div class='related-list'>
+                @if (searcher.relatedQuestions && searcher.relatedQuestions.length > 0) {
+                    @for (related of searcher.relatedQuestions; track related.id) {
+                        <a class='related-question' [routerLink]='["/m/" + searcher.deployment_id, "a", related.id]'>{{ related.question }}</a>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
