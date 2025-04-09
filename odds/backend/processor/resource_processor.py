@@ -149,6 +149,7 @@ Remember, you must output ONLY a markdown-formatted text __or__ the ONLY word "I
 class ResourceProcessor:
 
     sem: asyncio.Semaphore = None
+    concurrency_limit = 7
 
     MISSING_VALUES = ['None', 'NULL', 'N/A', 'NA', 'NAN', 'NaN', 'nan', '-']
     BIG_FILE_SIZE = 10000000
