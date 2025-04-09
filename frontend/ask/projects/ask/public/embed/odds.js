@@ -5,6 +5,7 @@ var odds___html = `
         <span>בעזרת AI</span>
     </div>
     <div class='popup closed'><iframe src='https://ask.datadeepsearch.io/m/odata'></iframe></div> 
+    <div class='close'>X</div>
 </div>
 `;
 
@@ -57,9 +58,18 @@ let odds___css = `
     display: flex;
     pointer-events: all;
     background-color: white;
-    box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.7);
+    border: 1px solid white;
 }
 
+#odds .close {
+    color: #888;
+    font-size: 14px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    pointer-events: all;
+}
 `;
 
 var odds___onload = null;
@@ -90,6 +100,11 @@ odds___load = function() {
             popup.classList.remove('open');
             popup.classList.add('closed');
         }
+    });
+    // Add event listener to close button
+    var close = document.querySelector('.close');
+    close.addEventListener('click', function() {
+        document.body.removeChild(div);
     });
 }
     
