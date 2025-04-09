@@ -62,9 +62,8 @@ let css = `
 
 `;
 
-let onload = window.onload;
-
-window.onload = function() {
+let onload = null;
+odds_load = function() {
     onload ? onload() : null;
     var body = document.getElementsByTagName('body')[0];
     console.log(body);
@@ -94,3 +93,11 @@ window.onload = function() {
     });
 }
     
+if (document.readyState === "complete") {
+    console.log('Loading odds post load');
+    odds_load();
+} else {
+    console.log('Loading odds');
+    onload = window.onload;
+    window.onload = odds_load;
+}
