@@ -1,5 +1,5 @@
 var odds___html = `
-<div id="odds" style="position: fixed; bottom: 16px; left: 16px; z-index: 9999;">
+<div id="odds">
     <div class='trigger'>
         <span>חיפוש מידע</span>
         <span>בעזרת AI</span>
