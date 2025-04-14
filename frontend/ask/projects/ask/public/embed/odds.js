@@ -13,13 +13,19 @@ let odds___css = `
 #odds {
     z-index: 9999;
     position: fixed;
-    bottom: 16px;
-    left: 16px;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 16px;
     overflow: visible;
     pointer-events: none;
     font-family: 'Assistant', sans-serif;
 }
 #odds .trigger {
+    position: absolute;
+    bottom: 0;
+    left: 0;
     width: 100px;
     height: 100px;
     pointer-events: all;
@@ -37,10 +43,10 @@ let odds___css = `
     border-radius: 50%;
 }
 #odds .popup {
-    width: 512px;
-    max-width: calc(100vw - 32px);
-    height: 800px;
-    max-height: calc(100vh - 132px);
+    width: 100%;
+    max-width: 512px;
+    height: calc(100% - 116px);
+    max-height: 800px;
     position: absolute;
     bottom: 100px;
     left: 0px;
