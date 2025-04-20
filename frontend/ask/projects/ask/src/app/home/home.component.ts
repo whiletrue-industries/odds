@@ -67,6 +67,10 @@ export class HomeComponent {
     return this.searcher.question;
   }
 
+  set question(value: string) {
+    this.searcher.question = value;
+  }
+  
   get answer() {
     return this.searcher.answer;
   }
