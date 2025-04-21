@@ -23,6 +23,7 @@ async def loop(client, thread, stream, usage, deployment):
         event: AssistantStreamEvent = await stream.__anext__()
         # print(f'Event: {event.event}, data: {repr(event.data)[:100]}')
         if event.event == 'thread.run.completed':
+            run = event.data
             if run.usage:
                 usage.update_cost('expensive', 'prompt', run.usage.prompt_tokens)
                 usage.update_cost('expensive', 'completion', run.usage.completion_tokens)
