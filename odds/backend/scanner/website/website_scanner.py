@@ -162,7 +162,9 @@ class Scraper:
                 canonical = canonical.get('href')
                 if not url.startswith(canonical):
                     links = [canonical]
-            title = soup.find('title').text
+            title = soup.find('title')
+            if title:
+                title = title.text
         if links is None:
             allowed_attributes = AllowedAttributes(final_url)
             nh3.clean(

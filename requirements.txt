@@ -13,7 +13,7 @@ plyvel
 fastapi
 uvicorn
 aiosqlite
-elasticsearch[async]
+elasticsearch[async]<9.0.0
 openai
 pyyaml
 nh3
