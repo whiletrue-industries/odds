@@ -187,7 +187,11 @@ class MetaDescriber:
 
         async with self.sem:
             if dataset.resources[0].kind == 'website':
-                query = MetaDescriberQueryWebsite(dataset, catalog, ctx)
+                if self.dataset.resources[0].content:
+                    query = MetaDescriberQueryWebsite(dataset, catalog, ctx)
+                else:
+                    rts.set(ctx, f'NO CONTENT')
+                    return
             else:
                 query = MetaDescriberQueryDataset(dataset, catalog, ctx)
             await llm_runner.run(query, [dataset.id])

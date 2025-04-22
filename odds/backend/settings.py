@@ -3,7 +3,7 @@ UNPROCESSABLE_DOCUMENT_FORMATS = [
     'doc', 'docx', 'pptx'
 ]
 UNPROCESSABLE_OTHER_FORMATS = [
-    'geojson', 'json', 'xml', 'shp', 'kml'
+    'geojson', 'json', 'xml', 'shp', 'kml', 'geoxml'
 ]
 UNPROCESSABLE_GOOD_FORMATS = UNPROCESSABLE_DOCUMENT_FORMATS + UNPROCESSABLE_OTHER_FORMATS
 DOCUMENT_MIMETYPES = {
