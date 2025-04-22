@@ -128,6 +128,6 @@ export class QuestionsComponent implements AfterViewInit {
     if (!date) {
       return '';
     }
-    return dayjs(date).local().format('DD/MM/YYYY HH:MM');
+    return dayjs(date).local().format('DD/MM/YYYY HH:mm');
   }
 }
