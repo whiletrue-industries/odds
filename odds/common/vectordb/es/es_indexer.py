@@ -38,12 +38,17 @@ class ESIndexer(Indexer):
                 )
             )
             chunks=dict(
-                knn=dict(
-                    field="resources.chunks.embeddings",
-                    query_vector=embedding.tolist(),
-                    k=10,
-                    num_candidates=50,
-                    boost=0.5
+                nested=dict(
+                    path="resources.chunks",
+                    query=dict(
+                        knn=dict(
+                            field="resources.chunks.embeddings",
+                            query_vector=embedding.tolist(),
+                            k=10,
+                            num_candidates=50,
+                            boost=0.5
+                        )
+                    )
                 )
             )
 
