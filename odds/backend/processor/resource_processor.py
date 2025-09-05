@@ -152,7 +152,7 @@ class ResourceProcessor:
     concurrency_limit = 7
 
     MISSING_VALUES = ['None', 'NULL', 'N/A', 'NA', 'NAN', 'NaN', 'nan', '-']
-    BIG_FILE_SIZE = 10000000
+    BIG_FILE_SIZE = 1_000_000_000
     MAX_FIELDS = 1000
 
     @staticmethod
