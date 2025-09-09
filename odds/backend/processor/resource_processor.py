@@ -329,7 +329,7 @@ class ResourceProcessor:
                     to_delete.append(sqlite_filename)
 
             except Exception as e:
-                rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
+                rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e!r}', 'error')
                 resource.status = 'failed'
                 resource.loading_error = str(e)
                 return
