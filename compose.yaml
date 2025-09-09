@@ -164,15 +164,15 @@ services:
       memlock:
         soft: -1
         hard: -1
-    # healthcheck:
-    #   test:
-    #     [
-    #       "CMD-SHELL",
-    #       "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-    #     ]
-    #   interval: 60s
-    #   timeout: 60s
-    #   retries: 120
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 60s
+      timeout: 60s
+      retries: 120
     restart: always
 
   es02:
@@ -204,15 +204,15 @@ services:
       memlock:
         soft: -1
         hard: -1
-    # healthcheck:
-    #   test:
-    #     [
-    #       "CMD-SHELL",
-    #       "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-    #     ]
-    #   interval: 60s
-    #   timeout: 60s
-    #   retries: 120
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 60s
+      timeout: 60s
+      retries: 120
     restart: always
 
 
@@ -245,15 +245,15 @@ services:
       memlock:
         soft: -1
         hard: -1
-    # healthcheck:
-    #   test:
-    #     [
-    #       "CMD-SHELL",
-    #       "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-    #     ]
-    #   interval: 60s
-    #   timeout: 60s
-    #   retries: 120
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 60s
+      timeout: 60s
+      retries: 120
     restart: always
 
 
