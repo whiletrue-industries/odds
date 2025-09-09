@@ -148,6 +148,11 @@ class EvaluateDescriptionsQuery(LLMQuery):
     New description:
     {new_description}
     '''
+
+    def __init__(self, dataset: Dataset, catalog: DataCatalog, ctx: str):
+        super().__init__(dataset, catalog)
+        self.ctx = ctx
+
     def prompt(self) -> list[tuple[str, str]]:    
         return [
             ('system', 'You are an experienced data analyst.'),
@@ -199,7 +204,7 @@ class MetaDescriber:
             #     query.upgrade()
             #     await llm_runner.run(query)
             if dataset.better_title is not None and dataset.better_description is not None:
-                query = EvaluateDescriptionsQuery(dataset, catalog)
+                query = EvaluateDescriptionsQuery(dataset, catalog, ctx)
                 await llm_runner.run(query)
             dataset.versions['meta_describer'] = config.feature_versions.meta_describer
             rts.set(ctx, f'DESCRIBED ({catalog.language}) {dataset.title} --({dataset.improvement_score})--> {dataset.better_title or 'empty'} ({dataset.summary})')
