@@ -103,7 +103,7 @@ async def get_assistant_id(client: AsyncOpenAI, deployment: Deployment):
         name=assistant_name,
         description=f'{config.assistant.description} for {deployment.agentOrgName}',
         instructions=instructions,
-        model="gpt-4o",
+        model="gpt-4.1",
         tools=yaml.safe_load((ROOT / config.assistant.tools_file).open()),
         temperature=0,
     )

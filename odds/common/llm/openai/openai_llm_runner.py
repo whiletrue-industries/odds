@@ -58,8 +58,10 @@ class OpenAILLMRunner(LLMRunner):
     async def run(self, query: LLMQuery, conversation=[]) -> Any:
         prompt = query.prompt()
         self.cache.store_log(conversation, prompt)
+        model = self.MODELS.get(query.model())
+        temperature = query.temperature() if 'gpt-5' not in model else 1
         request = dict(
-            model=self.MODELS[query.model()],
+            model=model,
             messages=[
                 dict(
                     role=p[0],
@@ -67,7 +69,7 @@ class OpenAILLMRunner(LLMRunner):
                 )
                 for p in prompt
             ],
-            temperature=query.temperature()
+            temperature=temperature
         )
         content = await self.internal_fetch_data(request, query)
         if content is not None:
