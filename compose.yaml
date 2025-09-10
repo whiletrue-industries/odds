@@ -129,7 +129,7 @@ services:
       test: ["CMD-SHELL", "[ -f config/certs/es01/es01.crt ]"]
       interval: 10s
       timeout: 50s
-      retries: 120
+      retries: 5
 
   es01:
     depends_on:
@@ -172,7 +172,7 @@ services:
         ]
       interval: 60s
       timeout: 60s
-      retries: 120
+      retries: 5
     restart: always
 
   es02:
@@ -212,7 +212,7 @@ services:
         ]
       interval: 60s
       timeout: 60s
-      retries: 120
+      retries: 5
     restart: always
 
 
@@ -253,7 +253,7 @@ services:
         ]
       interval: 60s
       timeout: 60s
-      retries: 120
+      retries: 5
     restart: always
 
 
