@@ -376,6 +376,11 @@ class ResourceProcessor:
                     past_num_fields = int(past_num_fields)
                     if past_num_fields > self.MAX_FIELDS:
                         return None
+                if resource.loading_error.startswith('File too big'):
+                    past_limit = resource.loading_error.split('>')[-1]
+                    past_limit = int(past_limit)
+                    if past_limit >= self.BIG_FILE_SIZE:
+                        return None
             resource.status_selected = True
             resource.loading_error = None
             resource.status_loaded = False
