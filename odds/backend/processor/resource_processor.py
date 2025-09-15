@@ -23,6 +23,7 @@ from ...common.realtime_status import realtime_status as rts
 from ...common.llm import llm_runner
 from ...common.llm.llm_query import LLMQuery
 from ..settings import ALLOWED_FORMATS, DOCUMENT_FORMATS, DOCUMENT_MIMETYPES, UNPROCESSABLE_GOOD_FORMATS
+import traceback
 
 
 TMP_DIR = os.environ.get('RESOURCE_PROCESSOR_CACHE_DIR') or CACHE_DIR / 'resource-processor-temp'
@@ -244,7 +245,7 @@ class ResourceProcessor:
                 total_size = 0
                 async with httpx.AsyncClient() as client:
                     headers = {
-                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:143.0) Gecko/20100101 Firefox/143.0'
                     }
                     headers.update(catalog.http_headers)
                     report = 0
@@ -329,7 +330,13 @@ class ResourceProcessor:
                     to_delete.append(sqlite_filename)
 
             except Exception as e:
-                rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r}', 'error')
+                tb = traceback.extract_tb(e.__traceback__)
+                if tb:
+                    filename = tb[-1].filename
+                    lineno = tb[-1].lineno
+                    rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r} at {filename}:{lineno}', 'error')
+                else:
+                    rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r}', 'error')
                 resource.status = 'failed'
                 resource.loading_error = str(e)
                 return
