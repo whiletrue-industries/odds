@@ -332,9 +332,19 @@ class ResourceProcessor:
             except Exception as e:
                 tb = traceback.extract_tb(e.__traceback__)
                 if tb:
-                    filename = tb[-1].filename
-                    lineno = tb[-1].lineno
-                    rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r} at {filename}:{lineno}', 'error')
+                    # Find the last frame that's in the main code (not in libraries)
+                    main_frame = None
+                    for frame in reversed(tb):
+                        if not frame.filename.startswith(('/usr/lib/', '/usr/local/lib/', '<frozen importlib._bootstrap')):
+                            main_frame = frame
+                            break
+
+                    if main_frame:
+                        filename = main_frame.filename
+                        lineno = main_frame.lineno
+                        rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r} at {filename}:{lineno}', 'error')
+                    else:
+                        rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r}', 'error')
                 else:
                     rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r}', 'error')
                 resource.status = 'failed'
