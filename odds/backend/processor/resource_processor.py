@@ -329,7 +329,7 @@ class ResourceProcessor:
                     to_delete.append(sqlite_filename)
 
             except Exception as e:
-                rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e!r}', 'error')
+                rts.set(ctx, f'FAILED TO LOAD in process_tabular {resource.url}: {e!r}', 'error')
                 resource.status = 'failed'
                 resource.loading_error = str(e)
                 return
@@ -351,7 +351,7 @@ class ResourceProcessor:
             query = MDConverterQuery(ctx, catalog, resource, content, filename=filename.split('/')[-1])
             await llm_runner.run(query, [dataset.id])
         except Exception as e:
-            rts.set(ctx, f'FAILED TO LOAD {resource.url}: {e}', 'error')
+            rts.set(ctx, f'FAILED TO LOAD in process_document {resource.url}: {e}', 'error')
             resource.status = 'failed'
             resource.loading_error = str(e)
             return

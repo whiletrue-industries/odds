@@ -1,6 +1,7 @@
 import datetime
 import json
 import dataclasses
+import sys
 
 from elasticsearch import Elasticsearch
 
@@ -118,14 +119,18 @@ class ESMetadataStore(MetadataStore):
         if self.initialized:
             return
         self.initialized = True
-        assert await client.ping()
-        if not await client.indices.exists(index=ES_INDEX):
-            await client.indices.create(index=ES_INDEX, body={
-                'mappings': MAPPING
-            })
-        else:
-            # Update mapping
-            await client.indices.put_mapping(index=ES_INDEX, **MAPPING)
+        try:
+            assert await client.ping()
+            if not await client.indices.exists(index=ES_INDEX):
+                await client.indices.create(index=ES_INDEX, body={
+                    'mappings': MAPPING
+                })
+            else:
+                # Update mapping
+                await client.indices.put_mapping(index=ES_INDEX, **MAPPING)
+        except Exception as e:
+            print('ESMetadataStore initialization error:', e)
+            sys.exit(1)
 
     async def storeDataset(self, dataset: Dataset, ctx: str) -> None:
         async with ESClient() as client:
@@ -180,7 +185,7 @@ class ESMetadataStore(MetadataStore):
         async with ESClient() as client:
             await self.single_time_init(client)
             doc = dict(embeddings=embedding.tolist())
-            ret = await client.update(
+            ret = await BaseRetry()(client, 'update',
                 index=ES_INDEX,
                 id=dataset.storeId(),
                 doc=doc,
